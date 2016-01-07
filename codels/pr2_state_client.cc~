@@ -1,0 +1,14 @@
+#include "pr2_state_client.hh"
+
+ERROR setQ(sensor_msgs::JointState input_state) {
+  int joint_names_size=0;
+  int position_size=0;
+  int velocity_size=0;
+  int effort_size=0;
+
+  joint_names_size = state->data(self)->state.joint_names._length;
+  position_size = state->data(self)->state.position._length;
+  velocity_size = state->data(self)->state.velocity._length;
+  effort_size = state->data(self)->state.effort._length;
+  
+}

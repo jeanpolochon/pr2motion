@@ -1,0 +1,9 @@
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
+
+class RobotPR2{
+public:
+  enum ERROR { OK, INVALID_STATE, NB_ERROR};
+  RobotPR2();
+  ~RobotPR2();
+
