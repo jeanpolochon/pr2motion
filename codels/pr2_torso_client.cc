@@ -24,7 +24,7 @@ Torso::ERROR Torso::init(){
     ROS_INFO("Waiting for the torso action server to come up");
   }
 
-  if(torso_client_->isServerConnected())
+  if(!torso_client_->isServerConnected())
     result=INIT_FAILED;
   
   return result;
