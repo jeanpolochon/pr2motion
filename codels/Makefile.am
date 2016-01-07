@@ -23,7 +23,7 @@ libpr2motion_codels_la_SOURCES+= 	pr2_gripper_sensor_client.hh pr2_gripper_senso
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_client.hh pr2_gripper_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_torso_client.hh pr2_torso_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_head_client.hh pr2_head_client.cc
-libpr2motion_codels_la_SOURCES+=        trajectories/PathG.h trajectories/TrajectoryG.h trajectories/PathG.cpp trajectories/TrajectoryG.cpp pr2_test.cc
+libpr2motion_codels_la_SOURCES+=        trajectories/PathG.h trajectories/TrajectoryG.h trajectories/PathG.cpp trajectories/TrajectoryG.cpp
 libpr2motion_codels_la_SOURCES+= 	pr2_arm_client.hh pr2_arm_client.cc
 
 
