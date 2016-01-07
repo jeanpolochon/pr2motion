@@ -40,19 +40,19 @@
 
 #ifndef PR2_SIMU
 // we are on the real robot
-Gripper left_gripper;
-Gripper right_gripper;
+extern Gripper left_gripper;
+extern Gripper right_gripper;
 #else
 // we are in simulation
-GripperSimple left_gripper;
-GripperSimple right_gripper;
+extern GripperSimple left_gripper;
+extern GripperSimple right_gripper;
 #endif
 
-Torso torso;
-RobotHead head;
-RobotArm left_arm;
-RobotArm right_arm;
-RobotState robot_state; 
+extern Torso torso;
+extern RobotHead head;
+extern RobotArm left_arm;
+extern RobotArm right_arm;
+extern RobotState robot_state; 
 
 /* 
 StateEnum {
