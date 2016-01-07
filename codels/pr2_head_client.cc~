@@ -1,0 +1,81 @@
+#include <pr2_head_client.hh>
+
+RobotHead::RobotHead(){
+}
+
+RobotHead::~RobotHead(){
+  delete point_head_client_;
+}
+
+void RobotHead::init(){
+  //Initialize the client for the Action interface to the head controller
+  point_head_client_ = new PointHeadClient("/head_traj_controller/point_head_action", true);
+  
+  //wait for head controller action server to come up 
+  while(!point_head_client_->waitForServer(ros::Duration(5.0))){
+    ROS_INFO("Waiting for the point_head_action server to come up");
+  }
+}
+
+actionlib::SimpleClientGoalState RobotHead::lookAt_getState() {
+  return point_head_client_->getState();
+}
+void RobotHead::lookAt_doneCb(const actionlib::SimpleClientGoalState& state,
+	      const pr2_controllers_msgs::PointHeadActionResultConstPtr& result)
+  {
+    // pr2_controllers_msgs/PointHeadActionResult result
+    // Header header
+    // actionlib_msgs/GoalStatus status
+    // PointHeadResult result    
+    ROS_INFO("Finished in state [%s]", state.toString().c_str());
+  }
+
+void RobotHead::lookAt_activeCb()
+  {
+    ROS_INFO("Goal just went active");
+  }
+
+void RobotHead::lookAt_feedbackCb(const pr2_controllers_msgs::PointHeadActionFeedbackConstPtr& feedback)
+  {
+    // pr2_controllers_msgs/SingleJointPositionFeedback feedback
+    ROS_INFO("Got Feedback\n");
+  }
+
+void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
+  //the goal message we will be sending
+  //pr2_controllers_msgs::PointHeadGoal
+  // geometry_msgs/PointStamped target
+  // geometry_msgs/Vector3 pointing_axis
+  // string pointing_frame
+  // duration min_duration
+  // float64 max_velocity
+    pr2_controllers_msgs::PointHeadGoal goal_cmd;
+
+    //the target point, expressed in the requested frame
+    geometry_msgs::PointStamped point;
+    point.header.frame_id = frame_id;
+    point.point.x = x; point.point.y = y; point.point.z = z;
+    goal_cmd.target = point;
+
+    //we are pointing the high-def camera frame 
+    //(pointing_axis defaults to X-axis)
+    goal_cmd.pointing_frame = "high_def_frame";
+
+    //
+    //    goal_cmd.pointing_axis=tf::Vector3(1.0, 0.0, 0.0);
+    //take at least 0.5 seconds to get there
+    goal_cmd.min_duration = ros::Duration(0.5);
+
+    //and go no faster than 1 rad/s
+    goal_cmd.max_velocity = 1.0;
+
+    //send the goal
+    point_head_client_->sendGoal(goal_cmd);
+
+    //send the goal with callback (never achieved to make it work with that client)
+    // point_head_client_->sendGoal(goal_cmd,
+    //   boost::bind(&RobotHead::lookAt_doneCb, this, _1, _2), 
+    //   boost::bind(&RobotHead::lookAt_activeCb, this),
+    //   boost::bind(&RobotHead::lookAt_feedbackCb, this, _1));
+    
+}

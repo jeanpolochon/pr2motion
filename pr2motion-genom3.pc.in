@@ -1,0 +1,15 @@
+# pkg-config file for pr2motion interface and codels library
+#
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+idldir=@datadir@/idl
+
+Name: pr2motion-genom3
+Description: pr2motion interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: sensor_msgs, pr2_controllers_msgs, pr2_gripper_sensor_msgs, actionlib, actionlib_msgs, eigen3, softMotion-libs
+Cflags: -I${includedir} -I${idldir}
+Libs: -L${libdir} -lpr2motion_codels

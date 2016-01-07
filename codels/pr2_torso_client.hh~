@@ -1,0 +1,34 @@
+#include <ros/ros.h>
+#include <pr2_controllers_msgs/SingleJointPositionAction.h>
+#include <actionlib/client/simple_action_client.h>
+
+// Our Action interface type, provided as a typedef for convenience
+typedef actionlib::SimpleActionClient<pr2_controllers_msgs::SingleJointPositionAction> TorsoClient;
+
+class Torso{
+private:
+  TorsoClient *torso_client_;
+
+public:
+  Torso();
+  ~Torso();
+  
+  void init();
+
+  // move
+  actionlib::SimpleClientGoalState move_getState();
+  void move_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::SingleJointPositionResultConstPtr&);
+  void move_activeCb();
+  // pr2_controllers_msgs/SingleJointPositionFeedback feedback
+  //  Header header
+  //  float64 position
+  //  float64 velocity
+  //  float64 error
+  void move_feedbackCb(const pr2_controllers_msgs::SingleJointPositionFeedbackConstPtr&);
+  // pr2_controllers_msgs::SingleJointPositionGoal 
+  // float64 position
+  // duration min_duration
+  // float64 max_velocity
+  void move(pr2_controllers_msgs::SingleJointPositionGoal);
+  void move_cancel();  
+};

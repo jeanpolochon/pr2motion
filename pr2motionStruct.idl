@@ -1,0 +1,167 @@
+/*        $LAAS$ */
+
+/*
+
+ * Copyright (c) 2005 CNRS/LAAS
+
+ *
+
+ * Permission to use, copy, modify, and distribute this software for any
+
+ * purpose with or without fee is hereby granted, provided that the above
+
+ * copyright notice and this permission notice appear in all copies.
+
+ *
+
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+ */
+
+
+
+#ifndef _PR2MOTIONSTRUCT_H
+
+#define _PR2MOTIONSTRUCT_H
+
+#define PR2_SIMU
+
+#include "pr2motionConst.idl"
+
+module pr2motion {
+
+  enum PR2MOTION_SIDE {
+    PR2MOTION_LEFT,                
+    PR2MOTION_RIGHT,
+    PR2MOTION_NB_SIDE
+  };
+
+  enum PR2MOTION_HEAD_MODE {
+    PR2MOTION_HEAD_LOOKAT,
+    PR2MOTION_HEAD_FOLLOWING,
+    PR2MOTION_HEAD_NB_MODE
+  };
+
+  const long PR2MOTION_HEAD_TARGET_FRAME_LEN = 128;
+
+#ifndef PR2_SIMU
+  enum PR2MOTION_GRIPPER_MODE{
+    PR2MOTION_GRIPPER_OPEN,
+    PR2MOTION_GRIPPER_CLOSE,
+    PR2MOTION_GRIPPER_GRAB,        
+    PR2MOTION_GRIPPER_RELEASE,
+    PR2MOTION_GRIPPER_NB_MODE
+  };
+#else
+  enum PR2MOTION_GRIPPER_MODE{
+    PR2MOTION_GRIPPER_OPEN,
+    PR2MOTION_GRIPPER_CLOSE,
+    PR2MOTION_GRIPPER_NB_MODE
+  };
+#endif
+#ifndef PR2_SIMU
+  enum PR2MOTION_GRIPPER_EVENT_DETECTOR{
+    PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC,
+    PR2MOTION_GRIPPER_FINGER_SLIP_AND_ACC,
+    PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC,
+    PR2MOTION_GRIPPER_SLIP,
+    PR2MOTION_GRIPPER_ACC,
+    PR2MOTION_GRIPPER_NB_EVENT_DETECTOR
+  };
+#endif
+#ifndef PR2_SIMU
+    enum PR2MOTION_GRIPPER_CONTACT_CONDITIONS {
+    PR2MOTION_GRIPPER_CONTACT_BOTH,
+    PR2MOTION_GRIPPER_CONTACT_LEFT,
+    PR2MOTION_GRIPPER_CONTACT_RIGHT,
+    PR2MOTION_GRIPPER_CONTACT_EITHER,
+    PR2MOTION_GRIPPER_NB_CONTACT_CONDITIONS
+  };
+#endif
+
+  enum PR2MOTION_TRAJ_MODE{
+    PR2MOTION_TRAJ_SOFTMOTION,
+    PR2MOTION_TRAJ_GATECH,
+    PR2MOTION_TRAJ_PATH,
+    PR2MOTION_TRAJ_NB_MODE
+  };
+
+  enum PR2MOTION_PATH_MODE{
+    PR2MOTION_PATH_PORT,
+    PR2MOTION_PATH_TEST,
+    PR2MOTION_PATH_NB_MODE
+  };
+
+
+// rosmsg show gtp_ros_msg/GTPTraj 
+//  string name
+//  trajectory_msgs/JointTrajectory traj
+//    std_msgs/Header header
+//      uint32 seq
+//      time stamp
+//      string frame_id
+//    string[] joint_names
+//    trajectory_msgs/JointTrajectoryPoint[] points
+//      float64[] positions
+//      float64[] velocities
+//      float64[] accelerations
+//      float64[] effort
+//      duration time_from_start
+  struct msgs_time {
+    unsigned long secondes;
+    unsigned long nsecondes;
+  };
+  struct std_msgs_header {
+    unsigned long seq;
+    msgs_time stamp;
+    string frame_id;
+  };
+  struct trajectory_msgs_jointtrajectorypoint {
+    sequence<double> positions;
+    sequence<double> velocities;
+    sequence<double> accelerations;
+    sequence<double> effort;
+    double time_from_start;
+  };
+  struct trajectory_msgs_jointtrajectory{
+    std_msgs_header header;
+    sequence<string> joint_names;
+    sequence<trajectory_msgs_jointtrajectorypoint> points;
+  };
+  struct gtp_ros_msg_gtptraj{
+    string name;
+    trajectory_msgs_jointtrajectory traj;
+  };
+
+#pragma masquerade ros gtp_ros_msg_gtptraj gtp_ros_msg/GTPTraj 
+
+  //sensor_msgs/JointState Message
+  //    std_msgs/Header header
+  //    string[] name
+  //    float64[] position
+  //    float64[] velocity
+  //    float64[] effort
+  struct sensor_msgs_jointstate{
+    std_msgs_header header;
+    sequence<string> name;
+    sequence<double> position;
+    sequence<double> velocity;
+    sequence<double> effort;
+  };
+
+#pragma masquerade ros sensor_msgs_jointstate sensor_msgs/JointState
+
+};
+#endif

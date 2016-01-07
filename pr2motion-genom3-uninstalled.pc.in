@@ -1,0 +1,11 @@
+# pkg-config file for uninstalled pr2motion interface and codels library
+#
+prefix=@abs_top_builddir@
+libdir=${prefix}/codels
+includedir=${prefix}/codels
+
+Name: pr2motion-genom3
+Description: pr2motion interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: sensor_msgs, pr2_controllers_msgs, pr2_gripper_sensor_msgs, actionlib, actionlib_msgs, eigen3, softMotion-libs
+Libs: ${libdir}/libpr2motion_codels.la
