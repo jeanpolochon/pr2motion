@@ -15,10 +15,11 @@
 #
 lib_LTLIBRARIES = libpr2motion_codels.la
 
-libpr2motion_codels_la_SOURCES=		pr2motion_c_types.h
-libpr2motion_codels_la_SOURCES+=	pr2_state_client.hh pr2_state_client.cc
+libpr2motion_codels_la_SOURCES=	pr2motion_c_types.h
 libpr2motion_codels_la_SOURCES+=	pr2motion_codels.cc
 libpr2motion_codels_la_SOURCES+=	pr2motion_main_codels.cc
+libpr2motion_codels_la_SOURCES+=	pr2_state_client.hh pr2_state_client.cc
+libpr2motion_codels_la_SOURCES+=	pr2_model.hh pr2_model.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_sensor_client.hh pr2_gripper_sensor_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_client.hh pr2_gripper_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_torso_client.hh pr2_torso_client.cc
@@ -27,8 +28,8 @@ libpr2motion_codels_la_SOURCES+=        trajectories/PathG.h trajectories/Trajec
 libpr2motion_codels_la_SOURCES+= 	pr2_arm_client.hh pr2_arm_client.cc
 
 
-libpr2motion_codels_la_CPPFLAGS=	$(requires_CFLAGS) $(sensor_msgs_CFLAGS) $(pr2_gripper_sensor_msgs_CFLAGS) $(actionlib_CFLAGS)  $(actionlib_msgs_CFLAGS) $(eigen3_CFLAGS) $(softmotion_CFLAGS)
-libpr2motion_codels_la_LDFLAGS=		$(requires_LIBS) $(sensor_msgs_LIBS) $(pr2_gripper_sensor_msgs_LIBS) $(actionlib_LIBS) $(actionlib_msgs_LIBS) $(eigen3_LIBS) $(softmotion_LDFLAGS)
+libpr2motion_codels_la_CPPFLAGS=	$(requires_CFLAGS) 
+libpr2motion_codels_la_LDFLAGS=		$(requires_LIBS) 
 libpr2motion_codels_la_LDFLAGS+=	-release $(PACKAGE_VERSION)
 
 

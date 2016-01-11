@@ -16,11 +16,11 @@
 //#include "pr2motion.hh"
 #include "acpr2motion.h"
 #include "pr2motion_c_types.h"
-#define PR2_SIMU
 
-/* --- Attribute PR2MOTION_Gripper_SetOpenGoal -------------------------- */
 
-/** Validation codel Gripper_SetOpenGoal of attribute PR2MOTION_Gripper_SetOpenGoal.
+/* --- Attribute Gripper_SetOpenGoal ------------------------------------ */
+
+/** Validation codel Gripper_SetOpenGoal of attribute Gripper_SetOpenGoal.
  *
  * Returns genom_ok.
  * Throws .
@@ -34,9 +34,9 @@ Gripper_SetOpenGoal(double open_position, double open_max_effort,
 }
 
 
-/* --- Attribute PR2MOTION_Gripper_SetCloseGoal ------------------------- */
+/* --- Attribute Gripper_SetCloseGoal ----------------------------------- */
 
-/** Validation codel Gripper_SetCloseGoal of attribute PR2MOTION_Gripper_SetCloseGoal.
+/** Validation codel Gripper_SetCloseGoal of attribute Gripper_SetCloseGoal.
  *
  * Returns genom_ok.
  * Throws .
@@ -50,26 +50,25 @@ Gripper_SetCloseGoal(double close_position, double close_max_effort,
 }
 
 
-/* --- Attribute PR2MOTION_Torso_SetMoveTorsoParam ---------------------- */
+/* --- Attribute Torso_SetMoveParam ------------------------------------- */
 
-/** Validation codel Torso_SetMoveTorsoParam of attribute PR2MOTION_Torso_SetMoveTorsoParam.
+/** Validation codel Torso_SetMoveParam of attribute Torso_SetMoveParam.
  *
  * Returns genom_ok.
  * Throws .
  */
 genom_event
-Torso_SetMoveTorsoParam(double torso_min_duration,
-                        float torso_max_velocity, genom_context self)
+Torso_SetMoveParam(double torso_min_duration, float torso_max_velocity,
+                   genom_context self)
 {
   /* skeleton sample: insert your code */
   /* skeleton sample */ return genom_ok;
 }
 
 
+/* --- Attribute Arm_SetMax --------------------------------------------- */
 
-/* --- Attribute PR2MOTION_Arm_SetMax ----------------------------------- */
-
-/** Validation codel Arm_SetMax of attribute PR2MOTION_Arm_SetMax.
+/** Validation codel Arm_SetMax of attribute Arm_SetMax.
  *
  * Returns genom_ok.
  * Throws pr2motion_invalid_param.
@@ -92,9 +91,9 @@ Arm_SetMax(double max_vel, double max_acc, double max_jerk,
 }
 
 
-/* --- Attribute PR2MOTION_Arm_SetT ------------------------------------- */
+/* --- Attribute Arm_SetT ----------------------------------------------- */
 
-/** Validation codel Arm_SetT of attribute PR2MOTION_Arm_SetT.
+/** Validation codel Arm_SetT of attribute Arm_SetT.
  *
  * Returns genom_ok.
  * Throws pr2motion_invalid_param.

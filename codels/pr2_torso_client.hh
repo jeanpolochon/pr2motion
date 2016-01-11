@@ -1,6 +1,10 @@
+#ifndef _PR2_TORSO_CLIENT_H
+#define _PR2_TORSO_CLIENT_H
+
 #include <ros/ros.h>
 #include <pr2_controllers_msgs/SingleJointPositionAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <pr2_model.hh>
 
 // Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::SingleJointPositionAction> TorsoClient;
@@ -12,11 +16,15 @@ private:
   double position_max_;
   ros::Duration min_duration_min_;
   ros::Duration min_duration_max_;
+  ros::Duration min_duration_default_;
   double max_velocity_min_;
   double max_velocity_max_;
+  double max_velocity_default_;
+  // true if connected, false otherwise
+  bool is_connected_;
 
 public:
-  enum ERROR { OK, INIT_FAILED, INVALID_PARAM, NB_ERROR };
+  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR };
 
   // Torso()
   // initialise limits values
@@ -38,12 +46,26 @@ public:
   ERROR init();
 
 
+  // isConnected
+  // Check if the server is connected, return OK if yes
+  ERROR isConnected();
+
+  // getMaxVelocityDefault
+  double getMaxVelocityDefault();
+  
+  // getMinDurationDefault
+  ros::Duration getMinDurationDefault();
+
   // checkParamLimits
   // check min_duration and max_velocity parameters limits
   ERROR checkParamLimits(ros::Duration, double);
   // checlCmdLimits
   // check torso position limits
   ERROR checkCmdLimits(double);
+
+
+  // move_isDone
+  bool move_isDone();
 
   // move_getState
   // get torso_client state
@@ -84,3 +106,5 @@ public:
   // cancel all commands send to the controller
   void cancelCmd();  
 };
+
+#endif

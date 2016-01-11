@@ -1,3 +1,6 @@
+#ifndef _PR2_ROBOT_ARM_CLIENT_H
+#define _PR2_ROBOT_ARM_CLIENT_H
+
 #include <ros/ros.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -13,13 +16,16 @@ using namespace Eigen;
 #include "softMotion/Sm_Traj.h"
 #include "softMotion/softMotion.h"
 
+// to be able to read robot limits
+#include <pr2_model.hh>
+
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> TrajClient;
 
 // this class deals with PR2 arm trajectory computation and execution
 
 class RobotArm{
 public:
-  enum ERROR { OK, INIT_FAILED, INVALID_PARAM, INVALID_TRAJ, TRAJECTORY_COMPUTATION_FAILED, NB_ERROR };
+enum ERROR { OK, INIT_FAILED, INVALID_PARAM, INIT_NOT_DONE, SERVER_NOT_CONNECTED, INVALID_TRAJ, TRAJECTORY_COMPUTATION_FAILED, UNKNOWN_JOINT, CANNOT_READ_LIMITS, NB_ERROR };
   enum SIDE { LEFT, RIGHT, NB_SIDE };
   enum TRAJ_MODE { SOFT_MOTION, GATECH, PATH, TEST, NB_MODE };
   RobotArm();
@@ -28,6 +34,10 @@ public:
   // init
   // this function initializes the action with the correct controller (ie right/left)
   ERROR init(SIDE);
+
+  // isConnected
+  // Check if the server is connected, return OK if yes
+  ERROR isConnected();
 
   // clearTrajectory
   // this function clear arm_traj_
@@ -86,8 +96,86 @@ private:
   SIDE arm_side_;
   TRAJ_MODE traj_mode_;
   pr2_controllers_msgs::JointTrajectoryGoal arm_traj_;
+
   double max_acc_;
   double max_vel_;
   double max_jerk_;
   double time_slot_;
+
+  double r_shoulder_pan_joint_limit_lower_;
+  double r_shoulder_pan_joint_limit_upper_;
+  double r_shoulder_pan_joint_limit_velocity_;
+  double r_shoulder_pan_joint_limit_effort_;
+  
+  double l_shoulder_pan_joint_limit_lower_;
+  double l_shoulder_pan_joint_limit_upper_;
+  double l_shoulder_pan_joint_limit_velocity_;
+  double l_shoulder_pan_joint_limit_effort_;
+  
+  double r_shoulder_lift_joint_limit_lower_;
+  double r_shoulder_lift_joint_limit_upper_;
+  double r_shoulder_lift_joint_limit_velocity_;
+  double r_shoulder_lift_joint_limit_effort_;
+
+  double l_shoulder_lift_joint_limit_lower_;
+  double l_shoulder_lift_joint_limit_upper_;
+  double l_shoulder_lift_joint_limit_velocity_;
+  double l_shoulder_lift_joint_limit_effort_;
+
+  double r_upper_arm_roll_joint_limit_lower_;
+  double r_upper_arm_roll_joint_limit_upper_;
+  double r_upper_arm_roll_joint_limit_velocity_;
+  double r_upper_arm_roll_joint_limit_effort_;
+
+  double l_upper_arm_roll_joint_limit_lower_;
+  double l_upper_arm_roll_joint_limit_upper_;
+  double l_upper_arm_roll_joint_limit_velocity_;
+  double l_upper_arm_roll_joint_limit_effort_;
+
+  double r_elbow_flex_joint_limit_lower_;
+  double r_elbow_flex_joint_limit_upper_;
+  double r_elbow_flex_joint_limit_velocity_;
+  double r_elbow_flex_joint_limit_effort_;
+
+  double l_elbow_flex_joint_limit_lower_;
+  double l_elbow_flex_joint_limit_upper_;
+  double l_elbow_flex_joint_limit_velocity_;
+  double l_elbow_flex_joint_limit_effort_;
+  
+  // CONTINUOUS JOINT
+  //  double r_forearm_roll_joint_limit_lower_;
+  //  double r_forearm_roll_joint_limit_upper_;
+  double r_forearm_roll_joint_limit_velocity_;
+  double r_forearm_roll_joint_limit_effort_;
+
+  // CONTINUOUS JOINT
+  //  double l_forearm_roll_joint_limit_lower_;
+  //  double l_forearm_roll_joint_limit_upper_;
+  double l_forearm_roll_joint_limit_velocity_;
+  double l_forearm_roll_joint_limit_effort_;
+
+  double r_wrist_flex_joint_limit_lower_;
+  double r_wrist_flex_joint_limit_upper_;
+  double r_wrist_flex_joint_limit_velocity_;
+  double r_wrist_flex_joint_limit_effort_;
+
+  double l_wrist_flex_joint_limit_lower_;
+  double l_wrist_flex_joint_limit_upper_;
+  double l_wrist_flex_joint_limit_velocity_;
+  double l_wrist_flex_joint_limit_effort_;
+
+  // CONTINUOUS JOINT
+  //  double r_wrist_roll_joint_limit_lower_;
+  //  double r_wrist_roll_joint_limit_upper_;
+  double r_wrist_roll_joint_limit_velocity_;
+  double r_wrist_roll_joint_limit_effort_;
+
+  // CONTINUOUS JOINT
+  //  double l_wrist_roll_joint_limit_lower_;
+  //  double l_wrist_roll_joint_limit_upper_;
+  double l_wrist_roll_joint_limit_velocity_;
+  double l_wrist_roll_joint_limit_effort_;
+
 };
+
+#endif

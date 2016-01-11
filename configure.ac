@@ -33,14 +33,8 @@ AC_PROG_CXX
 dnl External packages
 PKG_CHECK_MODULES(requires, [
   genom3 >= 2.99.4
-  sensor_msgs, pr2_controllers_msgs, pr2_gripper_sensor_msgs, actionlib, actionlib_msgs, eigen3, softMotion-libs
+  sensor_msgs, pr2_controllers_msgs, pr2_gripper_sensor_msgs, actionlib, actionlib_msgs, eigen3, softMotion-libs, urdf
 ])
-PKG_CHECK_MODULES([sensor_msgs],[sensor_msgs])
-PKG_CHECK_MODULES([pr2_gripper_sensor_msgs],[pr2_gripper_sensor_msgs])
-PKG_CHECK_MODULES([actionlib],[actionlib])
-PKG_CHECK_MODULES([actionlib_msgs],[actionlib_msgs])
-PKG_CHECK_MODULES([eigen3],[eigen3])
-PKG_CHECK_MODULES([softmotion],[softMotion-libs])
 
 AC_PATH_PROG(GENOM3, [genom3], AC_MSG_ERROR([genom3 tool not found], 2))
 

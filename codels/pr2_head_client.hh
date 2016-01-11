@@ -1,10 +1,13 @@
 // inspired from http://wiki.ros.org/pr2_controllers/Tutorials/Moving%20the%20Head
 
+#ifndef _PR2_HEAD_CLIENT_H
+#define _PR2_HEAD_CLIENT_H
+
 #include <ros/ros.h>
 #include <pr2_controllers_msgs/PointHeadAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
-
 #include <actionlib/client/simple_action_client.h>
+#include <pr2_model.hh>
 
 // Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::PointHeadAction> PointHeadClient;
@@ -17,11 +20,17 @@ private:
   double pan_max_;
   double tilt_min_;
   double tilt_max_;
+  ros::Duration min_duration_default_;
+  ros::Duration min_duration_max_;  
+  double max_velocity_default_;
+  double max_velocity_max_;
 
 public:
-  enum ERROR { OK, INIT_FAILED, INVALID_PARAM, NB_ERROR };
+  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR };
   RobotHead();
   ~RobotHead();
+
+  RobotHead::ERROR isConnected();
 
   // listenerCallback
   // This callback aims to read the head desired position send by the controller and check if it is in the joint limits (seems there is no check at the controller level (sic !)
@@ -43,6 +52,9 @@ public:
   // Wait five seconds
   // Test if the server is connected, if not return ERROR
   ERROR init();
+
+  // lookAt_isDone();
+  bool lookAt_isDone();
 
   // lookAt_getState
   // Get the head_controller_client state
@@ -69,3 +81,5 @@ public:
   // cancel cmd send to the head_controller_client
   void cancelCmd();
 };
+
+#endif

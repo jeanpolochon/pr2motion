@@ -35,24 +35,28 @@
 #include "pr2_arm_client.hh"
 #include "pr2_state_client.hh"
 
+//#include <kdl_parser/kdl_parser.hpp>
+#include <urdf/model.h>
 
 /* --- Task main -------------------------------------------------------- */
 
 #ifndef PR2_SIMU
 // we are on the real robot
-extern Gripper left_gripper;
-extern Gripper right_gripper;
+Gripper left_gripper;
+Gripper right_gripper;
 #else
 // we are in simulation
-extern GripperSimple left_gripper;
-extern GripperSimple right_gripper;
+GripperSimple left_gripper;
+GripperSimple right_gripper;
 #endif
 
-extern Torso torso;
-extern RobotHead head;
-extern RobotArm left_arm;
-extern RobotArm right_arm;
-extern RobotState robot_state; 
+Torso torso;
+RobotHead head;
+RobotArm left_arm;
+RobotArm right_arm;
+RobotState robot_state; 
+
+Pr2Model pr2_model;
 
 /* 
 StateEnum {
@@ -71,39 +75,58 @@ StateEnum {
  * Yields to pr2motion_sleep.
  */
 genom_event
-initMain(double torso_min_duration, float torso_max_velocity,
-         genom_context self)
+initMain(genom_context self)
 {
   char* argv[] =  { "pr2motion",
                     "",
                     NULL};
   int argc = 2;
   ros::init(argc, argv, "pr2motion");
-#ifndef PR2_SIMU
-  left_gripper.init(Gripper::LEFT);
-  right_gripper.init(Gripper::RIGHT);
-#else
-  left_gripper.init(GripperSimple::LEFT);
-  right_gripper.init(GripperSimple::RIGHT);
-#endif
-  Torso::ERROR torso_init_result;
-  torso_init_result=torso.init();
-  RobotHead::ERROR head_init_result;
-  head_init_result=head.init();
-  RobotArm::ERROR right_arm_init_result;
-  right_arm_init_result = right_arm.init(RobotArm::RIGHT);
-  RobotArm::ERROR left_arm_init_result;
-  left_arm_init_result = left_arm.init(RobotArm::LEFT);
-  
-  if((torso_init_result!=Torso::OK) || (head_init_result!=RobotHead::OK) || (right_arm_init_result!=RobotArm::OK) || (left_arm_init_result!=RobotArm::OK)){
-    printf("there is an error concerning almost one controller initialisation !");
-    return pr2motion_end;
-  }
-
-  torso_min_duration = 2.0;
-  torso_max_velocity = 0.5;
-
     
+  // printf("1\n");
+  // // The object for urdf model
+  // boost::shared_ptr<urdf::Model> robot_model_;
+  // robot_model_ = boost::shared_ptr<urdf::Model>(new urdf::Model());
+
+  // //  KDL::Tree my_tree;
+  // printf("2\n");
+  // ros::NodeHandle node;
+  // std::string robot_desc_string;
+  // node.param("robot_description", robot_desc_string, string());
+  // // //if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
+  // // //  ROS_ERROR("Failed to construct kdl tree");
+  // // //  return false;
+  // // //}
+  // //  printf("3\n");
+  // if(!robot_model_->initString(robot_desc_string)){
+  //    printf("unable to read robot_description\n");
+  // } else {
+  //   printf("able to read robot_description\n");
+  // }
+
+  // const urdf::Joint* joint = robot_model_->getJoint("torso_lift_joint").get();
+  // //urdf::Joint::type joint_type = joint->type;
+  // int joint_type = joint->type;
+  // const boost::shared_ptr<urdf::JointLimits> limits = joint->limits;
+  // //urdf::JointLimits* limits = joint->limits;
+  // printf("limites joint: %f, %f,%f,%f'", limits->lower, limits->upper, limits->effort, limits->velocity);
+
+
+  //  limits->lower = joint->limits.lower;
+  //limits->upper = joint->limits.upper;
+  //limits->effort = joint->limits.effort;
+  //limits->velocity = joint->limits.velocity;
+  // for (std::map<std::string, boost::shared_ptr<urdf::Joint> >::iterator it = robot_model_->joints_.begin(); it != robot_model_->joints_.end(); it ++ ) {
+  //   boost::shared_ptr<urdf::Joint> joint = it->second;
+  //   if ( joint->type == urdf::Joint::REVOLUTE ) {
+  //     std::string joint_name = it->first;
+  //     boost::shared_ptr<urdf::JointLimits> limit = joint->limits;
+  //     joints_[joint_name] = createJoint(joint_name);
+  //     //joints_[joint_name]->max_effort_property_->setFloat(limit->effort);
+  //     //joints_[joint_name]->max_effort_property_->setReadOnly( true );
+  //     joints_[joint_name]->setMaxEffort(limit->effort);
+  //   }
+  // }
   //  Gripper_SetOpenGoal(0.09,-1.0,self);
   //Gripper_SetCloseGoal(0.0,-1.0,self);
   //Gripper_SetFindContactGoal(pr2motion_PR2MOTION_GRIPPER_CONTACT_BOTH, true);
@@ -142,36 +165,82 @@ initMain(double torso_min_duration, float torso_max_velocity,
 genom_event
 endMain(genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+ return pr2motion_ether;
 }
 
 
-/* --- Activity PR2MOTION_Init ------------------------------------------ */
+/* --- Activity Init ---------------------------------------------------- */
 
-/** Codel startInit of activity PR2MOTION_Init.
+/** Codel initConnect of activity Init.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_ether.
  * Throws pr2motion_serverconnection_error.
  */
 genom_event
-startInit(genom_context self)
+initConnect(double torso_min_duration, float torso_max_velocity,
+            genom_context self)
 {
- 
- 
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+  ros::Duration torso_duration;
+
+  // Pr2 Model
+  Pr2Model::ERROR pr2model_init_result;
+  pr2model_init_result=pr2_model.getRobotModel();
+  if(pr2model_init_result!=Pr2Model::OK) {
+    return pr2motion_unable_to_read_description(self);
+  }
+
+  // Torso Initialisation
+  Torso::ERROR torso_init_result;
+  torso_init_result=torso.init();
+  if(torso_init_result==Torso::OK) {
+    torso_duration = torso.getMinDurationDefault();
+    torso_min_duration = torso_duration.toSec();
+    printf("initialisation of the torso with : sec = %d and nsec = %d so torso_min_duration = %f \n",torso_duration.sec, torso_duration.nsec, torso_min_duration);
+    torso_max_velocity = torso.getMaxVelocityDefault();  
+  } else {
+    printf("pr2motion::initConnect: WARNING: Torso initialisation failed, you won't be able to use it! \n");
+  }
+
+  // Head Initialisation
+  RobotHead::ERROR head_init_result;
+  head_init_result=head.init();  
+  if(head_init_result!=RobotHead::OK) {
+    printf("pr2motion::initConnect: WARNING: Head Initialisation failed, you won't be able to use it! \n");
+  }
+
+  RobotArm::ERROR right_arm_init_result;
+  right_arm_init_result = right_arm.init(RobotArm::RIGHT);
+  if(right_arm_init_result!=RobotArm::OK) {
+    printf("pr2motion::initConnect: WARNING: right arm Initialisation failed, you won't be able to use it! \n");
+  }
+
+  RobotArm::ERROR left_arm_init_result;
+  left_arm_init_result = left_arm.init(RobotArm::LEFT);
+  if(left_arm_init_result!=RobotArm::OK) {
+    printf("pr2motion::initConnect: WARNING: left arm Initialisation failed, you won't be able to use it! \n");
+  } 
+
+  //#ifndef PR2_SIMU
+//   left_gripper.init(Gripper::LEFT);
+//   right_gripper.init(Gripper::RIGHT);
+// #else
+//   left_gripper.init(GripperSimple::LEFT);
+//   right_gripper.init(GripperSimple::RIGHT);
+// #endif
+  
+  return pr2motion_ether;
 }
 
 
-/* --- Activity PR2MOTION_Gripper_OperateGripper ------------------------ */
+/* --- Activity Gripper_Operate ----------------------------------------- */
 
-/** Codel startOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel startOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_exec, pr2motion_stop, pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -182,11 +251,12 @@ startOperateGripper(pr2motion_PR2MOTION_SIDE side,
   /* skeleton sample */ return pr2motion_exec;
 }
 
-/** Codel execOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel execOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact, pr2motion_waitopen, pr2motion_waitclose, pr2motion_waitrelease, pr2motion_stop, pr2motion_end, pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitopen, pr2motion_waitclose, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 #ifndef PR2_SIMU
 // we are on the real robot
@@ -295,7 +365,8 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
  *
  * Triggered by pr2motion_wait.
  * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop, pr2motion_end, pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -345,7 +416,8 @@ waitcontactOperateGripper(pr2motion_PR2MOTION_SIDE side,
  *
  * Triggered by pr2motion_waitopen.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -409,7 +481,8 @@ waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
  *
  * Triggered by pr2motion_waitclose.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitcloseOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -534,7 +607,8 @@ slipservoOperateGripper(pr2motion_PR2MOTION_SIDE side,
  *
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 stopOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -582,11 +656,12 @@ stopOperateGripper(pr2motion_PR2MOTION_SIDE side,
   /* skeleton sample */ return pr2motion_ether;
 }
 
-/** Codel endOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel endOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -598,72 +673,70 @@ endOperateGripper(pr2motion_PR2MOTION_SIDE side,
 }
 
 
-/* --- Activity PR2MOTION_Torso_MoveTorso ------------------------------- */
+/* --- Activity Torso_Move ---------------------------------------------- */
 
-/** Codel startMoveTorso of activity PR2MOTION_Torso_MoveTorso.
+/** Codel startMoveTorso of activity Torso_Move.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startMoveTorso(float torso_position, double torso_min_duration,
                float torso_max_velocity, genom_context self)
 {
-  Torso::ERROR result;
+  Torso::ERROR result_move;
+  Torso::ERROR result_connect = torso.isConnected();
   pr2_controllers_msgs::SingleJointPositionGoal torso_cmd;
-  torso_cmd.position=torso_position;
-  torso_cmd.min_duration=ros::Duration(torso_min_duration);
-  torso_cmd.max_velocity=torso_max_velocity;
-  result = torso.move(torso_cmd);
-  if(result==Torso::OK)
-    return pr2motion_wait;
-  else
-    return pr2motion_end;
+
+  switch(result_connect){
+  case Torso::OK:
+    torso_cmd.position=torso_position;
+    torso_cmd.min_duration=ros::Duration(torso_min_duration);
+    torso_cmd.max_velocity=torso_max_velocity;
+    result_move = torso.move(torso_cmd);
+    if(result_move==Torso::OK)
+      return pr2motion_wait;
+    else
+      return pr2motion_invalid_param(self);
+  case Torso::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case Torso::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+
 }
 
-/** Codel waitMoveTorso of activity PR2MOTION_Torso_MoveTorso.
+/** Codel waitMoveTorso of activity Torso_Move.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_wait, pr2motion_end.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 
 genom_event
 waitMoveTorso(genom_context self)
 {
-  // INTERMEDIATE STATES : PENDING ACTIVE
-  // TERMINAL STATES : REJECTED SUCCEEDED ABORTED RECALLED PREEMPTED LOST 	
-  
-  // if the state is a terminal state, go to end
-  // otherwise wait
+  // Check if move is in a terminal state, 
+  // if yes, goto end
+  // otherwise, goto wait
 
-  if(torso.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED) {
-      return pr2motion_end;
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::REJECTED) {
-    return pr2motion_end;    
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::ABORTED) {
-   return pr2motion_end;        
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::RECALLED) {
-   return pr2motion_end;        
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::PREEMPTED) {
-   return pr2motion_end;     
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::LOST) {
-   return pr2motion_end;     
-  }
-
-  if(torso.move_getState()==actionlib::SimpleClientGoalState::ACTIVE) {
+  if(torso.move_isDone())
+    return pr2motion_end;
+  else
     return pr2motion_wait;
-  } else if(torso.move_getState()==actionlib::SimpleClientGoalState::PENDING) {
-    return pr2motion_wait;    
-  }
-
-  printf("The actual state of the torso is unknown !\n");
-  return pr2motion_end;
 }
 
-/** Codel endMoveTorso of activity PR2MOTION_Torso_MoveTorso.
+/** Codel endMoveTorso of activity Torso_Move.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveTorso(genom_context self)
@@ -671,13 +744,29 @@ endMoveTorso(genom_context self)
   return pr2motion_ether;
 }
 
+/** Codel stopMoveTorso of activity Torso_Move.
+ *
+ * Triggered by pr2motion_stop.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+stopMoveTorso(genom_context self)
+{
+  torso.cancelCmd();
+  return pr2motion_ether;
+}
 
-/* --- Activity PR2MOTION_Head_MoveHead --------------------------------- */
 
-/** Codel startMoveHead of activity PR2MOTION_Head_MoveHead.
+/* --- Activity Head_Move ----------------------------------------------- */
+
+/** Codel startMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
@@ -687,60 +776,49 @@ startMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
 {
   std::string frame_id(head_target_frame);
   if(head_mode>=pr2motion_PR2MOTION_HEAD_NB_MODE)
-    return pr2motion_end;
-  
-  head.lookAt(frame_id, head_target_x, head_target_y, head_target_z);
-
-  return pr2motion_wait;
+    return pr2motion_invalid_param(self);
+ 
+  RobotHead::ERROR result_connect = head.isConnected();
+  switch(result_connect){
+  case RobotHead::OK:
+    head.lookAt(frame_id, head_target_x, head_target_y, head_target_z);
+    return pr2motion_wait;  
+  case RobotHead::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case RobotHead::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
 }
 
-/** Codel waitMoveHead of activity PR2MOTION_Head_MoveHead.
+/** Codel waitMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_wait.
  * Yields to pr2motion_start, pr2motion_wait, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
              genom_context self)
 {
-  // INTERMEDIATE STATES : PENDING ACTIVE
-  // TERMINAL STATES : REJECTED SUCCEEDED ABORTED RECALLED PREEMPTED LOST 	
+  // Check if move is in a terminal state, 
+  // if yes, goto end
+  // otherwise, goto wait
   
-  // if the state is a terminal state, go to end
-  // otherwise wait
-
-  if(head.lookAt_getState()==actionlib::SimpleClientGoalState::SUCCEEDED) {
-    if(head_mode==pr2motion_PR2MOTION_HEAD_LOOKAT) {
-      return pr2motion_end;
-    } else {
-      return pr2motion_start;
-    }
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::REJECTED) {
-    return pr2motion_end;    
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::ABORTED) {
-   return pr2motion_end;        
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::RECALLED) {
-   return pr2motion_end;        
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::PREEMPTED) {
-   return pr2motion_end;     
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::LOST) {
-   return pr2motion_end;     
-  }
-
-  if(head.lookAt_getState()==actionlib::SimpleClientGoalState::ACTIVE) {
+  if(head.lookAt_isDone())
+    return pr2motion_end;
+  else
     return pr2motion_wait;
-  } else if(head.lookAt_getState()==actionlib::SimpleClientGoalState::PENDING) {
-    return pr2motion_wait;    
-  }
-
-  printf("The actual state of the head is unknown !\n");
-  return pr2motion_end;
 }
 
-/** Codel endMoveHead of activity PR2MOTION_Head_MoveHead.
+/** Codel endMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveHead(genom_context self)
@@ -748,28 +826,29 @@ endMoveHead(genom_context self)
   return pr2motion_ether;
 }
 
-
-/* --- Activity PR2MOTION_Head_StopHead --------------------------------- */
-
-/** Codel stopHead of activity PR2MOTION_Head_StopHead.
+/** Codel stopMoveHead of activity Head_Move.
  *
- * Triggered by pr2motion_start.
+ * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-stopHead(genom_context self)
+stopMoveHead(genom_context self)
 {
   head.cancelCmd();
   return pr2motion_ether;
 }
 
 
-/* --- Activity PR2MOTION_Arm_Move -------------------------------------- */
+/* --- Activity Arm_Move ------------------------------------------------ */
 
-/** Codel getPathArm of activity PR2MOTION_Arm_Move.
+/** Codel getPathArm of activity Arm_Move.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj, pr2motion_checktraj.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 getPathArm(pr2motion_PR2MOTION_SIDE side,
@@ -807,10 +886,29 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
   RobotArm::ERROR result;
 
   if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
+    return pr2motion_invalid_param(self);    
 
   if (path_mode >= pr2motion_PR2MOTION_PATH_NB_MODE)
-    return pr2motion_end;
+    return pr2motion_invalid_param(self);
+
+  // test if the server is connected
+  RobotArm::ERROR result_connect;
+  if (side == pr2motion_PR2MOTION_RIGHT) {
+    result_connect = right_arm.isConnected();
+  } else {
+    result_connect = left_arm.isConnected();
+  }
+
+  switch(result_connect){
+  case RobotArm::OK:
+    break;
+  case RobotArm::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case RobotArm::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
 
   // read trajectory from the test function
   if(path_mode==pr2motion_PR2MOTION_PATH_TEST) {
@@ -941,21 +1039,22 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
   return pr2motion_end;
 }
 
-/** Codel computeTrajArm of activity PR2MOTION_Arm_Move.
+/** Codel computeTrajArm of activity Arm_Move.
  *
  * Triggered by pr2motion_computetraj.
  * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 computeTrajArm(pr2motion_PR2MOTION_SIDE side,
                pr2motion_PR2MOTION_TRAJ_MODE traj_mode,
-               double time_slot, double max_vel, double max_acc,
-               double max_jerk, genom_context self)
+               double time_slot, genom_context self)
 {
   printf("computetrajarm\n");
   if(side == pr2motion_PR2MOTION_RIGHT){
-    right_arm.setMax(max_vel, max_acc, max_jerk);
-    right_arm.setT(time_slot);
+    //    right_arm.setMax(max_vel, max_acc, max_jerk);
+    //    right_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -971,8 +1070,8 @@ computeTrajArm(pr2motion_PR2MOTION_SIDE side,
     right_arm.computeTrajectory();
     return pr2motion_checktraj;
   } else {
-    left_arm.setMax(max_vel, max_acc, max_jerk);
-    left_arm.setT(time_slot);
+    //    left_arm.setMax(max_vel, max_acc, max_jerk);
+    //    left_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -991,10 +1090,12 @@ computeTrajArm(pr2motion_PR2MOTION_SIDE side,
   return pr2motion_end;
 }
 
-/** Codel checkTrajArm of activity PR2MOTION_Arm_Move.
+/** Codel checkTrajArm of activity Arm_Move.
  *
  * Triggered by pr2motion_checktraj.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 checkTrajArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1012,10 +1113,12 @@ checkTrajArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
     return pr2motion_end;
 }
 
-/** Codel launchMoveArm of activity PR2MOTION_Arm_Move.
+/** Codel launchMoveArm of activity Arm_Move.
  *
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 launchMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1029,10 +1132,12 @@ launchMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
   return pr2motion_waitmove;
 }
 
-/** Codel waitMoveArm of activity PR2MOTION_Arm_Move.
+/** Codel waitMoveArm of activity Arm_Move.
  *
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1056,10 +1161,12 @@ waitMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
   return pr2motion_waitmove;
 }
 
-/** Codel endMoveArm of activity PR2MOTION_Arm_Move.
+/** Codel endMoveArm of activity Arm_Move.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1070,9 +1177,9 @@ endMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
 }
 
 
-/* --- Activity PR2MOTION_Arm_MoveToQGoal ------------------------------- */
+/* --- Activity Arm_MoveToQGoal ----------------------------------------- */
 
-/** Codel getQGoal of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel getQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
@@ -1087,7 +1194,29 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
   // goal (path) to be send to the controller
   pr2_controllers_msgs::JointTrajectoryGoal path_cmd;
   int joint_names_vector_size = 7;
+
+  // test if the server is connected
+  RobotArm::ERROR result_connect;
+  if (side == pr2motion_PR2MOTION_RIGHT) {
+    result_connect = right_arm.isConnected();
+  } else {
+    result_connect = left_arm.isConnected();
+  }
+
+  switch(result_connect){
+  case RobotArm::OK:
+    break;
+  case RobotArm::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case RobotArm::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+  printf("GetQGoal: Arm is connected \n");
+
   if(side == pr2motion_PR2MOTION_RIGHT){
+    printf("111\n");
     path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
     path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
     path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
@@ -1096,6 +1225,9 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
     path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
     path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
     path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
+    printf("222\n");
+    printf("GetQGoal: One point in the path\n");
+    path_cmd.trajectory.points.resize(1);
     path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
     path_cmd.trajectory.points[0].positions[0] = shoulder_pan_joint;
     path_cmd.trajectory.points[0].positions[1] = shoulder_lift_joint;
@@ -1104,10 +1236,14 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
     path_cmd.trajectory.points[0].positions[4] = forearm_roll_joint;
     path_cmd.trajectory.points[0].positions[5] = wrist_flex_joint;
     path_cmd.trajectory.points[0].positions[6] = wrist_roll_joint;
+    printf("333\n");
     right_arm.clearTrajectory();
+    printf("444\n");
     if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
+      printf("GetQGoal setTraj ok\n");
       return pr2motion_computetraj;
     } else {
+      printf("GetQGoal setTraj ko\n");
       return pr2motion_end;	 
     }
   } else {
@@ -1128,16 +1264,18 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
     path_cmd.trajectory.points[0].positions[5] = wrist_flex_joint;
     path_cmd.trajectory.points[0].positions[6] = wrist_roll_joint;   
     left_arm.clearTrajectory();
-    if(left_arm.setTraj(&path_cmd) == RobotArm::OK)
+    if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
+      printf("GetQGoal setTraj ok\n");      
       return pr2motion_computetraj;
-    else
+    } else {
+      printf("GetQGoal setTraj ok\n");
       return pr2motion_end;     
+    }
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_computetraj;
+  return pr2motion_end;
 }
 
-/** Codel computeTrajQGoal of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel computeTrajQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_computetraj.
  * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
@@ -1145,13 +1283,12 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
 genom_event
 computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
                  pr2motion_PR2MOTION_TRAJ_MODE traj_mode,
-                 double time_slot, double max_vel, double max_acc,
-                 double max_jerk, genom_context self)
+                 genom_context self)
 {
-  printf("computetrajarmq\n");
+  printf("ComputeTrajQGoal\n");
   if(side == pr2motion_PR2MOTION_RIGHT){
-    right_arm.setMax(max_vel, max_acc, max_jerk);
-    right_arm.setT(time_slot);
+    //    right_arm.setMax(max_vel, max_acc, max_jerk);
+    //    right_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1167,8 +1304,8 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
     right_arm.computeTrajectory();
     return pr2motion_checktraj;
   } else {
-    left_arm.setMax(max_vel, max_acc, max_jerk);
-    left_arm.setT(time_slot);
+    //    left_arm.setMax(max_vel, max_acc, max_jerk);
+    //    left_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1187,7 +1324,7 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
   return pr2motion_end;
 }
 
-/** Codel checkTrajQGoal of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel checkTrajQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_checktraj.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
@@ -1195,7 +1332,7 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
 genom_event
 checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
 {
-  printf("checktrajarmq\n");
+  printf("CheckTrajQGoal\n");
   RobotArm::ERROR result;
   if(side == pr2motion_PR2MOTION_RIGHT){
     result=right_arm.validateTrajectory();
@@ -1208,7 +1345,7 @@ checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
     return pr2motion_end;
 }
 
-/** Codel launchMoveQ of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel launchMoveQ of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
@@ -1216,7 +1353,7 @@ checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
 genom_event
 launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
 {
-  printf("launchmovearmq\n");
+  printf("launchMoveQ\n");
   if(side == pr2motion_PR2MOTION_RIGHT){
     right_arm.move();
   } else {
@@ -1225,7 +1362,7 @@ launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
   return pr2motion_waitmove;
 }
 
-/** Codel waitMoveQ of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel waitMoveQ of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
@@ -1252,7 +1389,7 @@ waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
   return pr2motion_waitmove;
 }
 
-/** Codel endMoveQ of activity PR2MOTION_Arm_MoveToQGoal.
+/** Codel endMoveQ of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
@@ -1266,9 +1403,9 @@ endMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
 }
 
 
-/* --- Activity PR2MOTION_GetQ ------------------------------------------ */
+/* --- Activity GetQ ---------------------------------------------------- */
 
-/** Codel getQ of activity PR2MOTION_GetQ.
+/** Codel getQ of activity GetQ.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether.
@@ -1323,7 +1460,7 @@ getQ(const pr2motion_joint_state *joint_state, genom_context self)
   /* skeleton sample */ return pr2motion_end;
 }
 
-/** Codel endGetQ of activity PR2MOTION_GetQ.
+/** Codel endGetQ of activity GetQ.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.

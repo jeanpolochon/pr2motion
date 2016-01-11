@@ -4,13 +4,72 @@ RobotHead::RobotHead()
   : pan_min_(-2.8),
     pan_max_(2.8),
     tilt_min_(-0.37),
-    tilt_max_(1.29)
+    tilt_max_(1.29),
+    point_head_client_(NULL),
+    min_duration_default_(0.5),
+    max_velocity_default_(1.0)
 {
 }
 
 RobotHead::~RobotHead(){
   delete point_head_client_;
 }
+
+RobotHead::ERROR RobotHead::init(){
+  ERROR result=OK;
+
+  // get head_joint_limits from the urdf model
+  // Pr2 Model
+  Pr2Model pr2_model;
+  Pr2Model::ERROR pr2model_init_result;
+  pr2model_init_result=pr2_model.getRobotModel();
+  if(pr2model_init_result!=Pr2Model::OK) {
+    return CANNOT_READ_LIMITS;
+  } else {
+    if((pr2_model.Pr2Model::checkJointName("head_pan_joint")==Pr2Model::OK)&&(pr2_model.Pr2Model::checkJointName("head_tilt_joint")==Pr2Model::OK)){
+      pan_min_=pr2_model.getJointLimitLower("head_pan_joint");
+      pan_max_=pr2_model.getJointLimitUpper("head_pan_joint");
+      tilt_min_=pr2_model.getJointLimitLower("head_tilt_joint");
+      tilt_max_=pr2_model.getJointLimitUpper("head_tilt_joint");
+      max_velocity_max_=pr2_model.getJointLimitVelocity("head_tilt_joint")>pr2_model.getJointLimitVelocity("head_pan_joint")?pr2_model.getJointLimitVelocity("head_pan_joint"):pr2_model.getJointLimitVelocity("head_tilt_joint");
+    } else {
+      return UNKNOWN_JOINT;
+    }
+  }
+
+  if(point_head_client_==NULL)
+    //Initialize the client for the Action interface to the head controller
+    point_head_client_ = new PointHeadClient("/head_traj_controller/point_head_action", true);
+  
+  if(point_head_client_!=NULL){
+    //check if the client is already connected
+    if(!point_head_client_->isServerConnected()) {
+      //wait for head controller action server to come up 
+      while(!point_head_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the point_head_action server to come up");
+      }
+      if(!point_head_client_->isServerConnected()) {
+	result=SERVER_NOT_CONNECTED;
+      }
+    }
+  } else {
+    ROS_INFO("Not able to create the HeadClient");
+    result= INIT_FAILED;
+  }
+
+  return result;
+}
+
+RobotHead::ERROR RobotHead::isConnected(){
+  ERROR result = OK;
+  if(point_head_client_==NULL)
+    result=INIT_NOT_DONE;
+  else
+    if(!point_head_client_->isServerConnected())
+      result=SERVER_NOT_CONNECTED;
+  return result;
+}
+
 
 void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 {
@@ -68,20 +127,9 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
 
 }
 
-RobotHead::ERROR RobotHead::init(){
-  ERROR result=OK;
-  //Initialize the client for the Action interface to the head controller
-  point_head_client_ = new PointHeadClient("/head_traj_controller/point_head_action", true);
-  
-  //wait for head controller action server to come up 
-  while(!point_head_client_->waitForServer(ros::Duration(5.0))){
-    ROS_INFO("Waiting for the point_head_action server to come up");
-  }
 
-  if(!point_head_client_->isServerConnected())
-    result=INIT_FAILED;
-
-  return result;
+bool RobotHead::lookAt_isDone() {
+  return (point_head_client_->getState()).isDone();
 }
 
 actionlib::SimpleClientGoalState RobotHead::lookAt_getState() {
@@ -133,17 +181,18 @@ void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
   goal_cmd.pointing_axis.x = 1.0;
   goal_cmd.pointing_axis.y = 0.0;
   goal_cmd.pointing_axis.z = 0.0;
-  //take at least 0.5 seconds to get there
-  goal_cmd.min_duration = ros::Duration(0.5);
-  
-  //and go no faster than 1 rad/s
-  goal_cmd.max_velocity = 1.0;
+
+  //Either or both of the min_duration or the max_velocity can be left unspecified, 
+  // in which case they are ignored. 
+  // If both are unspecified, the head will reach its goal as fast as possible. 
+
+  // Let min duration unspecified
+  // goal_cmd.min_duration = min_duration_default_;
+  // but go no faster than max_velocity_default_;
+  goal_cmd.max_velocity = max_velocity_default_;
   
   //send the goal
   point_head_client_->sendGoal(goal_cmd);
-  point_head_client_->waitForResult(ros::Duration(2.0));
-
-
   //send the goal with callback (never achieved to make it work with that client)
   // point_head_client_->sendGoal(goal_cmd,
   //   boost::bind(&RobotHead::lookAt_doneCb, this, _1, _2), 

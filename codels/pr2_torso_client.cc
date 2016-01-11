@@ -6,8 +6,12 @@ Torso::Torso()
     position_max_(0.30),
     min_duration_min_(1.0),
     min_duration_max_(15.0),
+    min_duration_default_(2.0),
     max_velocity_min_(0.0),
-    max_velocity_max_(1.0)
+    max_velocity_max_(1.0),
+    max_velocity_default_(max_velocity_max_/2.0),
+    is_connected_(false),
+    torso_client_(NULL)
 {
 }
   
@@ -17,17 +21,63 @@ Torso::~Torso(){
 
 Torso::ERROR Torso::init(){    
   ERROR result = OK;
-  torso_client_ = new TorsoClient("torso_controller/position_joint_action", true);
-  
-  //wait for the action server to come up
-  while(!torso_client_->waitForServer(ros::Duration(5.0))){
-    ROS_INFO("Waiting for the torso action server to come up");
+
+  // get torso_joint_limits from the urdf model
+  // Pr2 Model
+  Pr2Model pr2_model;
+  Pr2Model::ERROR pr2model_init_result;
+  pr2model_init_result=pr2_model.getRobotModel();
+  if(pr2model_init_result!=Pr2Model::OK) {
+    return CANNOT_READ_LIMITS;
+  } else {
+    if(pr2_model.Pr2Model::checkJointName("torso_lift_joint")==Pr2Model::OK){
+      position_min_=pr2_model.getJointLimitLower("torso_lift_joint");
+      position_max_=pr2_model.getJointLimitUpper("torso_lift_joint");
+      max_velocity_max_=pr2_model.getJointLimitVelocity("torso_lift_joint");
+    } else {
+      return UNKNOWN_JOINT;
+    }
   }
 
-  if(!torso_client_->isServerConnected())
-    result=INIT_FAILED;
-  
+  // test if the client has been already created or not
+  if(torso_client_==NULL)
+    torso_client_ = new TorsoClient("torso_controller/position_joint_action", true);
+
+  // if the client is created
+  if(torso_client_!=NULL) {
+    //check if the client is already connected
+    if(!torso_client_->isServerConnected()) {
+      // wait for the connection
+      while(!torso_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the torso action server to come up");
+      }
+      if(!torso_client_->isServerConnected()) {
+	result=SERVER_NOT_CONNECTED;
+      }
+    }
+  } else {
+    ROS_INFO("Not able to create the TorsoClient");
+    result= INIT_FAILED;
+  }
   return result;
+}
+    
+Torso::ERROR Torso::isConnected(){
+  ERROR result = OK;
+  if(torso_client_==NULL)
+    result=INIT_NOT_DONE;
+  else
+    if(!torso_client_->isServerConnected())
+      result=SERVER_NOT_CONNECTED;
+  return result;
+}
+
+double Torso::getMaxVelocityDefault(){
+  return max_velocity_default_;
+}
+
+ros::Duration Torso::getMinDurationDefault(){
+  return min_duration_default_;
 }
 
 Torso::ERROR Torso::checkParamLimits(ros::Duration duration, double max_velocity){
@@ -46,10 +96,16 @@ Torso::ERROR Torso::checkCmdLimits(double position){
   return result;
 }
 
-  // OPEN
+bool Torso::move_isDone() {
+  return (torso_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Torso::move_getState() {
+  // INTERMEDIATE STATES : PENDING ACTIVE
+  // TERMINAL STATES : REJECTED SUCCEEDED ABORTED RECALLED PREEMPTED LOST 	
   return torso_client_->getState();
 }
+
 void Torso::move_doneCb(const actionlib::SimpleClientGoalState& state,
 	      const pr2_controllers_msgs::SingleJointPositionResultConstPtr& result)
   {
