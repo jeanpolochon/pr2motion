@@ -16,10 +16,10 @@ private:
   double position_max_;
   ros::Duration min_duration_min_;
   ros::Duration min_duration_max_;
-  ros::Duration min_duration_default_;
+  ros::Duration min_duration_;
   double max_velocity_min_;
   double max_velocity_max_;
-  double max_velocity_default_;
+  double max_velocity_;
   // true if connected, false otherwise
   bool is_connected_;
 
@@ -51,10 +51,10 @@ public:
   ERROR isConnected();
 
   // getMaxVelocityDefault
-  double getMaxVelocityDefault();
+  double getMaxVelocity();
   
   // getMinDurationDefault
-  ros::Duration getMinDurationDefault();
+  ros::Duration getMinDuration();
 
   // checkParamLimits
   // check min_duration and max_velocity parameters limits

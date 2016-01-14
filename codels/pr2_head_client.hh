@@ -20,9 +20,9 @@ private:
   double pan_max_;
   double tilt_min_;
   double tilt_max_;
-  ros::Duration min_duration_default_;
+  ros::Duration min_duration_;
   ros::Duration min_duration_max_;  
-  double max_velocity_default_;
+  double max_velocity_;
   double max_velocity_max_;
 
 public:
@@ -30,7 +30,9 @@ public:
   RobotHead();
   ~RobotHead();
 
-  RobotHead::ERROR isConnected();
+  ERROR isConnected();
+
+  ERROR checkCmdLimits(double, double);
 
   // listenerCallback
   // This callback aims to read the head desired position send by the controller and check if it is in the joint limits (seems there is no check at the controller level (sic !)

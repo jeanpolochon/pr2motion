@@ -163,5 +163,41 @@ module pr2motion {
 
 #pragma masquerade ros sensor_msgs_jointstate sensor_msgs/JointState
 
+// rosmsg show pr2_controllers_msgs/JointTrajectoryControllerState
+// std_msgs/Header header
+//   uint32 seq
+//   time stamp
+//   string frame_id
+// string[] joint_names
+// trajectory_msgs/JointTrajectoryPoint desired
+//   float64[] positions
+//   float64[] velocities
+//   float64[] accelerations
+//   float64[] effort
+//   duration time_from_start
+// trajectory_msgs/JointTrajectoryPoint actual
+//   float64[] positions
+//   float64[] velocities
+//   float64[] accelerations
+//   float64[] effort
+//   duration time_from_start
+// trajectory_msgs/JointTrajectoryPoint error
+//   float64[] positions
+//   float64[] velocities
+//   float64[] accelerations
+//   float64[] effort
+//   duration time_from_start
+
+  struct pr2_controllers_msgs_jointtrajectorycontrollerstate{
+    std_msgs_header header;
+    sequence<string> joint_names;
+    trajectory_msgs_jointtrajectorypoint desired;
+    trajectory_msgs_jointtrajectorypoint actual;
+    trajectory_msgs_jointtrajectorypoint error;
+  };
+
+#pragma masquerade ros pr2_controllers_msgs_jointtrajectorycontrollerstate pr2_controllers_msgs/JointTrajectoryControllerState
+
+
 };
 #endif

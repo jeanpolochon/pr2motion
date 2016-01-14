@@ -15,21 +15,21 @@
 #
 lib_LTLIBRARIES = libpr2motion_codels.la
 
-libpr2motion_codels_la_SOURCES=	pr2motion_c_types.h
+libpr2motion_codels_la_SOURCES=		pr2motion_c_types.h
+libpr2motion_codels_la_SOURCES+=	pr2_state_client.hh pr2_state_client.cc
 libpr2motion_codels_la_SOURCES+=	pr2motion_codels.cc
 libpr2motion_codels_la_SOURCES+=	pr2motion_main_codels.cc
-libpr2motion_codels_la_SOURCES+=	pr2_state_client.hh pr2_state_client.cc
-libpr2motion_codels_la_SOURCES+=	pr2_model.hh pr2_model.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_sensor_client.hh pr2_gripper_sensor_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_client.hh pr2_gripper_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_torso_client.hh pr2_torso_client.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_head_client.hh pr2_head_client.cc
-libpr2motion_codels_la_SOURCES+=        trajectories/PathG.h trajectories/TrajectoryG.h trajectories/PathG.cpp trajectories/TrajectoryG.cpp
+libpr2motion_codels_la_SOURCES+=        trajectories/PathG.h trajectories/TrajectoryG.h trajectories/PathG.cpp trajectories/TrajectoryG.cpp 
 libpr2motion_codels_la_SOURCES+= 	pr2_arm_client.hh pr2_arm_client.cc
+libpr2motion_codels_la_SOURCES+= 	pr2_model.hh pr2_model.cc
 
 
-libpr2motion_codels_la_CPPFLAGS=	$(requires_CFLAGS) 
-libpr2motion_codels_la_LDFLAGS=		$(requires_LIBS) 
+libpr2motion_codels_la_CPPFLAGS=	$(requires_CFLAGS)
+libpr2motion_codels_la_LDFLAGS=	$(requires_LIBS)
 libpr2motion_codels_la_LDFLAGS+=	-release $(PACKAGE_VERSION)
 
 

@@ -1,5 +1,6 @@
 interface pr2motioninterface {
 port out pr2motion::gtp_ros_msg_gtptraj traj;
 port out pr2motion::sensor_msgs_jointstate joint_state;
+port out pr2motion::pr2_controllers_msgs_jointtrajectorycontrollerstate head_controller_state;
 };
 

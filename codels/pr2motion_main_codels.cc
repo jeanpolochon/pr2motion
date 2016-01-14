@@ -72,88 +72,91 @@ StateEnum {
 /** Codel initMain of task main.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_sleep.
+ * Yields to pr2motion_routine.
  */
 genom_event
-initMain(genom_context self)
+initMain(bool *joint_state_availability, genom_context self)
 {
   char* argv[] =  { "pr2motion",
                     "",
                     NULL};
   int argc = 2;
   ros::init(argc, argv, "pr2motion");
+  *joint_state_availability = false;
+  return pr2motion_routine;
+}
+
+
+/** Codel routineMain of task main.
+ *
+ * Triggered by pr2motion_routine.
+ * Yields to pr2motion_routine, pr2motion_sleep, pr2motion_stop.
+ */
+genom_event
+routineMain(const pr2motion_joint_state *joint_state,
+            pr2motion_sensor_msgs_jointstate *joint_state_msg,
+            bool *joint_state_availability, genom_context self)
+{
+  int name_size=0;
+  int position_size=0;
+  int velocity_size=0;
+  int effort_size=0;
+
+  //sensor_msgs::JointState joint_state_msg;
+  // read the trajectory from the port
+  joint_state->read(self);
+  if(joint_state->data(self)!=NULL){
+    // nb elements in joint_state
+    name_size = joint_state->data(self)->name._length;
+    position_size = joint_state->data(self)->position._length;
+    velocity_size = joint_state->data(self)->velocity._length;
+    effort_size = joint_state->data(self)->effort._length;
+
+    if(name_size==0){
+      printf("pr2motion The joint_state is empty\n");
+      *joint_state_availability=false;
+      return pr2motion_routine;
+    }
     
-  // printf("1\n");
-  // // The object for urdf model
-  // boost::shared_ptr<urdf::Model> robot_model_;
-  // robot_model_ = boost::shared_ptr<urdf::Model>(new urdf::Model());
-
-  // //  KDL::Tree my_tree;
-  // printf("2\n");
-  // ros::NodeHandle node;
-  // std::string robot_desc_string;
-  // node.param("robot_description", robot_desc_string, string());
-  // // //if (!kdl_parser::treeFromString(robot_desc_string, my_tree)){
-  // // //  ROS_ERROR("Failed to construct kdl tree");
-  // // //  return false;
-  // // //}
-  // //  printf("3\n");
-  // if(!robot_model_->initString(robot_desc_string)){
-  //    printf("unable to read robot_description\n");
-  // } else {
-  //   printf("able to read robot_description\n");
-  // }
-
-  // const urdf::Joint* joint = robot_model_->getJoint("torso_lift_joint").get();
-  // //urdf::Joint::type joint_type = joint->type;
-  // int joint_type = joint->type;
-  // const boost::shared_ptr<urdf::JointLimits> limits = joint->limits;
-  // //urdf::JointLimits* limits = joint->limits;
-  // printf("limites joint: %f, %f,%f,%f'", limits->lower, limits->upper, limits->effort, limits->velocity);
-
-
-  //  limits->lower = joint->limits.lower;
-  //limits->upper = joint->limits.upper;
-  //limits->effort = joint->limits.effort;
-  //limits->velocity = joint->limits.velocity;
-  // for (std::map<std::string, boost::shared_ptr<urdf::Joint> >::iterator it = robot_model_->joints_.begin(); it != robot_model_->joints_.end(); it ++ ) {
-  //   boost::shared_ptr<urdf::Joint> joint = it->second;
-  //   if ( joint->type == urdf::Joint::REVOLUTE ) {
-  //     std::string joint_name = it->first;
-  //     boost::shared_ptr<urdf::JointLimits> limit = joint->limits;
-  //     joints_[joint_name] = createJoint(joint_name);
-  //     //joints_[joint_name]->max_effort_property_->setFloat(limit->effort);
-  //     //joints_[joint_name]->max_effort_property_->setReadOnly( true );
-  //     joints_[joint_name]->setMaxEffort(limit->effort);
-  //   }
-  // }
-  //  Gripper_SetOpenGoal(0.09,-1.0,self);
-  //Gripper_SetCloseGoal(0.0,-1.0,self);
-  //Gripper_SetFindContactGoal(pr2motion_PR2MOTION_GRIPPER_CONTACT_BOTH, true);
-  //Gripper_SetEventDetectorGoal(pr2motion_PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC, 4.0, 0.005);
-  //Gripper_SetForceServoGoal(10);
-  //Torso_SetOpenGoal(10.0, 2.0, 1.0,self);
-  
- // // SDI Init
- //  //Pr2GripperCommandGoal
- //  open_position=0.09;
- //  open_max_effort=-1.0;
- //  //Pr2GripperCommandGoal
- //  close_position=0.08;
- //  close_max_effort=-1;
- //  //PR2GripperFindContactGoal
- //  findtwo_contact_conditions=pr2motion_PR2MOTION_GRIPPER_CONTACT_BOTH;
- //  findtwo_zero_fingertip_sensors=TRUE;
- //  //PR2GripperEventDetectorGoal
- //  event_trigger_conditions=pr2motion_PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;
- //  event_acceleration_trigger_magnitude=4.0;
- //  event_slip_trigger_magnitude=.005;
- //  //PR2GripperForceServoCommand
- //  force_fingertip_force=10;  
-
-  //  Gripper gripper(pr2motion_PR2MOTION_RIGHT);
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_sleep;
+    if( (name_size!=position_size) ||
+	(name_size!=velocity_size) ||
+	(name_size!=effort_size)){
+      printf("pr2motion There is an issue concerning the size of the joint_state vector\n");
+      *joint_state_availability = false;
+      return pr2motion_routine;
+    }
+    if(joint_state_msg->name._maximum<name_size) {
+      printf("pr2motion Need to add joint(s) to the sequence\n");
+      genom_sequence_reserve(&(joint_state_msg->name), name_size);
+      joint_state_msg->name._length=name_size;
+      genom_sequence_reserve(&(joint_state_msg->position), position_size);
+      joint_state_msg->position._length=position_size;
+      genom_sequence_reserve(&(joint_state_msg->velocity), velocity_size);
+      joint_state_msg->velocity._length=velocity_size;
+      genom_sequence_reserve(&(joint_state_msg->effort), effort_size);
+      joint_state_msg->effort._length=effort_size;
+    }
+    //genom_sequence_reserve(sequence_type *s, uint32_t length);
+    // joint_state_msg->name.resize(name_size);
+    // joint_state_msg->position.resize(position_size);
+    // joint_state_msg->velocity.resize(velocity_size);
+    // joint_state_msg->effort.resize(effort_size);
+    // get the correct index for all needed joints in the path
+    for (size_t ind=0; ind<name_size; ind++) {
+      //printf("%s position %f velocity %f effort %f\n",joint_state->data(self)->name._buffer[ind],joint_state->data(self)->position._buffer[ind], joint_state->data(self)->velocity._buffer[ind], joint_state->data(self)->effort._buffer[ind]); 
+      joint_state_msg->name._buffer[ind]=joint_state->data(self)->name._buffer[ind];
+      joint_state_msg->position._buffer[ind]=joint_state->data(self)->position._buffer[ind];
+      joint_state_msg->velocity._buffer[ind]=joint_state->data(self)->velocity._buffer[ind];
+      joint_state_msg->effort._buffer[ind]=joint_state->data(self)->effort._buffer[ind];
+      }
+    *joint_state_availability = true;
+    //robot_state.setRobotQ(joint_state_msg);
+  } else {
+    if(*joint_state_availability == true)
+      printf("pr2motion nothing to read on the port...\n");
+    *joint_state_availability = false;
+  }
+  return pr2motion_routine;
 }
 
 
@@ -178,8 +181,7 @@ endMain(genom_context self)
  * Throws pr2motion_serverconnection_error.
  */
 genom_event
-initConnect(double torso_min_duration, float torso_max_velocity,
-            genom_context self)
+initConnect(genom_context self)
 {
   ros::Duration torso_duration;
 
@@ -194,10 +196,10 @@ initConnect(double torso_min_duration, float torso_max_velocity,
   Torso::ERROR torso_init_result;
   torso_init_result=torso.init();
   if(torso_init_result==Torso::OK) {
-    torso_duration = torso.getMinDurationDefault();
-    torso_min_duration = torso_duration.toSec();
-    printf("initialisation of the torso with : sec = %d and nsec = %d so torso_min_duration = %f \n",torso_duration.sec, torso_duration.nsec, torso_min_duration);
-    torso_max_velocity = torso.getMaxVelocityDefault();  
+    // torso_duration = torso.getMinDurationDefault();
+    // torso_min_duration = torso_duration.toSec();
+    // printf("initialisation of the torso with : sec = %d and nsec = %d so torso_min_duration = %f \n",torso_duration.sec, torso_duration.nsec, torso_min_duration);
+    // torso_max_velocity = torso.getMaxVelocityDefault();  
   } else {
     printf("pr2motion::initConnect: WARNING: Torso initialisation failed, you won't be able to use it! \n");
   }
@@ -683,8 +685,7 @@ endOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-startMoveTorso(float torso_position, double torso_min_duration,
-               float torso_max_velocity, genom_context self)
+startMoveTorso(float torso_position, genom_context self)
 {
   Torso::ERROR result_move;
   Torso::ERROR result_connect = torso.isConnected();
@@ -693,12 +694,14 @@ startMoveTorso(float torso_position, double torso_min_duration,
   switch(result_connect){
   case Torso::OK:
     torso_cmd.position=torso_position;
-    torso_cmd.min_duration=ros::Duration(torso_min_duration);
-    torso_cmd.max_velocity=torso_max_velocity;
+    //    torso_cmd.min_duration=ros::Duration(torso_min_duration);
+    //torso_cmd.max_velocity=torso_max_velocity;
     result_move = torso.move(torso_cmd);
+    printf("result_move=%d\n",result_move);
     if(result_move==Torso::OK)
       return pr2motion_wait;
     else
+      torso.cancelCmd();
       return pr2motion_invalid_param(self);
   case Torso::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
@@ -801,16 +804,63 @@ startMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
  */
 genom_event
 waitMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
+             const pr2motion_head_controller_state *head_controller_state,
+             pr2motion_pr2_controllers_msgs_jointtrajectorycontrollerstate *head_controller_state_msg,
              genom_context self)
 {
+  int name_size=0;
+  double pan_desired_position;
+  double tilt_desired_position;
+  int head_pan_joint_indice = -1;
+  int head_tilt_joint_indice = -1;
+  RobotHead::ERROR result_check=RobotHead::OK;
+
+  head_controller_state->read(self);
+  if(head_controller_state->data(self)!=NULL){
+    name_size = head_controller_state->data(self)->joint_names._length;
+    if(name_size!=2){
+      printf("Head_Move the number of joint in the head_controller_state is not correct\n");
+      head.cancelCmd();
+      return pr2motion_invalid_param(self);
+    } else {
+      genom_sequence_reserve(&(head_controller_state_msg->desired.positions), name_size);
+      for (size_t ind=0; ind<name_size; ind++) {
+	head_controller_state_msg->desired.positions._buffer[ind]=head_controller_state->data(self)->desired.positions._buffer[ind];
+	if(strcmp(head_controller_state->data(self)->joint_names._buffer[ind],"head_pan_joint")==0){
+	  head_pan_joint_indice = ind;
+	}
+	if(strcmp(head_controller_state->data(self)->joint_names._buffer[ind],"head_tilt_joint")==0){
+	  head_tilt_joint_indice = ind;
+	}
+      }
+      if ((head_pan_joint_indice==-1) || (head_tilt_joint_indice==-1)){
+	head.cancelCmd();
+	return pr2motion_invalid_param(self);
+      }
+      result_check = head.checkCmdLimits(head_controller_state_msg->desired.positions._buffer[head_pan_joint_indice],head_controller_state_msg->desired.positions._buffer[head_tilt_joint_indice]);
+      if(result_check!=RobotHead::OK){
+	head.cancelCmd();
+	return pr2motion_invalid_param(self);
+      }
+    } 
+  } else {
+    printf("Head_Move cannot read head_controller_state, cannot check limits\n");
+    head.cancelCmd();
+    return pr2motion_invalid_param(self);    
+  }
+
   // Check if move is in a terminal state, 
   // if yes, goto end
   // otherwise, goto wait
-  
   if(head.lookAt_isDone())
-    return pr2motion_end;
+    if(head_mode==pr2motion_PR2MOTION_HEAD_LOOKAT) {
+      return pr2motion_end;
+    } else {
+      return pr2motion_start;
+    }
   else
-    return pr2motion_wait;
+    return pr2motion_wait;   
+
 }
 
 /** Codel endMoveHead of activity Head_Move.
@@ -1418,7 +1468,6 @@ getQ(const pr2motion_joint_state *joint_state, genom_context self)
   int velocity_size=0;
   int effort_size=0;
 
-  printf("allo allo\n");
   sensor_msgs::JointState joint_state_msg;
   // read the trajectory from the port
   joint_state->read(self);

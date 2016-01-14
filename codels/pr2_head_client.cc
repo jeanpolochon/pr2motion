@@ -6,8 +6,8 @@ RobotHead::RobotHead()
     tilt_min_(-0.37),
     tilt_max_(1.29),
     point_head_client_(NULL),
-    min_duration_default_(0.5),
-    max_velocity_default_(1.0)
+    min_duration_(0.5),
+    max_velocity_(3.0)
 {
 }
 
@@ -32,6 +32,7 @@ RobotHead::ERROR RobotHead::init(){
       tilt_min_=pr2_model.getJointLimitLower("head_tilt_joint");
       tilt_max_=pr2_model.getJointLimitUpper("head_tilt_joint");
       max_velocity_max_=pr2_model.getJointLimitVelocity("head_tilt_joint")>pr2_model.getJointLimitVelocity("head_pan_joint")?pr2_model.getJointLimitVelocity("head_pan_joint"):pr2_model.getJointLimitVelocity("head_tilt_joint");
+      ROS_INFO("RobotHead pan_min %f, pax_max %f, tilt_min_ %f, tilt_max_ %f, max_velocity_max_ %f\n",pan_min_, pan_max_, tilt_min_, tilt_max_, max_velocity_max_);
     } else {
       return UNKNOWN_JOINT;
     }
@@ -53,7 +54,7 @@ RobotHead::ERROR RobotHead::init(){
       }
     }
   } else {
-    ROS_INFO("Not able to create the HeadClient");
+    ROS_INFO("RobotHead:: Not able to create the HeadClient");
     result= INIT_FAILED;
   }
 
@@ -70,9 +71,30 @@ RobotHead::ERROR RobotHead::isConnected(){
   return result;
 }
 
+RobotHead::ERROR RobotHead::checkCmdLimits(double pan_desired_position, double tilt_desired_position)
+{
+  ERROR result=OK;
+  if(pan_desired_position>pan_max_ || pan_desired_position<pan_min_) {
+    ROS_INFO("RobotHead::checkCmdLimits head desired position out of bounds with pan = %f (limits [%f , %f] ) \n", pan_desired_position,pan_min_, pan_max_);
+    result = INVALID_PARAM;
+  }
+  if(tilt_desired_position>tilt_max_ || tilt_desired_position<tilt_min_) {
+    ROS_INFO("RobotHead::checkCmdLimits head desired position out of bounds with tilt = %f (limits [%f , %f] ) \n", tilt_desired_position,tilt_min_, tilt_max_);
+    result = INVALID_PARAM;
+  }
+  return result;
+}
 
+
+// to be able to use this callback function, you need to
+// create a nodehandle and a subscriber to read the desired position
+//ros::NodeHandle n;
+//ros::Subscriber sub = n.subscribe("/head_traj_controller/state", 1000, &RobotHead::listenerCallback, this);
+//if(sub)
+//  printf("the callback is valid \n");
 void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr& msg)
 {
+  // count
   int count=0;
    // pr2_controllers_msgs::JointTrajectoryControllerStat
    //     std_msgs/Header header
@@ -90,6 +112,7 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
   // check pan boundaries
    if(msg->joint_names[0].compare("head_pan_joint")==0) {
      count = count+1;
+     ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[0],pan_min_, pan_max_);
      if(msg->desired.positions[0]>pan_max_ || msg->desired.positions[0]<pan_min_) {
        ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[0]);
        point_head_client_->cancelAllGoals();
@@ -98,6 +121,7 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
 
    if(msg->joint_names[1].compare("head_pan_joint")==0) {
      count = count + 1;
+ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[1],pan_min_, pan_max_);
      if(msg->desired.positions[1]>pan_max_ || msg->desired.positions[1]<pan_min_) {
        ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[1]);
        point_head_client_->cancelAllGoals();
@@ -107,6 +131,7 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
    // check tilt boundaries
    if(msg->joint_names[0].compare("head_tilt_joint")==0) {
      count = count +1;
+     ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[0], tilt_min_, tilt_max_);
      if(msg->desired.positions[0]>tilt_max_ || msg->desired.positions[0]<tilt_min_) {
        ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[0]);
        point_head_client_->cancelAllGoals();
@@ -115,6 +140,7 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
 
    if(msg->joint_names[1].compare("head_tilt_joint")==0) {
      count = count +1;
+ ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[1], tilt_min_, tilt_max_);
      if(msg->desired.positions[1]>tilt_max_ || msg->desired.positions[1]<tilt_min_) {
        ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[1]);
        point_head_client_->cancelAllGoals();
@@ -157,9 +183,6 @@ void RobotHead::lookAt_feedbackCb(const pr2_controllers_msgs::PointHeadActionFee
   }
 
 void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
-  // create a nodehandle and a subscriber to read the desired position
-  ros::NodeHandle n;
-  ros::Subscriber sub = n.subscribe("/head_traj_controller/state", 1000, &RobotHead::listenerCallback, this);
   //the goal message
   //pr2_controllers_msgs::PointHeadGoal
   // geometry_msgs/PointStamped target
@@ -187,12 +210,13 @@ void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
   // If both are unspecified, the head will reach its goal as fast as possible. 
 
   // Let min duration unspecified
-  // goal_cmd.min_duration = min_duration_default_;
+  // goal_cmd.min_duration = min_duration_;
   // but go no faster than max_velocity_default_;
-  goal_cmd.max_velocity = max_velocity_default_;
-  
+  goal_cmd.max_velocity = max_velocity_;
+
   //send the goal
   point_head_client_->sendGoal(goal_cmd);
+
   //send the goal with callback (never achieved to make it work with that client)
   // point_head_client_->sendGoal(goal_cmd,
   //   boost::bind(&RobotHead::lookAt_doneCb, this, _1, _2), 

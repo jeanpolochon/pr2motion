@@ -4,12 +4,12 @@
 Torso::Torso()
   : position_min_(0.012),
     position_max_(0.30),
-    min_duration_min_(1.0),
-    min_duration_max_(15.0),
-    min_duration_default_(2.0),
+    min_duration_min_(1,0),
+    min_duration_max_(15,0),
+    min_duration_(2,0),
     max_velocity_min_(0.0),
-    max_velocity_max_(1.0),
-    max_velocity_default_(max_velocity_max_/2.0),
+    max_velocity_max_(0.01),
+    max_velocity_(max_velocity_max_/2.0),
     is_connected_(false),
     torso_client_(NULL)
 {
@@ -72,27 +72,34 @@ Torso::ERROR Torso::isConnected(){
   return result;
 }
 
-double Torso::getMaxVelocityDefault(){
-  return max_velocity_default_;
+double Torso::getMaxVelocity(){
+  return max_velocity_;
 }
 
-ros::Duration Torso::getMinDurationDefault(){
-  return min_duration_default_;
+ros::Duration Torso::getMinDuration(){
+  return min_duration_;
 }
 
 Torso::ERROR Torso::checkParamLimits(ros::Duration duration, double max_velocity){
   ERROR result=OK;
-  if( (duration>min_duration_max_) || (duration<min_duration_max_))
+  if( (duration>min_duration_max_) || (duration<min_duration_min_)){
+    printf("invalid min_duration with pos %d %d min %d %d and max %d %d \n",duration.sec, duration.nsec, min_duration_min_.sec, min_duration_min_.nsec,min_duration_max_.sec, min_duration_max_.nsec);
+    printf("invalid min_duration\n");
     result = INVALID_PARAM;
-  if( (max_velocity>max_velocity_max_) || (max_velocity<max_velocity_min_))
+  }
+  if( (max_velocity>max_velocity_max_) || (max_velocity<max_velocity_min_)){
+printf("invalid max_velocity with pos %f min %f and max %f \n",max_velocity, max_velocity_min_,max_velocity_max_);
     result = INVALID_PARAM;
+  }
   return result;
 }
 
 Torso::ERROR Torso::checkCmdLimits(double position){
   Torso::ERROR result=OK;
-  if( (position<position_min_) || (position>position_max_))
+  if( (position<position_min_) || (position>position_max_)){
+    printf("invalid position with pos %f min %f and max %f \n",position, position_min_,position_max_);
     result = INVALID_PARAM;
+  }
   return result;
 }
 
@@ -127,21 +134,25 @@ Torso::ERROR Torso::move(pr2_controllers_msgs::SingleJointPositionGoal goal_cmd)
   // duration min_duration
   // float64 max_velocity
   ERROR result = OK;
+  goal_cmd.min_duration=min_duration_;
+  goal_cmd.max_velocity=max_velocity_;
+      printf("result1=%d\n",result);
   result = checkParamLimits(goal_cmd.min_duration,goal_cmd.max_velocity);
-
+ printf("result2=%d\n",result);
   if(result != OK)
     return result;
 
   result = checkCmdLimits(goal_cmd.position);
-
+ printf("result3=%d\n",result);
   if(result != OK)
     return result;
-
+  printf("before send_torsomove\n");
   torso_client_->sendGoal(goal_cmd, 
 			  boost::bind(&Torso::move_doneCb, this, _1, _2), 
 			  boost::bind(&Torso::move_activeCb, this),
 			  boost::bind(&Torso::move_feedbackCb, this, _1));
-
+  printf("after send_torsomove\n");
+ printf("result4=%d\n",result);
   return result;
 }
 

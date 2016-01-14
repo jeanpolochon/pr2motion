@@ -36,18 +36,23 @@ Pr2Model::ERROR Pr2Model::checkJointName(std::string joint_name){
  
 double Pr2Model::getJointLimitUpper(std::string joint_name){
   const urdf::Joint* joint = robot_model_->getJoint(joint_name).get();
+  const boost::shared_ptr<urdf::JointSafety> safety = joint->safety;
   const boost::shared_ptr<urdf::JointLimits> limits = joint->limits;  
-  return limits->upper;  
+  //return limits->upper;  
+  return safety->soft_upper_limit;
 }
 
 double Pr2Model::getJointLimitLower(std::string joint_name){
   const urdf::Joint* joint = robot_model_->getJoint(joint_name).get();
+  const boost::shared_ptr<urdf::JointSafety> safety = joint->safety;
   const boost::shared_ptr<urdf::JointLimits> limits = joint->limits;  
-  return limits->lower;  
+  //return limits->lower;  
+  return safety->soft_lower_limit;
 }
 
 double Pr2Model::getJointLimitVelocity(std::string joint_name){
   const urdf::Joint* joint = robot_model_->getJoint(joint_name).get();
+  const boost::shared_ptr<urdf::JointSafety> safety = joint->safety;
   const boost::shared_ptr<urdf::JointLimits> limits = joint->limits;  
   return limits->velocity;  
 }

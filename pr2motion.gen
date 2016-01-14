@@ -32,6 +32,13 @@ component pr2motion {
   exception unknown_error{};
 
   ids {
+    // Robot State
+    pr2motion::sensor_msgs_jointstate joint_state_msg;
+    boolean joint_state_availability;
+    // Head Controller State
+    pr2motion::pr2_controllers_msgs_jointtrajectorycontrollerstate head_controller_state_msg;
+    boolean head_controller_state_availability;
+
     // GRIPPER
     //Pr2GripperCommandGoal
     double open_position;
@@ -54,8 +61,8 @@ component pr2motion {
 
     // TORSO
     //    float torso_position;
-    double torso_min_duration;
-    float torso_max_velocity; 
+    /* double torso_min_duration; */
+    /* float torso_max_velocity;  */
 
     // HEAD
     //    pr2motion::PR2MOTION_HEAD_MODE head_mode;
@@ -73,14 +80,15 @@ component pr2motion {
 
   task main {
     period 100ms;
-    codel <start> initMain() yield sleep;
+    codel <start> initMain(out joint_state_availability) yield routine;
+    codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield routine, sleep, stop;
     codel <stop> endMain() yield ether;
   };
 
   activity Init()
   {
     doc "SDI initialisation and pr2 controllers connection initialisation";
-    codel <start>initConnect(in torso_min_duration, in torso_max_velocity) yield ether;
+    codel <start>initConnect() yield ether;
     //    throw left_arm_error, right_arm_error, memory_full;
     task main;
   };
@@ -192,23 +200,10 @@ component pr2motion {
     doc "Stop Gripper";
   }; 
 
-/* TORSO related functions */
-  attribute Torso_SetMoveParam(in torso_min_duration = 2.0:"min_duration",
-					  in torso_max_velocity = 1.0:"max_velocity") {
-    doc "Set torso_goal";
-    validate Torso_SetMoveParam(local in torso_min_duration, local in torso_max_velocity);
-  };
-
-  /* TORSO related functions */
-  attribute Torso_GetMoveTorsoParam(out torso_min_duration,
-					      out torso_max_velocity) {
-    doc "Get torso_goal";
-  };
-
   activity Torso_Move(in float torso_position = 10.0:"desired torso_position")
   {
   doc "Allow to move the Torso";
-  codel <start> startMoveTorso(in torso_position, in torso_min_duration, in torso_max_velocity) yield end, ether, wait;
+  codel <start> startMoveTorso(in torso_position) yield end, ether, wait;
   codel <wait> waitMoveTorso() yield wait, end;
   codel <end> endMoveTorso() yield ether;
   codel <stop> stopMoveTorso() yield ether;
@@ -229,9 +224,9 @@ component pr2motion {
       in double head_target_y = 0.0:"y",
       in double head_target_z = 0.0:"z")
   {
-  doc "Move the Head";
+    doc "Move the Head";
   codel <start> startMoveHead(in head_mode, in head_target_frame, in head_target_x, in head_target_y, in head_target_z) yield end, ether, wait;
-  codel <wait> waitMoveHead(in head_mode) yield start, wait, end, ether;
+  codel <wait> waitMoveHead(in head_mode, port in head_controller_state, out head_controller_state_msg) yield start, wait, end, ether;
   codel <end> endMoveHead() yield ether;
   codel <stop> stopMoveHead() yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
