@@ -30,6 +30,7 @@ component pr2motion {
   exception init_not_done{};
   exception unable_to_read_description{};
   exception unknown_error{};
+  exception joint_state_unavailable{};
 
   ids {
     // Robot State
@@ -280,12 +281,13 @@ component pr2motion {
   activity Arm_MoveToQGoal(in pr2motion::PR2MOTION_SIDE side = pr2motion::PR2MOTION_RIGHT:"0= left, 1=right", in pr2motion::PR2MOTION_TRAJ_MODE traj_mode = pr2motion::PR2MOTION_TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
   {
     doc "Allow to set a Qgoal";
-    codel <start> getQGoal(in side, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
+    codel <start> getQGoal(in side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
     codel <computetraj> computeTrajQGoal(in side, in traj_mode) yield checktraj, end, ether;
     codel <checktraj> checkTrajQGoal(in side) yield end, ether, launchmove;
     codel <launchmove> launchMoveQ(in side) yield end, ether, waitmove;
     codel <waitmove> waitMoveQ(in side) yield end, ether, waitmove;
     codel <end> endMoveQ(in side) yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
     task main;
   };
 

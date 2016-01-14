@@ -144,7 +144,9 @@ routineMain(const pr2motion_joint_state *joint_state,
     // get the correct index for all needed joints in the path
     for (size_t ind=0; ind<name_size; ind++) {
       //printf("%s position %f velocity %f effort %f\n",joint_state->data(self)->name._buffer[ind],joint_state->data(self)->position._buffer[ind], joint_state->data(self)->velocity._buffer[ind], joint_state->data(self)->effort._buffer[ind]); 
-      joint_state_msg->name._buffer[ind]=joint_state->data(self)->name._buffer[ind];
+      if(joint_state_msg->name._buffer[ind])
+	free(joint_state_msg->name._buffer[ind]);
+      joint_state_msg->name._buffer[ind]=strdup(joint_state->data(self)->name._buffer[ind]);
       joint_state_msg->position._buffer[ind]=joint_state->data(self)->position._buffer[ind];
       joint_state_msg->velocity._buffer[ind]=joint_state->data(self)->velocity._buffer[ind];
       joint_state_msg->effort._buffer[ind]=joint_state->data(self)->effort._buffer[ind];
@@ -1025,7 +1027,7 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
       if(strcmp(traj->data(self)->traj.joint_names._buffer[ind],"l_wrist_flex_joint")==0){
 	l_wrist_flex_joint_indice = ind;
       }
-      if(traj->data(self)->traj.joint_names._buffer[ind] == "l_wrist_roll_joint"){
+      if(strcmp(traj->data(self)->traj.joint_names._buffer[ind],"l_wrist_roll_joint")==0){
 	l_wrist_roll_joint_indice = ind;
       }
     }
@@ -1233,17 +1235,26 @@ endMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
-getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
-         double shoulder_lift_joint, double upper_arm_roll_joint,
-         double elbow_flex_joint, double forearm_roll_joint,
-         double wrist_flex_joint, double wrist_roll_joint,
-         genom_context self)
+getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
+         const pr2motion_sensor_msgs_jointstate *joint_state_msg,
+         double shoulder_pan_joint, double shoulder_lift_joint,
+         double upper_arm_roll_joint, double elbow_flex_joint,
+         double forearm_roll_joint, double wrist_flex_joint,
+         double wrist_roll_joint, genom_context self)
 {
   // goal (path) to be send to the controller
   pr2_controllers_msgs::JointTrajectoryGoal path_cmd;
   int joint_names_vector_size = 7;
+  int points_vector_size = 2;
+  path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
+  path_cmd.trajectory.points.resize(points_vector_size);
+  path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
+  path_cmd.trajectory.points[1].positions.resize(joint_names_vector_size);
 
   // test if the server is connected
   RobotArm::ERROR result_connect;
@@ -1251,7 +1262,7 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
     result_connect = right_arm.isConnected();
   } else {
     result_connect = left_arm.isConnected();
-  }
+  }  
 
   switch(result_connect){
   case RobotArm::OK:
@@ -1263,64 +1274,121 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
   default:
     return pr2motion_unknown_error(self);
   }
-  printf("GetQGoal: Arm is connected \n");
-
+  
+  printf("GetQGoal: Arm is connected with vector length \n",joint_state_msg->name._length);
+  
+  // check if we can get the actual arm position
+  if(!joint_state_availability){
+    printf("GetQGoal cannot get robot actual position\n");
+    return pr2motion_joint_state_unavailable(self);
+  }
+    
+  printf("avant\n");
   if(side == pr2motion_PR2MOTION_RIGHT){
-    printf("111\n");
-    path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
-    path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
-    path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
-    path_cmd.trajectory.joint_names[2]="r_upper_arm_roll_joint";
-    path_cmd.trajectory.joint_names[3]="r_elbow_flex_joint";
-    path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
-    path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
-    path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
-    printf("222\n");
-    printf("GetQGoal: One point in the path\n");
-    path_cmd.trajectory.points.resize(1);
-    path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
-    path_cmd.trajectory.points[0].positions[0] = shoulder_pan_joint;
-    path_cmd.trajectory.points[0].positions[1] = shoulder_lift_joint;
-    path_cmd.trajectory.points[0].positions[2] = upper_arm_roll_joint;
-    path_cmd.trajectory.points[0].positions[3] = elbow_flex_joint;
-    path_cmd.trajectory.points[0].positions[4] = forearm_roll_joint;
-    path_cmd.trajectory.points[0].positions[5] = wrist_flex_joint;
-    path_cmd.trajectory.points[0].positions[6] = wrist_roll_joint;
-    printf("333\n");
-    right_arm.clearTrajectory();
-    printf("444\n");
-    if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
-      printf("GetQGoal setTraj ok\n");
-      return pr2motion_computetraj;
-    } else {
-      printf("GetQGoal setTraj ko\n");
-      return pr2motion_end;	 
+    printf("1\n");
+  // get the correct index for all needed joints in the path
+  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+    printf("ind= %d 2\n", ind);
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
+       printf("r_shoulder_pan_joint\n");
+      path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
+      path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
     }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
+      printf("r_shoulder_lift_joint\n");
+      path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
+      path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
+      printf("r_upper_arm_roll_joint\n");      
+      path_cmd.trajectory.joint_names[2]="r_upper_arm_roll_joint";
+      path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
+      printf("r_elbow_flex_joint\n");           
+      path_cmd.trajectory.joint_names[3]="r_elbow_flex_joint";
+      path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
+      printf("r_forearm_roll_joint\n");
+      path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
+      path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
+      printf("r_wrist_flex_joint\n");      
+      path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
+      path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
+      printf("r_wrist_roll_joint\n"); 
+      path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
+      path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+    }
+     printf("4\n");
+  }
+   printf("5\n");
+  right_arm.clearTrajectory();
+   printf("6\n");
+  if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
+    printf("GetQGoal setTraj ok\n");
+    return pr2motion_computetraj;
   } else {
-    path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
-    path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
-    path_cmd.trajectory.joint_names[1]="l_shoulder_lift_joint";
-    path_cmd.trajectory.joint_names[2]="l_upper_arm_roll_joint";
-    path_cmd.trajectory.joint_names[3]="l_elbow_flex_joint";
-    path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
-    path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
-    path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
-    path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
-    path_cmd.trajectory.points[0].positions[0] = shoulder_pan_joint;
-    path_cmd.trajectory.points[0].positions[1] = shoulder_lift_joint;
-    path_cmd.trajectory.points[0].positions[2] = upper_arm_roll_joint;
-    path_cmd.trajectory.points[0].positions[3] = elbow_flex_joint;
-    path_cmd.trajectory.points[0].positions[4] = forearm_roll_joint;
-    path_cmd.trajectory.points[0].positions[5] = wrist_flex_joint;
-    path_cmd.trajectory.points[0].positions[6] = wrist_roll_joint;   
-    left_arm.clearTrajectory();
-    if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
-      printf("GetQGoal setTraj ok\n");      
-      return pr2motion_computetraj;
-    } else {
-      printf("GetQGoal setTraj ok\n");
-      return pr2motion_end;     
+    printf("GetQGoal setTraj ko\n");
+    return pr2motion_end;	 
+  }
+  } else {
+  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_pan_joint")==0){
+      path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
+      path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
     }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
+      path_cmd.trajectory.joint_names[1]="l_shoulder_lift_joint";
+      path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_upper_arm_roll_joint")==0){
+      path_cmd.trajectory.joint_names[2]="l_upper_arm_roll_joint";
+      path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_elbow_flex_joint")==0){
+      path_cmd.trajectory.joint_names[3]="l_elbow_flex_joint";
+      path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_forearm_roll_joint")==0){
+      path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
+      path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_flex_joint")==0){
+      path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
+      path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
+      path_cmd.trajectory.joint_names[6]="l_wrist_flex_joint";
+      path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+    } 
+  }
+  left_arm.clearTrajectory();
+  if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
+    printf("GetQGoal setTraj ok\n");      
+    return pr2motion_computetraj;
+  } else {
+    printf("GetQGoal setTraj ok\n");
+    return pr2motion_end;     
+  }
   }
   return pr2motion_end;
 }
@@ -1329,6 +1397,9 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, double shoulder_pan_joint,
  *
  * Triggered by pr2motion_computetraj.
  * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
 computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
@@ -1378,6 +1449,9 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
  *
  * Triggered by pr2motion_checktraj.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
 checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1399,6 +1473,9 @@ checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
  *
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
 launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1416,6 +1493,9 @@ launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
  *
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
 waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
@@ -1443,6 +1523,9 @@ waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
  */
 genom_event
 endMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
