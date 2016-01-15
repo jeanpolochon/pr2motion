@@ -77,9 +77,9 @@ StateEnum {
 genom_event
 initMain(double *open_position, double *open_max_effort,
          double *close_position, double *close_max_effort,
-         pr2motion_PR2MOTION_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
+         pr2motion_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
          bool *findtwo_zero_fingertip_sensors,
-         pr2motion_PR2MOTION_GRIPPER_EVENT_DETECTOR *event_trigger_conditions,
+         pr2motion_GRIPPER_EVENT_DETECTOR *event_trigger_conditions,
          double *event_acceleration_trigger_magnitude,
          double *event_slip_trigger_magnitude,
          bool *joint_state_availability, genom_context self)
@@ -99,10 +99,10 @@ initMain(double *open_position, double *open_max_effort,
   // close gently
   *close_max_effort = -1.0;
   // close until both fingers contact
-  *findtwo_contact_conditions = pr2motion_PR2MOTION_GRIPPER_CONTACT_BOTH;
+  *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_BOTH;
   // zero fingertip sensor values before moving
   *findtwo_zero_fingertip_sensors = true;
-  *event_trigger_conditions = pr2motion_PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC;
+  *event_trigger_conditions = pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC;
   *event_acceleration_trigger_magnitude = 4.0;
   *event_slip_trigger_magnitude = 0.005;
   return pr2motion_routine;
@@ -278,8 +278,8 @@ initConnect(genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-startOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                    pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+startOperateGripper(pr2motion_SIDE side,
+                    pr2motion_GRIPPER_MODE goal_mode,
                     genom_context self)
 {
   // check parameters and whether the corresponding gripper client is connected
@@ -287,10 +287,10 @@ startOperateGripper(pr2motion_PR2MOTION_SIDE side,
 #ifndef PR2_SIMU 
   Gripper::ERROR result_connect;
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     result_connect = left_gripper.isConnected();
     break;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     result_connect = right_gripper.isConnected();
     break;    
   default:
@@ -309,10 +309,10 @@ startOperateGripper(pr2motion_PR2MOTION_SIDE side,
 #else
   GripperSimple::ERROR result_connect;
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     result_connect = left_gripper.isConnected();
     break;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     result_connect = right_gripper.isConnected();
     break;    
   default:
@@ -340,13 +340,13 @@ startOperateGripper(pr2motion_PR2MOTION_SIDE side,
  */
 
 genom_event
-execOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                   pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+execOperateGripper(pr2motion_SIDE side,
+                   pr2motion_GRIPPER_MODE goal_mode,
                    double open_position, double open_max_effort,
                    double close_position, double close_max_effort,
-                   pr2motion_PR2MOTION_GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
+                   pr2motion_GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
                    bool findtwo_zero_fingertip_sensors,
-                   pr2motion_PR2MOTION_GRIPPER_EVENT_DETECTOR event_trigger_conditions,
+                   pr2motion_GRIPPER_EVENT_DETECTOR event_trigger_conditions,
                    double event_acceleration_trigger_magnitude,
                    double event_slip_trigger_magnitude,
                    genom_context self)
@@ -368,32 +368,32 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
   place.command.slip_trigger_magnitude = event_slip_trigger_magnitude;
 
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     switch(goal_mode){
-    case pr2motion_PR2MOTION_GRIPPER_GRAB :
+    case pr2motion_GRIPPER_GRAB :
       left_gripper.findTwoContacts(findTwo);
       return pr2motion_waitcontact;
-    case pr2motion_PR2MOTION_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_RELEASE :
       left_gripper.place(place);
       return pr2motion_waitrelease;
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       left_gripper.open(open);
       return pr2motion_waitopen;
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       left_gripper.close(close);
       return pr2motion_waitclose;
     }
-  case pr2motion_PR2MOTION_RIGHT:
+  case pr2motion_RIGHT:
     switch(goal_mode){
-    case pr2motion_PR2MOTION_GRIPPER_GRAB :
+    case pr2motion_GRIPPER_GRAB :
       right_gripper.findTwoContacts(findTwo);
       return pr2motion_waitcontact;
-    case pr2motion_PR2MOTION_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_RELEASE :
       return pr2motion_waitrelease;
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       right_gripper.open(open);
       return pr2motion_waitopen;
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       right_gripper.close(close);
       return pr2motion_waitclose;
     }
@@ -410,21 +410,21 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
   close.command.max_effort = close_max_effort;  // unlimited motor effort
 
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     switch(goal_mode){
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       left_gripper.open(open);
       return pr2motion_waitopen;
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       left_gripper.close(close);
       return pr2motion_waitclose;
     }
-  case pr2motion_PR2MOTION_RIGHT:
+  case pr2motion_RIGHT:
     switch(goal_mode){
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       right_gripper.open(open);
       return pr2motion_waitopen;
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       right_gripper.close(close);
       return pr2motion_waitclose;
     }
@@ -440,8 +440,8 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                   pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+waitOperateGripper(pr2motion_SIDE side,
+                   pr2motion_GRIPPER_MODE goal_mode,
                    genom_context self)
 {
 
@@ -457,21 +457,21 @@ waitOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitcontactOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                          pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+waitcontactOperateGripper(pr2motion_SIDE side,
+                          pr2motion_GRIPPER_MODE goal_mode,
                           genom_context self)
 {
 #ifndef PR2_SIMU
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_end;    
 
  switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     if(left_gripper.findTwo_isDone())
       return pr2motion_slipservo;
     else
       return pr2motion_waitcontact;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     if(right_gripper.findTwo_isDone())
       return pr2motion_slipservo;
     else
@@ -493,21 +493,21 @@ waitcontactOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                       pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+waitopenOperateGripper(pr2motion_SIDE side,
+                       pr2motion_GRIPPER_MODE goal_mode,
                        genom_context self)
 {
- if (side >= pr2motion_PR2MOTION_NB_SIDE)
+ if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
 #ifndef PR2_SIMU  
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     if(left_gripper.open_isDone())
       return pr2motion_waitcontact;
     else
       return pr2motion_waitopen;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     if(right_gripper.open_isDone())
       return pr2motion_waitcontact;
     else
@@ -517,12 +517,12 @@ waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
   }
 #else
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     if(left_gripper.open_isDone())
       return pr2motion_end;
     else
       return pr2motion_waitopen;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     if(right_gripper.open_isDone())
       return pr2motion_end;
     else
@@ -542,23 +542,23 @@ waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitcloseOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                        pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+waitcloseOperateGripper(pr2motion_SIDE side,
+                        pr2motion_GRIPPER_MODE goal_mode,
                         genom_context self)
 {
 
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
   
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     if(left_gripper.close_isDone()){
       printf("close done\n");
       return pr2motion_end;
     } else {
       return pr2motion_waitclose;
     }
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     if(right_gripper.close_isDone()){
       printf("close done\n");
       return pr2motion_end;
@@ -579,21 +579,21 @@ waitcloseOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitreleaseOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                          pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+waitreleaseOperateGripper(pr2motion_SIDE side,
+                          pr2motion_GRIPPER_MODE goal_mode,
                           genom_context self)
 {
 #ifndef PR2_SIMU
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     if(left_gripper.place_isDone())
       return pr2motion_end;
     else
       return pr2motion_waitcontact;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     if(right_gripper.place_isDone())
       return pr2motion_end;
     else
@@ -614,19 +614,19 @@ waitreleaseOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-slipservoOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                        pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+slipservoOperateGripper(pr2motion_SIDE side,
+                        pr2motion_GRIPPER_MODE goal_mode,
                         genom_context self)
 {
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
 #ifndef PR2_SIMU
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     left_gripper.slipServo();
     return pr2motion_end;
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     right_gripper.slipServo();
     return pr2motion_end;
   default:
@@ -645,43 +645,43 @@ slipservoOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-stopOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                   pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+stopOperateGripper(pr2motion_SIDE side,
+                   pr2motion_GRIPPER_MODE goal_mode,
                    genom_context self)
 {
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_end;    
   
-  if (goal_mode >= pr2motion_PR2MOTION_GRIPPER_NB_MODE)
+  if (goal_mode >= pr2motion_GRIPPER_NB_MODE)
     return pr2motion_end;
 
   switch(side){
-  case pr2motion_PR2MOTION_LEFT :
+  case pr2motion_LEFT :
     switch(goal_mode){
 #ifndef PR2_SIMU
-    case pr2motion_PR2MOTION_GRIPPER_GRAB :
+    case pr2motion_GRIPPER_GRAB :
       left_gripper.findTwo_cancel();
-    case pr2motion_PR2MOTION_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_RELEASE :
       left_gripper.place_cancel();
       return pr2motion_waitrelease;
 #endif
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       left_gripper.open_cancel();
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       left_gripper.close_cancel();
     }
-  case pr2motion_PR2MOTION_RIGHT :
+  case pr2motion_RIGHT :
     switch(goal_mode){
 #ifndef PR2_SIMU
-    case pr2motion_PR2MOTION_GRIPPER_GRAB :
+    case pr2motion_GRIPPER_GRAB :
       right_gripper.findTwo_cancel();
-    case pr2motion_PR2MOTION_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_RELEASE :
       right_gripper.place_cancel();
       return pr2motion_waitrelease;
 #endif
-    case pr2motion_PR2MOTION_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_OPEN :
       right_gripper.open_cancel();
-    case pr2motion_PR2MOTION_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_CLOSE :
       right_gripper.close_cancel();
     }   
   }
@@ -698,8 +698,8 @@ stopOperateGripper(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-endOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                  pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
+endOperateGripper(pr2motion_SIDE side,
+                  pr2motion_GRIPPER_MODE goal_mode,
                   genom_context self)
 {
   /* skeleton sample: insert your code */
@@ -804,13 +804,13 @@ stopMoveTorso(genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-startMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
+startMoveHead(pr2motion_HEAD_MODE head_mode,
               const char head_target_frame[128], double head_target_x,
               double head_target_y, double head_target_z,
               genom_context self)
 {
   std::string frame_id(head_target_frame);
-  if(head_mode>=pr2motion_PR2MOTION_HEAD_NB_MODE)
+  if(head_mode>=pr2motion_HEAD_NB_MODE)
     return pr2motion_invalid_param(self);
  
   RobotHead::ERROR result_connect = head.isConnected();
@@ -835,7 +835,7 @@ startMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
+waitMoveHead(pr2motion_HEAD_MODE head_mode,
              const pr2motion_head_controller_state *head_controller_state,
              pr2motion_pr2_controllers_msgs_jointtrajectorycontrollerstate *head_controller_state_msg,
              genom_context self)
@@ -885,7 +885,7 @@ waitMoveHead(pr2motion_PR2MOTION_HEAD_MODE head_mode,
   // if yes, goto end
   // otherwise, goto wait
   if(head.lookAt_isDone())
-    if(head_mode==pr2motion_PR2MOTION_HEAD_LOOKAT) {
+    if(head_mode==pr2motion_HEAD_LOOKAT) {
       return pr2motion_end;
     } else {
       return pr2motion_start;
@@ -933,8 +933,7 @@ stopMoveHead(genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-getPathArm(pr2motion_PR2MOTION_SIDE side,
-           pr2motion_PR2MOTION_PATH_MODE path_mode,
+getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
            const pr2motion_traj *traj, genom_context self)
 {
   printf("getpath arm \n");
@@ -967,15 +966,15 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
 
   RobotArm::ERROR result;
 
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
-  if (path_mode >= pr2motion_PR2MOTION_PATH_NB_MODE)
+  if (path_mode >= pr2motion_PATH_NB_MODE)
     return pr2motion_invalid_param(self);
 
   // test if the server is connected
   RobotArm::ERROR result_connect;
-  if (side == pr2motion_PR2MOTION_RIGHT) {
+  if (side == pr2motion_RIGHT) {
     result_connect = right_arm.isConnected();
   } else {
     result_connect = left_arm.isConnected();
@@ -993,8 +992,8 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
   }
 
   // read trajectory from the test function
-  if(path_mode==pr2motion_PR2MOTION_PATH_TEST) {
-    if (side == pr2motion_PR2MOTION_RIGHT) {
+  if(path_mode==pr2motion_PATH_TEST) {
+    if (side == pr2motion_RIGHT) {
       right_arm.clearTrajectory();
       right_arm.gettestPath();
       return pr2motion_computetraj;
@@ -1062,7 +1061,7 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
       }
     }
     
-    if(side == pr2motion_PR2MOTION_RIGHT){
+    if(side == pr2motion_RIGHT){
       path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
       path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
       path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
@@ -1129,22 +1128,21 @@ getPathArm(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-computeTrajArm(pr2motion_PR2MOTION_SIDE side,
-               pr2motion_PR2MOTION_TRAJ_MODE traj_mode,
+computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
                double time_slot, genom_context self)
 {
   printf("computetrajarm\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     //    right_arm.setMax(max_vel, max_acc, max_jerk);
     //    right_arm.setT(time_slot);
     switch (traj_mode){
-    case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
+    case pr2motion_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
       break;
-    case pr2motion_PR2MOTION_TRAJ_GATECH:
+    case pr2motion_TRAJ_GATECH:
       right_arm.setTrajMode(RobotArm::GATECH);
       break;
-    case pr2motion_PR2MOTION_TRAJ_PATH:
+    case pr2motion_TRAJ_PATH:
       right_arm.setTrajMode(RobotArm::PATH);
     default:
       return pr2motion_end;
@@ -1155,13 +1153,13 @@ computeTrajArm(pr2motion_PR2MOTION_SIDE side,
     //    left_arm.setMax(max_vel, max_acc, max_jerk);
     //    left_arm.setT(time_slot);
     switch (traj_mode){
-    case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
+    case pr2motion_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
       break;
-    case pr2motion_PR2MOTION_TRAJ_GATECH:
+    case pr2motion_TRAJ_GATECH:
       left_arm.setTrajMode(RobotArm::GATECH);
       break;
-    case pr2motion_PR2MOTION_TRAJ_PATH:
+    case pr2motion_TRAJ_PATH:
       left_arm.setTrajMode(RobotArm::PATH);
     default:
       return pr2motion_end;
@@ -1180,11 +1178,11 @@ computeTrajArm(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-checkTrajArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
+checkTrajArm(pr2motion_SIDE side, genom_context self)
 {
   printf("checktrajarm\n");
   RobotArm::ERROR result;
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
   } else {
     result=left_arm.validateTrajectory();
@@ -1203,10 +1201,10 @@ checkTrajArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-launchMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
+launchMoveArm(pr2motion_SIDE side, genom_context self)
 {
   printf("launchmovearm\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     right_arm.move();
   } else {
     left_arm.move();
@@ -1222,10 +1220,10 @@ launchMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
+waitMoveArm(pr2motion_SIDE side, genom_context self)
 {
   printf("waitmovearm\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     if(right_arm.move_isDone())
       return pr2motion_end;
     else
@@ -1246,11 +1244,29 @@ waitMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-endMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
+endMoveArm(pr2motion_SIDE side, genom_context self)
 {
   printf("endmovearm\n");
   /* skeleton sample: insert your code */
   /* skeleton sample */ return pr2motion_ether;
+}
+
+/** Codel stopMoveArm of activity Arm_Move.
+ *
+ * Triggered by pr2motion_stop.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+stopMoveArm(genom_context self)
+{
+  if(side == pr2motion_RIGHT){
+    right_arm.cancelCmd();
+  } else {
+    left_arm.cancelCmd();
+  }
+  return pr2motion_ether;
 }
 
 
@@ -1265,7 +1281,7 @@ endMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
+getQGoal(pr2motion_SIDE side, bool joint_state_availability,
          const pr2motion_sensor_msgs_jointstate *joint_state_msg,
          double shoulder_pan_joint, double shoulder_lift_joint,
          double upper_arm_roll_joint, double elbow_flex_joint,
@@ -1283,7 +1299,7 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
 
   // test if the server is connected
   RobotArm::ERROR result_connect;
-  if (side == pr2motion_PR2MOTION_RIGHT) {
+  if (side == pr2motion_RIGHT) {
     result_connect = right_arm.isConnected();
   } else {
     result_connect = left_arm.isConnected();
@@ -1309,7 +1325,7 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
   }
     
   printf("avant\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     printf("1\n");
   // get the correct index for all needed joints in the path
   for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
@@ -1427,22 +1443,21 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
-                 pr2motion_PR2MOTION_TRAJ_MODE traj_mode,
+computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
                  genom_context self)
 {
   printf("ComputeTrajQGoal\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     //    right_arm.setMax(max_vel, max_acc, max_jerk);
     //    right_arm.setT(time_slot);
     switch (traj_mode){
-    case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
+    case pr2motion_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
       break;
-    case pr2motion_PR2MOTION_TRAJ_GATECH:
+    case pr2motion_TRAJ_GATECH:
       right_arm.setTrajMode(RobotArm::GATECH);
       break;
-    case pr2motion_PR2MOTION_TRAJ_PATH:
+    case pr2motion_TRAJ_PATH:
       right_arm.setTrajMode(RobotArm::PATH);
     default:
       return pr2motion_end;
@@ -1453,13 +1468,13 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
     //    left_arm.setMax(max_vel, max_acc, max_jerk);
     //    left_arm.setT(time_slot);
     switch (traj_mode){
-    case pr2motion_PR2MOTION_TRAJ_SOFTMOTION:
+    case pr2motion_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
       break;
-    case pr2motion_PR2MOTION_TRAJ_GATECH:
+    case pr2motion_TRAJ_GATECH:
       left_arm.setTrajMode(RobotArm::GATECH);
       break;
-    case pr2motion_PR2MOTION_TRAJ_PATH:
+    case pr2motion_TRAJ_PATH:
       left_arm.setTrajMode(RobotArm::PATH);
     default:
       return pr2motion_end;
@@ -1479,11 +1494,11 @@ computeTrajQGoal(pr2motion_PR2MOTION_SIDE side,
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
+checkTrajQGoal(pr2motion_SIDE side, genom_context self)
 {
   printf("CheckTrajQGoal\n");
   RobotArm::ERROR result;
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
   } else {
     result=left_arm.validateTrajectory();
@@ -1503,10 +1518,10 @@ checkTrajQGoal(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
+launchMoveQ(pr2motion_SIDE side, genom_context self)
 {
   printf("launchMoveQ\n");
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     right_arm.move();
   } else {
     left_arm.move();
@@ -1523,10 +1538,10 @@ launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
+waitMoveQ(pr2motion_SIDE side, genom_context self)
 {
   // printf("waitmovearmq\n");
-  // if(side == pr2motion_PR2MOTION_RIGHT){
+  // if(side == pr2motion_RIGHT){
   //   if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
   //     return pr2motion_end;
   //   else if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
@@ -1543,7 +1558,7 @@ waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
   // }
   // return pr2motion_waitmove;
 
-  if(side == pr2motion_PR2MOTION_RIGHT){
+  if(side == pr2motion_RIGHT){
     if(right_arm.move_isDone())
       return pr2motion_end;
     else
@@ -1565,9 +1580,24 @@ waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-endMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
+endMoveQ(pr2motion_SIDE side, genom_context self)
 {
   printf("endmovearmq\n");
+  /* skeleton sample: insert your code */
+  /* skeleton sample */ return pr2motion_ether;
+}
+
+/** Codel stopMoveQ of activity Arm_MoveToQGoal.
+ *
+ * Triggered by pr2motion_stop.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error,
+ * pr2motion_joint_state_unavailable.
+ */
+genom_event
+stopMoveQ(genom_context self)
+{
   /* skeleton sample: insert your code */
   /* skeleton sample */ return pr2motion_ether;
 }

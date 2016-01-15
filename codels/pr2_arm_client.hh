@@ -90,6 +90,9 @@ enum ERROR { OK, INIT_FAILED, INVALID_PARAM, INIT_NOT_DONE, SERVER_NOT_CONNECTED
   // this function launch the action by sending the goal
   void move();
   void move(pr2_controllers_msgs::JointTrajectoryGoal *);
+  // cancelCmd
+  // this function cancels the current command
+  void cancelCmd();
   //pr2_controllers_msgs::JointTrajectoryGoal getgenom2Traj(SIDE);
   void gettestPath();
   void gettestPath(pr2_controllers_msgs::JointTrajectoryGoal *);

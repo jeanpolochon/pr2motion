@@ -469,6 +469,9 @@ void RobotArm::move(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd){
   // 			  boost::bind(&Torso::move_feedbackCb, this, _1));
 }
 
+void RobotArm::cancelCmd(){
+  traj_client_->cancelAllGoals();
+}
 
 void RobotArm::gettestPath(){
   gettestPath(&arm_traj_);
