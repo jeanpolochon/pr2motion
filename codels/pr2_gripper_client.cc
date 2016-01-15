@@ -7,23 +7,52 @@ GripperSimple::~GripperSimple(){
     delete gripper_client_;
 }
 
-void  GripperSimple::init(GripperSimple::SIDE side){
-  if (side==RIGHT) {
-    //Initialize the client for the Action interface to the gripper controller
-    //and tell the action client that we want to spin a thread by default
-    gripper_client_ = new GripperSimpleClient("r_gripper_controller/gripper_action", true);
-  } else {
-    gripper_client_ = new GripperSimpleClient("l_gripper_controller/gripper_action", true);
-  }
+GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
+  ERROR result = OK;
 
-    //wait for the gripper action server to come up 
-    while(!gripper_client_->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the gripper controller to come up\n");
+  if(gripper_client_==NULL) {
+    if (side==RIGHT) {
+      //Initialize the client for the Action interface to the gripper controller
+      //and tell the action client that we want to spin a thread by default
+      gripper_client_ = new GripperSimpleClient("r_gripper_controller/gripper_action", true);
+    } else {
+      gripper_client_ = new GripperSimpleClient("l_gripper_controller/gripper_action", true);
     }
   }
 
+  if(gripper_client_!=NULL) {
+    if(!gripper_client_->isServerConnected()){
+      //wait for the gripper action server to come up 
+      while(!gripper_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the gripper controller to come up\n");
+      }
+      if(!gripper_client_->isServerConnected()) {
+	result=SERVER_NOT_CONNECTED;
+      }
+    }
+  } else {
+    ROS_INFO("Not able to create the GripperClient");
+    result= INIT_FAILED;    
+  }
+  return result;
+}
+
+GripperSimple::ERROR GripperSimple::isConnected(){
+  ERROR result = OK;
+  if(gripper_client_==NULL)
+    result=INIT_NOT_DONE;
+  else
+    if(!gripper_client_->isServerConnected())
+      result=SERVER_NOT_CONNECTED;
+  return result;
+}
+
 
   // CLOSE
+bool GripperSimple::close_isDone() {
+  return (gripper_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState GripperSimple::close_getState() {
    return gripper_client_->getState();
  }
@@ -48,7 +77,7 @@ void GripperSimple::close_feedbackCb(const pr2_controllers_msgs::Pr2GripperComma
   //   float64 effort
   //   bool stalled
   //   bool reached_goal
-  ROS_INFO("Got Feedback\n");
+ ROS_INFO("Got Feedback position %f effort %f stalled %d readched_goal %d\n",feedback->position, feedback->effort, feedback->stalled, feedback->reached_goal);
 }
 void GripperSimple::close(pr2_controllers_msgs::Pr2GripperCommandGoal close_cmd){
     // pr2_controllers_msgs::Pr2GripperCommandGoal open;
@@ -66,6 +95,10 @@ void GripperSimple::close_cancel(){
 }
 
   // OPEN
+bool GripperSimple::open_isDone() {
+  return (gripper_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState GripperSimple::open_getState() {
   return gripper_client_->getState();
 }
@@ -90,7 +123,7 @@ void GripperSimple::open_feedbackCb(const pr2_controllers_msgs::Pr2GripperComman
     //   float64 effort
     //   bool stalled
     //   bool reached_goal
-    ROS_INFO("Got Feedback\n");
+    ROS_INFO("Got Feedback position %f effort %f stalled %d readched_goal %d\n",feedback->position, feedback->effort, feedback->stalled, feedback->reached_goal);
   }
 void GripperSimple::open(pr2_controllers_msgs::Pr2GripperCommandGoal open_cmd){
     // pr2_controllers_msgs::Pr2GripperCommandGoal open;

@@ -290,6 +290,10 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
   int points_vector_size; 
   points_vector_size=goal_cmd->trajectory.points.size();
 
+  if(points_vector_size==0){
+    result = INVALID_TRAJ;
+  } else {
+  
   // joint vector size
   int joint_names_vector_size = 0;
   joint_names_vector_size = goal_cmd->trajectory.joint_names.size();
@@ -347,12 +351,12 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
   if(arm_side_ == RIGHT) {
     for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
       if((goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]<r_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds \n");
+	printf("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n",goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
 	result = INVALID_TRAJ;
       }
       //r_shoulder_lift_joint
       if((goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]<r_shoulder_lift_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_shoulder_lift_joint bounds \n");
+	printf("RobotArm::validateTraj pb with r_shoulder_lift_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n",goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_lower_,r_shoulder_lift_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_velocity_);
 	result = INVALID_TRAJ;
       }
       //r_upper_arm_roll_joint
@@ -362,7 +366,7 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
       }
       //r_elbow_flex_joint
       if((goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]<r_elbow_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_elbow_flex_joint bounds \n");
+	printf("RobotArm::validateTraj pb with r_elbow_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice],r_elbow_flex_joint_limit_lower_, r_elbow_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice], r_elbow_flex_joint_limit_velocity_);
 	result = INVALID_TRAJ;
       }
       //r_forearm_roll_joint 
@@ -415,7 +419,7 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
       }
       //l_wrist_flex_joint
       if((goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]<l_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_wrist_flex_joint bounds \n");
+	printf("RobotArm::validateTraj pb with l_wrist_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice],l_wrist_flex_joint_limit_lower_, l_wrist_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice], l_wrist_flex_joint_limit_velocity_);
 	result = INVALID_TRAJ;   
       }
       //l_wrist_roll_joint
@@ -428,9 +432,13 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
   } else {
     result = INVALID_PARAM;
   }
+  }
   return result;
 }
 
+bool RobotArm::move_isDone() {
+  return (traj_client_->getState()).isDone();
+}
 
 actionlib::SimpleClientGoalState RobotArm::move_getState() {
    return traj_client_->getState();

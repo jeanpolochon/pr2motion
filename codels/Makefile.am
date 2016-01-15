@@ -15,8 +15,7 @@
 #
 lib_LTLIBRARIES = libpr2motion_codels.la
 
-libpr2motion_codels_la_SOURCES=		pr2motion_c_types.h
-libpr2motion_codels_la_SOURCES+=	pr2_state_client.hh pr2_state_client.cc
+libpr2motion_codels_la_SOURCES=	pr2motion_c_types.h
 libpr2motion_codels_la_SOURCES+=	pr2motion_codels.cc
 libpr2motion_codels_la_SOURCES+=	pr2motion_main_codels.cc
 libpr2motion_codels_la_SOURCES+= 	pr2_gripper_sensor_client.hh pr2_gripper_sensor_client.cc

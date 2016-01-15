@@ -80,6 +80,9 @@ enum ERROR { OK, INIT_FAILED, INVALID_PARAM, INIT_NOT_DONE, SERVER_NOT_CONNECTED
   ERROR computeTrajectorySoftMotion();
   ERROR computeTrajectorySoftMotion(pr2_controllers_msgs::JointTrajectoryGoal *, pr2_controllers_msgs::JointTrajectoryGoal *);
 
+  // move_isDone
+  // this function returns true if the server is in a final state
+  bool move_isDone();
   // move_getState
   // this function helps to get the state of the action
   actionlib::SimpleClientGoalState move_getState();

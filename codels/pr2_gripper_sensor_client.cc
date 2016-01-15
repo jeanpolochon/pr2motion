@@ -11,41 +11,85 @@ Gripper::~Gripper(){
 
   }
 
-void  Gripper::init(Gripper::SIDE side){
-  if (side==RIGHT) {
-    //Initialize the client for the Action interface to the gripper controller
-    //and tell the action client that we want to spin a thread by default
-    gripper_client_ = new GripperClient("r_gripper_sensor_controller/gripper_action", true);
-    contact_client_  = new ContactClient("r_gripper_sensor_controller/find_contact",true);
-    slip_client_  = new SlipClient("r_gripper_sensor_controller/slip_servo",true);
-    event_detector_client_  = new EventDetectorClient("r_gripper_sensor_controller/event_detector",true);
+Gripper::ERROR Gripper::init(Gripper::SIDE side){
+  ERROR result = OK;
+  
+  if((gripper_client_==NULL)||(contact_client_==NULL)||(slip_client_==NULL)||(event_detector_client_==NULL)){
+    if (side==RIGHT) {
+      //Initialize the client for the Action interface to the gripper controller
+      //and tell the action client that we want to spin a thread by default
+      gripper_client_ = new GripperClient("r_gripper_sensor_controller/gripper_action", true);
+      contact_client_  = new ContactClient("r_gripper_sensor_controller/find_contact",true);
+      slip_client_  = new SlipClient("r_gripper_sensor_controller/slip_servo",true);
+      event_detector_client_  = new EventDetectorClient("r_gripper_sensor_controller/event_detector",true);
+    } else {
+      gripper_client_ = new GripperClient("l_gripper_sensor_controller/gripper_action", true);
+      contact_client_  = new ContactClient("l_gripper_sensor_controller/find_contact",true);
+      slip_client_  = new SlipClient("l_gripper_sensor_controller/slip_servo",true);
+      event_detector_client_  = new EventDetectorClient("l_gripper_sensor_controller/event_detector",true);
+    }
+  }
+
+  if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)){
+    if(!gripper_client_->isServerConnected()){
+      //wait for the gripper action server to come up 
+      while(!gripper_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/gripper_action action server to come up");
+      }
+      if(!gripper_client_->isServerConnected()){
+	result=SERVER_NOT_CONNECTED;
+      }
+    }
+    if(!contact_client_->isServerConnected()){
+      while(!contact_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/find_contact action server to come up");
+      }
+      if(!contact_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }
+    }
+    if(!slip_client_->isServerConnected()){
+      while(!slip_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/slip_servo action server to come up");
+      }    
+      if(!slip_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }
+    }
+    if(!event_detector_client_->isServerConnected()){
+      while(!event_detector_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
+      }    
+      if(!event_detector_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }	
+    }
   } else {
-    gripper_client_ = new GripperClient("l_gripper_sensor_controller/gripper_action", true);
-    contact_client_  = new ContactClient("l_gripper_sensor_controller/find_contact",true);
-    slip_client_  = new SlipClient("l_gripper_sensor_controller/slip_servo",true);
-    event_detector_client_  = new EventDetectorClient("l_gripper_sensor_controller/event_detector",true);
+    ROS_INFO("Not able to create GripperSensorClient\n");
+    result=INIT_FAILED;
   }
+  return result;
+}
 
-    //wait for the gripper action server to come up 
-    while(!gripper_client_->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/gripper_action action server to come up");
-    }
 
-    while(!contact_client_->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/find_contact action server to come up");
-    }
-    
-    while(!slip_client_->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/slip_servo action server to come up");
-    }    
-
-    while(!event_detector_client_->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
-    }    
+Gripper::ERROR Gripper::isConnected(){
+  ERROR result = OK;
+  if((gripper_client_==NULL)||(contact_client_==NULL)||(slip_client_==NULL)||(event_detector_client_==NULL)){
+    result=INIT_NOT_DONE;
+  } else {
+    if((!gripper_client_->isServerConnected())||(!contact_client_->isServerConnected())||(!slip_client_->isServerConnected())||(!event_detector_client_->isServerConnected()))
+       result=SERVER_NOT_CONNECTED;
   }
+  return result;
+}
+
 
 
   // CLOSE
+bool Gripper::close_isDone() {
+  return (gripper_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Gripper::close_getState() {
    return gripper_client_->getState();
  }
@@ -88,6 +132,10 @@ void Gripper::close_cancel(){
 }
 
   // OPEN
+bool Gripper::open_isDone() {
+  return (gripper_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Gripper::open_getState() {
   return gripper_client_->getState();
 }
@@ -132,6 +180,10 @@ void Gripper::open_cancel(){
   // FINDTWO
   // Find two contacts on the robot gripper
   //
+bool Gripper::findTwo_isDone() {
+  return (contact_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Gripper::findTwo_getState(){
   return contact_client_->getState();
 } 
@@ -175,13 +227,17 @@ void Gripper::findTwoContacts(pr2_gripper_sensor_msgs::PR2GripperFindContactGoal
     //   ROS_INFO("The gripper did not find a contact.");
   }
 void Gripper::findTwo_cancel(){
-  gripper_client_->cancelAllGoals();
+  contact_client_->cancelAllGoals();
 }
   
   //
   // SLIPSERVO
   // Slip servo the robot
   //
+bool Gripper::slipServo_isDone() {
+  return (slip_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Gripper::slipServo_getState(){
   return slip_client_->getState();
 } 
@@ -209,13 +265,17 @@ void Gripper::slipServo(){
 			      boost::bind(&Gripper::slipServo_feedbackCb, this, _1));
   }  
 void Gripper::slipServo_cancel(){
-  gripper_client_->cancelAllGoals();
+  slip_client_->cancelAllGoals();
 }
  
   //
   // PLACE
   // move into event_detector mode to detect object contact
   //
+bool Gripper::place_isDone() {
+  return (event_detector_client_->getState()).isDone();
+}
+
 actionlib::SimpleClientGoalState Gripper::place_getState(){
   return event_detector_client_->getState();
 } 

@@ -79,17 +79,22 @@ private:
 
 public:
   enum SIDE { LEFT, RIGHT, NB_SIDE };
+  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR }; 
 
   //Action client initialization
   Gripper();
   ~Gripper();
 
-  void init(SIDE);
+  ERROR init(SIDE);
+
+  ERROR isConnected();
+
   // Get client state
   //Possible States Are: PENDING, ACTIVE, RECALLED, REJECTED, PREEMPTED, ABORTED, SUCCEEDED, LOST. 
   //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal. 
   
   // CLOSE
+  bool close_isDone();
   actionlib::SimpleClientGoalState close_getState();
   void close_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr&);
   void close_activeCb();
@@ -98,6 +103,7 @@ public:
   void close_cancel();
 
   // OPEN
+  bool open_isDone();
   actionlib::SimpleClientGoalState open_getState();
   void open_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr&);
   void open_activeCb();
@@ -106,6 +112,7 @@ public:
   void open_cancel();
 
   // FINDTWO
+  bool findTwo_isDone();
   actionlib::SimpleClientGoalState findTwo_getState();  
   void findTwo_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperFindContactResultConstPtr&);
   void findTwo_activeCb();
@@ -114,6 +121,7 @@ public:
   void findTwo_cancel();
 
   // SLIPSERVO
+  bool slipServo_isDone();
   actionlib::SimpleClientGoalState slipServo_getState();  
   void slipServo_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperSlipServoResultConstPtr&);
   void slipServo_activeCb();
@@ -122,6 +130,7 @@ public:
   void slipServo_cancel();
 
   // PLACE
+  bool place_isDone();
   actionlib::SimpleClientGoalState place_getState();
   void place_doneCb(const actionlib::SimpleClientGoalState&,const pr2_gripper_sensor_msgs::PR2GripperEventDetectorResultConstPtr& result);
   void place_activeCb();

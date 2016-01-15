@@ -54,7 +54,7 @@ Torso torso;
 RobotHead head;
 RobotArm left_arm;
 RobotArm right_arm;
-RobotState robot_state; 
+//RobotState robot_state; 
 
 Pr2Model pr2_model;
 
@@ -75,14 +75,36 @@ StateEnum {
  * Yields to pr2motion_routine.
  */
 genom_event
-initMain(bool *joint_state_availability, genom_context self)
+initMain(double *open_position, double *open_max_effort,
+         double *close_position, double *close_max_effort,
+         pr2motion_PR2MOTION_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
+         bool *findtwo_zero_fingertip_sensors,
+         pr2motion_PR2MOTION_GRIPPER_EVENT_DETECTOR *event_trigger_conditions,
+         double *event_acceleration_trigger_magnitude,
+         double *event_slip_trigger_magnitude,
+         bool *joint_state_availability, genom_context self)
 {
   char* argv[] =  { "pr2motion",
                     "",
                     NULL};
   int argc = 2;
   ros::init(argc, argv, "pr2motion");
+  // at the beginning the joint_state is not yet available
   *joint_state_availability = false;
+  // gripper param initialisation
+  *open_position = 0.09;
+  // unlimited
+  *open_max_effort=-1.0;
+  *close_position = 0.0;
+  // close gently
+  *close_max_effort = -1.0;
+  // close until both fingers contact
+  *findtwo_contact_conditions = pr2motion_PR2MOTION_GRIPPER_CONTACT_BOTH;
+  // zero fingertip sensor values before moving
+  *findtwo_zero_fingertip_sensors = true;
+  *event_trigger_conditions = pr2motion_PR2MOTION_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC;
+  *event_acceleration_trigger_magnitude = 4.0;
+  *event_slip_trigger_magnitude = 0.005;
   return pr2motion_routine;
 }
 
@@ -136,14 +158,7 @@ routineMain(const pr2motion_joint_state *joint_state,
       genom_sequence_reserve(&(joint_state_msg->effort), effort_size);
       joint_state_msg->effort._length=effort_size;
     }
-    //genom_sequence_reserve(sequence_type *s, uint32_t length);
-    // joint_state_msg->name.resize(name_size);
-    // joint_state_msg->position.resize(position_size);
-    // joint_state_msg->velocity.resize(velocity_size);
-    // joint_state_msg->effort.resize(effort_size);
-    // get the correct index for all needed joints in the path
     for (size_t ind=0; ind<name_size; ind++) {
-      //printf("%s position %f velocity %f effort %f\n",joint_state->data(self)->name._buffer[ind],joint_state->data(self)->position._buffer[ind], joint_state->data(self)->velocity._buffer[ind], joint_state->data(self)->effort._buffer[ind]); 
       if(joint_state_msg->name._buffer[ind])
 	free(joint_state_msg->name._buffer[ind]);
       joint_state_msg->name._buffer[ind]=strdup(joint_state->data(self)->name._buffer[ind]);
@@ -225,13 +240,29 @@ initConnect(genom_context self)
     printf("pr2motion::initConnect: WARNING: left arm Initialisation failed, you won't be able to use it! \n");
   } 
 
-  //#ifndef PR2_SIMU
-//   left_gripper.init(Gripper::LEFT);
-//   right_gripper.init(Gripper::RIGHT);
-// #else
-//   left_gripper.init(GripperSimple::LEFT);
-//   right_gripper.init(GripperSimple::RIGHT);
-// #endif
+#ifndef PR2_SIMU
+  Gripper::ERROR left_gripper_init_result;
+  left_gripper_init_result=left_gripper.init(Gripper::LEFT);
+  if(left_gripper_init_result!=Gripper::OK) {
+    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+  }
+  Gripper::ERROR right_gripper_init_result;
+  right_gripper_init_result=right_gripper.init(Gripper::RIGHT);
+  if(right_gripper_init_result!=Gripper::OK) {
+    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+  }  
+#else
+  GripperSimple::ERROR left_gripper_init_result;
+  left_gripper_init_result=left_gripper.init(GripperSimple::LEFT);
+  if(left_gripper_init_result!=GripperSimple::OK) {
+    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+  }  
+  GripperSimple::ERROR right_gripper_init_result;
+  right_gripper_init_result=right_gripper.init(GripperSimple::RIGHT);
+  if(right_gripper_init_result!=GripperSimple::OK) {
+    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+  } 
+#endif
   
   return pr2motion_ether;
 }
@@ -251,19 +282,63 @@ startOperateGripper(pr2motion_PR2MOTION_SIDE side,
                     pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                     genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_exec;
+  // check parameters and whether the corresponding gripper client is connected
+
+#ifndef PR2_SIMU 
+  Gripper::ERROR result_connect;
+  switch(side){
+  case pr2motion_PR2MOTION_LEFT :
+    result_connect = left_gripper.isConnected();
+    break;
+  case pr2motion_PR2MOTION_RIGHT :
+    result_connect = right_gripper.isConnected();
+    break;    
+  default:
+    return pr2motion_invalid_param(self);
+  }
+  switch(result_connect){
+  case Gripper::OK:
+    return pr2motion_exec;
+  case Gripper::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case Gripper::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+#else
+  GripperSimple::ERROR result_connect;
+  switch(side){
+  case pr2motion_PR2MOTION_LEFT :
+    result_connect = left_gripper.isConnected();
+    break;
+  case pr2motion_PR2MOTION_RIGHT :
+    result_connect = right_gripper.isConnected();
+    break;    
+  default:
+    return pr2motion_invalid_param(self);
+  }
+  switch(result_connect){
+  case GripperSimple::OK:
+    return pr2motion_exec;
+  case GripperSimple::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case GripperSimple::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+#endif
 }
 
 /** Codel execOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitopen, pr2motion_waitclose, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact, pr2motion_waitopen, pr2motion_waitclose, pr2motion_waitrelease, pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
-#ifndef PR2_SIMU
-// we are on the real robot
+
 genom_event
 execOperateGripper(pr2motion_PR2MOTION_SIDE side,
                    pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
@@ -276,6 +351,8 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
                    double event_slip_trigger_magnitude,
                    genom_context self)
 {
+  // we are on the real robot
+#ifndef PR2_SIMU
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
   open.command.position = open_position;    // position open (9 cm)
   open.command.max_effort = open_max_effort;  // unlimited motor effort
@@ -323,16 +400,8 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
   }
 
   /* skeleton sample */ return pr2motion_wait;
-}
+  // we are in simulation
 #else
-// we are in simulation
-genom_event
-execOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                   pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
-                   double open_position, double open_max_effort,
-                   double close_position, double close_max_effort,
-                   genom_context self)
-{
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
   open.command.position = open_position;    // position open (9 cm)
   open.command.max_effort = open_max_effort;  // unlimited motor effort
@@ -360,12 +429,10 @@ execOperateGripper(pr2motion_PR2MOTION_SIDE side,
       return pr2motion_waitclose;
     }
   }
-
-  /* skeleton sample */ return pr2motion_wait;
-}
 #endif
+}
 
-/** Codel waitOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel waitOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_wait.
  * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop, pr2motion_end, pr2motion_ether.
@@ -377,49 +444,51 @@ waitOperateGripper(pr2motion_PR2MOTION_SIDE side,
                    pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                    genom_context self)
 {
+
   /* skeleton sample: insert your code */
   /* skeleton sample */ return pr2motion_end;
 }
 
-#ifndef PR2_SIMU
-/** Codel waitcontactOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel waitcontactOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitcontact.
  * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitcontactOperateGripper(pr2motion_PR2MOTION_SIDE side,
                           pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                           genom_context self)
 {
+#ifndef PR2_SIMU
   if (side >= pr2motion_PR2MOTION_NB_SIDE)
     return pr2motion_end;    
 
-  switch(side){
+ switch(side){
   case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.findTwo_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(left_gripper.findTwo_isDone())
       return pr2motion_slipservo;
-    else if(left_gripper.findTwo_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitcontact;
     else
-      return pr2motion_end;
+      return pr2motion_waitcontact;
   case pr2motion_PR2MOTION_RIGHT :
-    if(left_gripper.findTwo_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(right_gripper.findTwo_isDone())
       return pr2motion_slipservo;
-    else if(left_gripper.findTwo_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitcontact;
     else
-      return pr2motion_end;    
-  }
-}
+      return pr2motion_waitcontact;
+  default:
+    return pr2motion_unknown_error(self);
+ }
+ 
+#else
+  return pr2motion_unknown_error(self); 
 #endif
-  
-#ifndef PR2_SIMU
-/** Codel waitopenOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+}
+
+/** Codel waitopenOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -428,63 +497,47 @@ waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
                        pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                        genom_context self)
 {
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
+ if (side >= pr2motion_PR2MOTION_NB_SIDE)
+    return pr2motion_invalid_param(self);    
 
+#ifndef PR2_SIMU  
   switch(side){
   case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_wait;
-    else if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+    if(left_gripper.open_isDone())
       return pr2motion_waitcontact;
     else
-      return pr2motion_end;
+      return pr2motion_waitopen;
   case pr2motion_PR2MOTION_RIGHT :
-    if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_wait;
-    else if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+    if(right_gripper.open_isDone())
       return pr2motion_waitcontact;
     else
-      return pr2motion_end;    
+      return pr2motion_waitopen;
+  default:
+    return pr2motion_unknown_error(self);
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
 #else
-genom_event
-waitopenOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                       pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
-                       genom_context self)
-{
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
-
   switch(side){
   case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(left_gripper.open_isDone())
       return pr2motion_end;
-   else if(left_gripper.open_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitopen;
     else
-      return pr2motion_end;
+      return pr2motion_waitopen;
   case pr2motion_PR2MOTION_RIGHT :
-    if(right_gripper.open_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(right_gripper.open_isDone())
       return pr2motion_end;
-    else if(right_gripper.open_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitopen;
     else
-      return pr2motion_end;    
+      return pr2motion_waitopen;
+  default:
+    return pr2motion_unknown_error(self);
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
 #endif
 
-#ifndef PR2_SIMU
-/** Codel waitcloseOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+}
+
+/** Codel waitcloseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -493,98 +546,72 @@ waitcloseOperateGripper(pr2motion_PR2MOTION_SIDE side,
                         pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                         genom_context self)
 {
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
 
+  if (side >= pr2motion_PR2MOTION_NB_SIDE)
+    return pr2motion_invalid_param(self);    
+  
   switch(side){
   case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(left_gripper.close_isDone()){
+      printf("close done\n");
       return pr2motion_end;
-    else if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+    } else {
       return pr2motion_waitclose;
-    else
-      return pr2motion_end;
+    }
   case pr2motion_PR2MOTION_RIGHT :
-    if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(right_gripper.close_isDone()){
+      printf("close done\n");
       return pr2motion_end;
-    else if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitcontact;
-    else
-      return pr2motion_end;    
-  }  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
-#else
-genom_event
-waitcloseOperateGripper(pr2motion_PR2MOTION_SIDE side,
-                        pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
-                        genom_context self)
-{
-  if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
-
-  switch(side){
-  case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_end;
-    else if(left_gripper.close_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+    } else {
       return pr2motion_waitclose;
-    else
-      return pr2motion_end;
-  case pr2motion_PR2MOTION_RIGHT :
-    if(right_gripper.close_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_end;
-    else if(right_gripper.close_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitclose;
-    else
-      return pr2motion_end;    
-  }  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
-#endif
+    }
+  default:
+    return pr2motion_unknown_error(self);
+  }
 
-#ifndef PR2_SIMU
-/** Codel waitreleaseOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+}
+
+/** Codel waitreleaseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitrelease.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitreleaseOperateGripper(pr2motion_PR2MOTION_SIDE side,
                           pr2motion_PR2MOTION_GRIPPER_MODE goal_mode,
                           genom_context self)
 {
+#ifndef PR2_SIMU
   if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
+    return pr2motion_invalid_param(self);    
 
   switch(side){
   case pr2motion_PR2MOTION_LEFT :
-    if(left_gripper.place_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_wait;
-    else if(left_gripper.place_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitcontact;
-    else
+    if(left_gripper.place_isDone())
       return pr2motion_end;
-  case pr2motion_PR2MOTION_RIGHT :
-    if(left_gripper.place_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-      return pr2motion_wait;
-    else if(left_gripper.place_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitcontact;
     else
-      return pr2motion_end;    
+      return pr2motion_waitcontact;
+  case pr2motion_PR2MOTION_RIGHT :
+    if(right_gripper.place_isDone())
+      return pr2motion_end;
+    else
+      return pr2motion_waitcontact;
+  default:
+    return pr2motion_unknown_error(self);
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
+#else
+  return pr2motion_unknown_error(self);
 #endif
+}
 
-#ifndef PR2_SIMU
-/** Codel slipservoOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel slipservoOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_slipservo.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 slipservoOperateGripper(pr2motion_PR2MOTION_SIDE side,
@@ -592,22 +619,25 @@ slipservoOperateGripper(pr2motion_PR2MOTION_SIDE side,
                         genom_context self)
 {
   if (side >= pr2motion_PR2MOTION_NB_SIDE)
-    return pr2motion_end;    
+    return pr2motion_invalid_param(self);    
 
+#ifndef PR2_SIMU
   switch(side){
   case pr2motion_PR2MOTION_LEFT :
     left_gripper.slipServo();
-    return pr2motion_wait;
+    return pr2motion_end;
   case pr2motion_PR2MOTION_RIGHT :
     right_gripper.slipServo();
-    return pr2motion_wait;
+    return pr2motion_end;
+  default:
+    return pr2motion_unknown_error(self);
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_wait;
-}
+#else
+  return pr2motion_unknown_error(self);
 #endif
+}
 
-/** Codel stopOperateGripper of activity PR2MOTION_Gripper_OperateGripper.
+/** Codel stopOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
@@ -1196,21 +1226,16 @@ waitMoveArm(pr2motion_PR2MOTION_SIDE side, genom_context self)
 {
   printf("waitmovearm\n");
   if(side == pr2motion_PR2MOTION_RIGHT){
-    if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(right_arm.move_isDone())
       return pr2motion_end;
-    else if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitmove;
     else
-      return pr2motion_end;
+      return pr2motion_waitmove;
   } else {
-    if(left_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(left_arm.move_isDone())
       return pr2motion_end;
-    else if(left_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitmove;
     else
-      return pr2motion_end;
+      return pr2motion_waitmove;    
   }
-  return pr2motion_waitmove;
 }
 
 /** Codel endMoveArm of activity Arm_Move.
@@ -1275,7 +1300,7 @@ getQGoal(pr2motion_PR2MOTION_SIDE side, bool joint_state_availability,
     return pr2motion_unknown_error(self);
   }
   
-  printf("GetQGoal: Arm is connected with vector length \n",joint_state_msg->name._length);
+  printf("GetQGoal: Arm is connected with vector length %d \n",joint_state_msg->name._length);
   
   // check if we can get the actual arm position
   if(!joint_state_availability){
@@ -1500,23 +1525,35 @@ launchMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
 genom_event
 waitMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
 {
-  printf("waitmovearmq\n");
+  // printf("waitmovearmq\n");
+  // if(side == pr2motion_PR2MOTION_RIGHT){
+  //   if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+  //     return pr2motion_end;
+  //   else if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+  //     return pr2motion_waitmove;
+  //   else
+  //     return pr2motion_end;
+  // } else {
+  //   if(left_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+  //     return pr2motion_end;
+  //   else if(left_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
+  //     return pr2motion_waitmove;
+  //   else
+  //     return pr2motion_end;
+  // }
+  // return pr2motion_waitmove;
+
   if(side == pr2motion_PR2MOTION_RIGHT){
-    if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(right_arm.move_isDone())
       return pr2motion_end;
-    else if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitmove;
     else
-      return pr2motion_end;
+      return pr2motion_waitmove;
   } else {
-    if(left_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+    if(left_arm.move_isDone())
       return pr2motion_end;
-    else if(left_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-      return pr2motion_waitmove;
     else
-      return pr2motion_end;
+      return pr2motion_waitmove;    
   }
-  return pr2motion_waitmove;
 }
 
 /** Codel endMoveQ of activity Arm_MoveToQGoal.
@@ -1542,60 +1579,44 @@ endMoveQ(pr2motion_PR2MOTION_SIDE side, genom_context self)
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_joint_state_unavailable,
+ * pr2motion_joint_name_unknown.
  */
 genom_event
-getQ(const pr2motion_joint_state *joint_state, genom_context self)
+getQ(const char *joint_name, bool joint_state_availability,
+     const pr2motion_sensor_msgs_jointstate *joint_state_msg,
+     double *position, double *velocity, double *effort,
+     genom_context self)
 {
-  int name_size=0;
-  int position_size=0;
-  int velocity_size=0;
-  int effort_size=0;
-
-  sensor_msgs::JointState joint_state_msg;
-  // read the trajectory from the port
-  joint_state->read(self);
-  if(joint_state->data(self)!=NULL){
-    // nb_points in the path
-    name_size = joint_state->data(self)->name._length;
-    position_size = joint_state->data(self)->position._length;
-    velocity_size = joint_state->data(self)->velocity._length;
-    effort_size = joint_state->data(self)->effort._length;
-
-    if(name_size==0){
-      printf("the joint_state is empty !\n");
-      return pr2motion_end;
-    }
-    
-    if( (name_size!=position_size) ||
-	(name_size!=velocity_size) ||
-	(name_size!=effort_size)){
-      printf("issue concerning the size of the joint_state vector\n");
-      return pr2motion_end;
-    }
-    joint_state_msg.name.resize(name_size);
-    joint_state_msg.position.resize(position_size);
-    joint_state_msg.velocity.resize(velocity_size);
-    joint_state_msg.effort.resize(effort_size);
-    // get the correct index for all needed joints in the path
-    for (size_t ind=0; ind<name_size; ind++) {
-      printf("%s position %f velocity %f effort %f\n",joint_state->data(self)->name._buffer[ind],joint_state->data(self)->position._buffer[ind], joint_state->data(self)->velocity._buffer[ind], joint_state->data(self)->effort._buffer[ind]); 
-      joint_state_msg.name[ind]=joint_state->data(self)->name._buffer[ind];
-      joint_state_msg.position[ind]=joint_state->data(self)->position._buffer[ind];
-      joint_state_msg.velocity[ind]=joint_state->data(self)->velocity._buffer[ind];
-      joint_state_msg.effort[ind]=joint_state->data(self)->effort._buffer[ind];
-      }
-     robot_state.setRobotQ(joint_state_msg);
-  } else {
-    printf("nothing to read on the port...\n");
+  bool find=false;
+  // check if we can get the actual arm position
+  if(!joint_state_availability){
+    printf("GetQGoal cannot get robot actual position\n");
+    return pr2motion_joint_state_unavailable(self);
   }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_end;
+
+  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+    if(strcmp(joint_state_msg->name._buffer[ind],joint_name)==0){
+       printf("r_shoulder_pan_joint\n");
+       *position=joint_state_msg->position._buffer[ind];
+       *velocity=joint_state_msg->velocity._buffer[ind];
+       *effort=joint_state_msg->effort._buffer[ind];
+       find=true;
+    }
+  }
+  
+  if(!find)
+    return pr2motion_joint_name_unknown(self);
+
+  return pr2motion_end;
 }
 
 /** Codel endGetQ of activity GetQ.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
+ * Throws pr2motion_joint_state_unavailable,
+ * pr2motion_joint_name_unknown.
  */
 genom_event
 endGetQ(genom_context self)
