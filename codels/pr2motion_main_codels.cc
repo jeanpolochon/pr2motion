@@ -112,7 +112,7 @@ initMain(double *open_position, double *open_max_effort,
 /** Codel routineMain of task main.
  *
  * Triggered by pr2motion_routine.
- * Yields to pr2motion_routine, pr2motion_sleep, pr2motion_stop.
+ * Yields to pr2motion_routine, pr2motion_stop.
  */
 genom_event
 routineMain(const pr2motion_joint_state *joint_state,
@@ -195,7 +195,7 @@ endMain(genom_context self)
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_ether.
- * Throws pr2motion_serverconnection_error.
+ * Throws pr2motion_unable_to_read_description.
  */
 genom_event
 initConnect(genom_context self)

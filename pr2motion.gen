@@ -91,6 +91,7 @@ component pr2motion {
   {
     doc "SDI initialisation and pr2 controllers connection initialisation";
     codel <start>initConnect() yield ether;
+    throw unable_to_read_description; 
     //    throw left_arm_error, right_arm_error, memory_full;
     task main;
   };
