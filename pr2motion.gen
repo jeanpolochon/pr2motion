@@ -232,7 +232,7 @@ component pr2motion {
   codel <launchmove> launchMoveArm(in side) yield end, ether, waitmove;
   codel <waitmove> waitMoveArm(in side) yield end, ether, waitmove;
   codel <end> endMoveArm(in side) yield ether;
-  codel <stop> stopMoveArm() yield ether;
+  codel <stop> stopMoveArm(in side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
   task main;  
   };
@@ -266,7 +266,7 @@ component pr2motion {
     codel <launchmove> launchMoveQ(in side) yield end, ether, waitmove;
     codel <waitmove> waitMoveQ(in side) yield end, ether, waitmove;
     codel <end> endMoveQ(in side) yield ether;
-    codel <stop> stopMoveQ() yield ether;
+    codel <stop> stopMoveQ(in side) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
     task main;
   };

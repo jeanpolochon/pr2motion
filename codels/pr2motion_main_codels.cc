@@ -1259,7 +1259,7 @@ endMoveArm(pr2motion_SIDE side, genom_context self)
  * pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-stopMoveArm(genom_context self)
+stopMoveArm(pr2motion_SIDE side, genom_context self)
 {
   if(side == pr2motion_RIGHT){
     right_arm.cancelCmd();
@@ -1596,7 +1596,7 @@ endMoveQ(pr2motion_SIDE side, genom_context self)
  * pr2motion_joint_state_unavailable.
  */
 genom_event
-stopMoveQ(genom_context self)
+stopMoveQ(pr2motion_SIDE side, genom_context self)
 {
   /* skeleton sample: insert your code */
   /* skeleton sample */ return pr2motion_ether;
