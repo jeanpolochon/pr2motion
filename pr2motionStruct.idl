@@ -36,7 +36,7 @@
 
 #define _PR2MOTIONSTRUCT_H
 
-#define PR2_SIMU
+//#define PR2_SIMU
 
 #include "pr2motionConst.idl"
 
