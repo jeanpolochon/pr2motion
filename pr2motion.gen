@@ -83,7 +83,7 @@ component pr2motion {
   task main {
     period 100ms;
     codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability) yield routine;
-    codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield routine, sleep, stop;
+    codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield routine, stop;
     codel <stop> endMain() yield ether;
   };
 
