@@ -278,7 +278,7 @@ initConnect(genom_context self)
  * Triggered by pr2motion_start.
  * Yields to pr2motion_exec, pr2motion_stop, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startOperateGripper(pr2motion_SIDE side,
@@ -337,9 +337,12 @@ startOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact, pr2motion_waitopen, pr2motion_waitclose, pr2motion_waitrelease, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact,
+ *           pr2motion_waitopen, pr2motion_waitclose,
+ *           pr2motion_waitrelease, pr2motion_stop, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 
 genom_event
@@ -438,9 +441,10 @@ execOperateGripper(pr2motion_SIDE side,
 /** Codel waitOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop,
+ *           pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitOperateGripper(pr2motion_SIDE side,
@@ -455,9 +459,10 @@ waitOperateGripper(pr2motion_SIDE side,
 /** Codel waitcontactOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitcontactOperateGripper(pr2motion_SIDE side,
@@ -491,9 +496,10 @@ waitcontactOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitopenOperateGripper(pr2motion_SIDE side,
@@ -540,9 +546,10 @@ waitopenOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitcloseOperateGripper(pr2motion_SIDE side,
@@ -579,7 +586,7 @@ waitcloseOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_waitrelease.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitreleaseOperateGripper(pr2motion_SIDE side,
@@ -614,7 +621,7 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_slipservo.
  * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 slipservoOperateGripper(pr2motion_SIDE side,
@@ -645,7 +652,7 @@ slipservoOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 stopOperateGripper(pr2motion_SIDE side,
@@ -698,7 +705,7 @@ stopOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endOperateGripper(pr2motion_SIDE side,
@@ -923,7 +930,7 @@ endOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startMoveTorso(float torso_position, genom_context self)
@@ -959,7 +966,7 @@ startMoveTorso(float torso_position, genom_context self)
  * Triggered by pr2motion_wait.
  * Yields to pr2motion_wait, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 
 genom_event
@@ -980,7 +987,7 @@ waitMoveTorso(genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveTorso(genom_context self)
@@ -993,7 +1000,7 @@ endMoveTorso(genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 stopMoveTorso(genom_context self)
@@ -1010,7 +1017,7 @@ stopMoveTorso(genom_context self)
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 startMoveHead(pr2motion_HEAD_MODE head_mode,
@@ -1039,9 +1046,10 @@ startMoveHead(pr2motion_HEAD_MODE head_mode,
 /** Codel waitMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_start, pr2motion_wait, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_start, pr2motion_wait, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitMoveHead(pr2motion_HEAD_MODE head_mode,
@@ -1109,7 +1117,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveHead(genom_context self)
@@ -1122,7 +1130,7 @@ endMoveHead(genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 stopMoveHead(genom_context self)
@@ -1137,9 +1145,10 @@ stopMoveHead(genom_context self)
 /** Codel getPathArm of activity Arm_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj, pr2motion_checktraj.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj,
+ *           pr2motion_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
@@ -1334,7 +1343,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
  * Triggered by pr2motion_computetraj.
  * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
@@ -1384,7 +1393,7 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
  * Triggered by pr2motion_checktraj.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 checkTrajArm(pr2motion_SIDE side, genom_context self)
@@ -1407,7 +1416,7 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 launchMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1426,7 +1435,7 @@ launchMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 waitMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1450,7 +1459,7 @@ waitMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 endMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1465,7 +1474,7 @@ endMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
 stopMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1486,8 +1495,8 @@ stopMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_start.
  * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 getQGoal(pr2motion_SIDE side, bool joint_state_availability,
@@ -1656,8 +1665,8 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
  * Triggered by pr2motion_computetraj.
  * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
@@ -1707,8 +1716,8 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
  * Triggered by pr2motion_checktraj.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 checkTrajQGoal(pr2motion_SIDE side, genom_context self)
@@ -1731,8 +1740,8 @@ checkTrajQGoal(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 launchMoveQ(pr2motion_SIDE side, genom_context self)
@@ -1751,8 +1760,8 @@ launchMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 waitMoveQ(pr2motion_SIDE side, genom_context self)
@@ -1793,8 +1802,8 @@ waitMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 endMoveQ(pr2motion_SIDE side, genom_context self)
@@ -1809,8 +1818,8 @@ endMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 stopMoveQ(pr2motion_SIDE side, genom_context self)
@@ -2133,7 +2142,7 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether.
  * Throws pr2motion_joint_state_unavailable,
- * pr2motion_joint_name_unknown.
+ *        pr2motion_joint_name_unknown.
  */
 genom_event
 getQ(const char *joint_name, bool joint_state_availability,
@@ -2169,7 +2178,7 @@ getQ(const char *joint_name, bool joint_state_availability,
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_joint_state_unavailable,
- * pr2motion_joint_name_unknown.
+ *        pr2motion_joint_name_unknown.
  */
 genom_event
 endGetQ(genom_context self)
