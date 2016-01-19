@@ -168,7 +168,9 @@ routineMain(const pr2motion_joint_state *joint_state,
       joint_state_msg->position._buffer[ind]=joint_state->data(self)->position._buffer[ind];
       joint_state_msg->velocity._buffer[ind]=joint_state->data(self)->velocity._buffer[ind];
       joint_state_msg->effort._buffer[ind]=joint_state->data(self)->effort._buffer[ind];
+      //printf("joint state for %s is %f vel %f eff %f",joint_state_msg->name._buffer[ind],joint_state_msg->position._buffer[ind],joint_state_msg->velocity._buffer[ind],joint_state_msg->effort._buffer[ind]); 
       }
+    //printf("\n");
     *joint_state_availability = true;
     //robot_state.setRobotQ(joint_state_msg);
   } else {
@@ -1545,7 +1547,6 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
   printf("avant\n");
   if(side == pr2motion_RIGHT){
     printf("1\n");
-  // get the correct index for all needed joints in the path
   for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
     printf("ind= %d 2\n", ind);
     if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
@@ -1553,42 +1554,70 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
       path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
       path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[0].c_str(), 
+	     path_cmd.trajectory.points[0].positions[0], 
+	     path_cmd.trajectory.points[1].positions[0]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
       printf("r_shoulder_lift_joint\n");
       path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
       path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[1].c_str(), 
+	     path_cmd.trajectory.points[0].positions[1], 
+	     path_cmd.trajectory.points[1].positions[1]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
       printf("r_upper_arm_roll_joint\n");      
       path_cmd.trajectory.joint_names[2]="r_upper_arm_roll_joint";
       path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[2].c_str(), 
+	     path_cmd.trajectory.points[0].positions[2], 
+	     path_cmd.trajectory.points[1].positions[2]);      
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
       printf("r_elbow_flex_joint\n");           
       path_cmd.trajectory.joint_names[3]="r_elbow_flex_joint";
       path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[3].c_str(), 
+	     path_cmd.trajectory.points[0].positions[3], 
+	     path_cmd.trajectory.points[1].positions[3]);         
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
       printf("r_forearm_roll_joint\n");
       path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
       path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[4].c_str(), 
+	     path_cmd.trajectory.points[0].positions[4], 
+	     path_cmd.trajectory.points[1].positions[4]);           
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
       printf("r_wrist_flex_joint\n");      
       path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
       path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+     printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[5].c_str(), 
+	     path_cmd.trajectory.points[0].positions[5], 
+	     path_cmd.trajectory.points[1].positions[5]);          
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
       printf("r_wrist_roll_joint\n"); 
       path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
       path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+     printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[6].c_str(), 
+	     path_cmd.trajectory.points[0].positions[6], 
+	     path_cmd.trajectory.points[1].positions[6]);             
     }
      printf("4\n");
   }
@@ -1607,45 +1636,75 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
   for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
     if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_pan_joint")==0){
       printf("fill l_shoulder_pan_joint with 0 %f and 1 %f \n", joint_state_msg->position._buffer[ind],shoulder_pan_joint);
+
       path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
       path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[0].c_str(), 
+	     path_cmd.trajectory.points[0].positions[0], 
+	     path_cmd.trajectory.points[1].positions[0]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
       printf("fill l_shoulder_lift_joint\n");
       path_cmd.trajectory.joint_names[1]="l_shoulder_lift_joint";
       path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[1].c_str(), 
+	     path_cmd.trajectory.points[0].positions[1], 
+	     path_cmd.trajectory.points[1].positions[1]);
+      
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_upper_arm_roll_joint")==0){
       printf("fill l_upper_arm_roll_joint\n");
       path_cmd.trajectory.joint_names[2]="l_upper_arm_roll_joint";
       path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[2].c_str(), 
+	     path_cmd.trajectory.points[0].positions[2], 
+	     path_cmd.trajectory.points[1].positions[2]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_elbow_flex_joint")==0){
       printf("fill l_elbow_flex_joint\n");
       path_cmd.trajectory.joint_names[3]="l_elbow_flex_joint";
       path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
-    }
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[3].c_str(), 
+	     path_cmd.trajectory.points[0].positions[3], 
+	     path_cmd.trajectory.points[1].positions[3]);
+   }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_forearm_roll_joint")==0){
       printf("fill l_forearm_roll_joint\n");
       path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
       path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[4].c_str(), 
+	     path_cmd.trajectory.points[0].positions[4], 
+	     path_cmd.trajectory.points[1].positions[4]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_flex_joint")==0){
       printf("fill l_wrist_flex_joint with 0 %f and 1 %f\n", joint_state_msg->position._buffer[ind], wrist_flex_joint);
       path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
       path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[5].c_str(), 
+	     path_cmd.trajectory.points[0].positions[5], 
+	     path_cmd.trajectory.points[1].positions[5]);
     }
     if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
       printf("fill l_wrist_roll_joint\n");
-      path_cmd.trajectory.joint_names[6]="l_wrist_flex_joint";
+      path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
       path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+      printf("which is consistent with %s with 0 %f and 1 %f \n", 
+	     path_cmd.trajectory.joint_names[6].c_str(), 
+	     path_cmd.trajectory.points[0].positions[6], 
+	     path_cmd.trajectory.points[1].positions[6]);
     } 
   }
   left_arm.clearTrajectory();
