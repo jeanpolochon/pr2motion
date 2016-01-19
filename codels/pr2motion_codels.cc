@@ -50,45 +50,48 @@ Gripper_SetCloseGoal(double close_position, double close_max_effort,
 }
 
 
-/* --- Attribute Torso_SetMoveParam ------------------------------------- */
+/* --- Attribute Gripper_Right_SetOpenGoal ------------------------------ */
 
-/** Validation codel Torso_SetMoveParam of attribute Torso_SetMoveParam.
+/** Validation codel Gripper_SetOpenGoal of attribute Gripper_Right_SetOpenGoal.
  *
  * Returns genom_ok.
  * Throws .
  */
-genom_event
-Torso_SetMoveParam(double torso_min_duration, float torso_max_velocity,
-                   genom_context self)
-{
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
-}
+/* already defined in service Gripper_SetOpenGoal validation */
 
 
-/* --- Attribute Arm_SetMax --------------------------------------------- */
 
-/** Validation codel Arm_SetMax of attribute Arm_SetMax.
+/* --- Attribute Gripper_Right_SetCloseGoal ----------------------------- */
+
+/** Validation codel Gripper_SetCloseGoal of attribute Gripper_Right_SetCloseGoal.
  *
  * Returns genom_ok.
- * Throws pr2motion_invalid_param.
+ * Throws .
  */
-genom_event
-Arm_SetMax(double max_vel, double max_acc, double max_jerk,
-           genom_context self)
-{
-    // switch(side){
-    // case pr2motion_PR2MOTION_LEFT :
-    //   right_arm.setMax(max_vel, max_acc, max_jerk);
-    // case pr2motion_PR2MOTION_RIGHT:
-    //   left_arm.setMax(max_vel, max_acc, max_jerk);
-    // default:
-    //   right_arm.setMax(max_vel, max_acc, max_jerk);
-    //   left_arm.setMax(max_vel, max_acc, max_jerk);
-    // }
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
-}
+/* already defined in service Gripper_SetCloseGoal validation */
+
+
+
+/* --- Attribute Gripper_Left_SetOpenGoal ------------------------------- */
+
+/** Validation codel Gripper_SetOpenGoal of attribute Gripper_Left_SetOpenGoal.
+ *
+ * Returns genom_ok.
+ * Throws .
+ */
+/* already defined in service Gripper_SetOpenGoal validation */
+
+
+
+/* --- Attribute Gripper_Left_SetCloseGoal ------------------------------ */
+
+/** Validation codel Gripper_SetCloseGoal of attribute Gripper_Left_SetCloseGoal.
+ *
+ * Returns genom_ok.
+ * Throws .
+ */
+/* already defined in service Gripper_SetCloseGoal validation */
+
 
 
 /* --- Attribute Arm_SetT ----------------------------------------------- */
@@ -106,4 +109,23 @@ Arm_SetT(double time_slot, genom_context self)
 }
 
 
+/* --- Attribute Arm_Right_SetT ----------------------------------------- */
+
+/** Validation codel Arm_SetT of attribute Arm_Right_SetT.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param.
+ */
+/* already defined in service Arm_SetT validation */
+
+
+
+/* --- Attribute Arm_Left_SetT ------------------------------------------ */
+
+/** Validation codel Arm_SetT of attribute Arm_Left_SetT.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param.
+ */
+/* already defined in service Arm_SetT validation */
 

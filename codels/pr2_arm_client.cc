@@ -9,9 +9,9 @@
 RobotArm::RobotArm()
   : traj_client_(NULL),
     traj_mode_(SOFT_MOTION),
-    max_vel_(1.0),
-    max_acc_(1.0),
-    max_jerk_(0.9),
+    max_vel_(0.5),
+    max_acc_(0.5),
+    max_jerk_(0.5),
     time_slot_(0.5)
 {
 }
@@ -183,9 +183,9 @@ RobotArm::ERROR RobotArm::init(RobotArm::SIDE side){
 	} else { 
 	  traj_mode_=RobotArm::SOFT_MOTION;
 	  clearTrajectory();
-	  max_acc_=1.0;
-	  max_vel_=1.0;
-	  max_jerk_=0.9;
+	  max_acc_=0.5;
+	  max_vel_=0.5;
+	  max_jerk_=0.5;
 	  time_slot_=0.5;
 	}
       }
@@ -350,8 +350,9 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
   // the trajectory is considered as invalid if one of the joint position is out of the limits
   if(arm_side_ == RIGHT) {
     for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+      printf("ValidateTraj analyse point %d\n",ind);
       if((goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]<r_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n",goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
+	printf("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
 	result = INVALID_TRAJ;
       }
       //r_shoulder_lift_joint
@@ -391,6 +392,7 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
   } else if (arm_side_ == LEFT) {
 
     for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+      printf("ValidateTraj analyse point %d\n",ind);
       //l_shoulder_pan_joint
       if((goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]<l_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_velocity_)){
 	printf("RobotArm::validateTraj pb with l_shoulder_pan_joint bounds \n");

@@ -61,6 +61,52 @@ component pr2motion {
     double force_fingertip_force;
     //#endif
 
+
+    // LEFT GRIPPER
+    //Pr2GripperCommandGoal
+    double left_open_position;
+    double left_open_max_effort;
+    //Pr2GripperCommandGoal
+    double left_close_position;
+    double left_close_max_effort;
+    //#ifndef PR2_SIMU
+    // PR2_Gripper_Sensor_Action is not defined in simulation
+    //PR2GripperFindContactGoal
+    pr2motion::GRIPPER_CONTACT_CONDITIONS left_findtwo_contact_conditions;
+    boolean left_findtwo_zero_fingertip_sensors;
+    //PR2GripperEventDetectorGoal
+    pr2motion::GRIPPER_EVENT_DETECTOR left_event_trigger_conditions;
+    double left_event_acceleration_trigger_magnitude;
+    double left_event_slip_trigger_magnitude;
+    //PR2GripperForceServoCommand
+    double left_force_fingertip_force;
+    //#endif
+
+    // RIGHT GRIPPER
+    //Pr2GripperCommandGoal
+    double right_open_position;
+    double right_open_max_effort;
+    //Pr2GripperCommandGoal
+    double right_close_position;
+    double right_close_max_effort;
+    //#ifndef PR2_SIMU
+    // PR2_Gripper_Sensor_Action is not defined in simulation
+    //PR2GripperFindContactGoal
+    pr2motion::GRIPPER_CONTACT_CONDITIONS right_findtwo_contact_conditions;
+    boolean right_findtwo_zero_fingertip_sensors;
+    //PR2GripperEventDetectorGoal
+    pr2motion::GRIPPER_EVENT_DETECTOR right_event_trigger_conditions;
+    double right_event_acceleration_trigger_magnitude;
+    double right_event_slip_trigger_magnitude;
+    //PR2GripperForceServoCommand
+    double right_force_fingertip_force;
+    //#endif
+
+    // LEFT_SIDE
+    pr2motion::SIDE left_side;
+    // RIGHT_SIDE
+    pr2motion::SIDE right_side;
+
     // TORSO
     //    float torso_position;
     /* double torso_min_duration; */
@@ -78,11 +124,16 @@ component pr2motion {
     /* double max_acc; */
     /* double max_jerk; */
     double time_slot;
+
+    // LEFT ARM
+    double left_time_slot;
+    // RIGHT ARM
+    double right_time_slot;
   };
 
   task main {
     period 100ms;
-    codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability) yield routine;
+    codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield routine;
     codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield routine, stop;
     codel <stop> endMain() yield ether;
   };
@@ -179,6 +230,173 @@ component pr2motion {
     doc "Stop Gripper";
     interrupts Gripper_Operate;
   }; 
+
+/* Right GRIPPER related functions */
+  
+  attribute Gripper_Right_SetOpenGoal(in open_position = 0.09:"max open position",
+  			  in open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set max open position";
+    validate Gripper_SetOpenGoal(local in open_position, local in open_max_effort);
+  };
+  
+  attribute Gripper_Right_GetOpenGoal(out open_position, out open_max_effort) {
+    doc "Get max open position";
+  };
+  
+  attribute Gripper_Right_SetCloseGoal(in close_position = 0.08:"max open position",
+  			in close_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set max close position";
+    validate Gripper_SetCloseGoal(local in close_position, local in close_max_effort);
+  };
+  
+  attribute Gripper_Right_GetCloseGoal(out close_position,
+  			out close_max_effort) {
+    doc "Get max close position";
+  };
+
+  attribute Gripper_Right_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
+  			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
+    doc "Set find contact goal";
+  };
+  
+  attribute Gripper_Right_GetFindContactGoal(out findtwo_contact_conditions,
+						 out findtwo_zero_fingertip_sensors) {
+    doc "Get find contact goal";
+  };
+
+  
+  attribute Gripper_Right_SetEventDetectorGoal(in event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
+  				in event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
+  				in event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
+  {
+    doc "Set event detector goal";
+  };
+
+  attribute Gripper_Right_GetEventDetectorGoal(out event_trigger_conditions,
+						   out event_acceleration_trigger_magnitude,
+  				out event_slip_trigger_magnitude)
+  {
+    doc "Get event detector goal";
+  };
+
+  attribute Gripper_Right_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
+  {
+    doc "Set force servo goal";
+  };
+
+  attribute Gripper_Right_GetForceServoGoal(out force_fingertip_force)
+  {
+    doc "Get force servo goal";
+  };
+
+
+  // we are on the real robot
+  activity Gripper_Right_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
+  {
+    doc "Allow to operate the Gripper";
+    codel <start> startOperateGripper(in right_side, in goal_mode) yield exec, stop, ether; 
+    codel <exec> execOperateGripper(in right_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield exec, wait, waitcontact, waitopen, waitclose, waitrelease, stop, end, ether;
+    codel <wait> waitOperateGripper(in right_side, in goal_mode) yield wait, exec, stop, end, ether;
+    codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield slipservo, wait, stop, end; 
+    codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield waitopen,  wait, stop, end;
+    codel <waitclose> waitcloseOperateGripper(in right_side, in goal_mode) yield waitclose, wait, stop, end;
+    codel <waitrelease> waitreleaseOperateGripper(in right_side, in goal_mode) yield wait, stop, end;
+    codel <slipservo> slipservoOperateGripper(in right_side, in goal_mode) yield wait, stop, end;
+    codel <stop> stopOperateGripper(in right_side, in goal_mode) yield ether;
+    codel <end> endOperateGripper(in right_side, in goal_mode) yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error;
+    task main;    
+  };
+
+  function Gripper_Right_Stop()
+  {
+    doc "Stop Gripper";
+    interrupts Gripper_Right_Operate;
+  }; 
+
+/* Left GRIPPER related functions */
+  
+  attribute Gripper_Left_SetOpenGoal(in open_position = 0.09:"max open position",
+  			  in open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set max open position";
+    validate Gripper_SetOpenGoal(local in open_position, local in open_max_effort);
+  };
+  
+  attribute Gripper_Left_GetOpenGoal(out open_position, out open_max_effort) {
+    doc "Get max open position";
+  };
+  
+  attribute Gripper_Left_SetCloseGoal(in close_position = 0.08:"max open position",
+  			in close_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set max close position";
+    validate Gripper_SetCloseGoal(local in close_position, local in close_max_effort);
+  };
+  
+  attribute Gripper_Left_GetCloseGoal(out close_position,
+  			out close_max_effort) {
+    doc "Get max close position";
+  };
+
+  attribute Gripper_Left_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
+  			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
+    doc "Set find contact goal";
+  };
+  
+  attribute Gripper_Left_GetFindContactGoal(out findtwo_contact_conditions,
+						 out findtwo_zero_fingertip_sensors) {
+    doc "Get find contact goal";
+  };
+
+  
+  attribute Gripper_Left_SetEventDetectorGoal(in event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
+  				in event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
+  				in event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
+  {
+    doc "Set event detector goal";
+  };
+
+  attribute Gripper_Left_GetEventDetectorGoal(out event_trigger_conditions,
+						   out event_acceleration_trigger_magnitude,
+  				out event_slip_trigger_magnitude)
+  {
+    doc "Get event detector goal";
+  };
+
+  attribute Gripper_Left_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
+  {
+    doc "Set force servo goal";
+  };
+
+  attribute Gripper_Left_GetForceServoGoal(out force_fingertip_force)
+  {
+    doc "Get force servo goal";
+  };
+
+
+  // we are on the real robot
+  activity Gripper_Left_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
+  {
+    doc "Allow to operate the Gripper";
+    codel <start> startOperateGripper(in left_side, in goal_mode) yield exec, stop, ether; 
+    codel <exec> execOperateGripper(in left_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield exec, wait, waitcontact, waitopen, waitclose, waitrelease, stop, end, ether;
+    codel <wait> waitOperateGripper(in left_side, in goal_mode) yield wait, exec, stop, end, ether;
+    codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield slipservo, wait, stop, end; 
+    codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield waitopen,  wait, stop, end;
+    codel <waitclose> waitcloseOperateGripper(in left_side, in goal_mode) yield waitclose, wait, stop, end;
+    codel <waitrelease> waitreleaseOperateGripper(in left_side, in goal_mode) yield wait, stop, end;
+    codel <slipservo> slipservoOperateGripper(in left_side, in goal_mode) yield wait, stop, end;
+    codel <stop> stopOperateGripper(in left_side, in goal_mode) yield ether;
+    codel <end> endOperateGripper(in left_side, in goal_mode) yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error;
+    task main;    
+  };
+
+  function Gripper_Left_Stop()
+  {
+    doc "Stop Gripper";
+    interrupts Gripper_Left_Operate;
+  }; 
+
 
   activity Torso_Move(in float torso_position = 10.0:"desired torso_position")
   {
@@ -278,6 +496,90 @@ component pr2motion {
   //interrupts Head_MoveHead;
   interrupts Arm_Move, Arm_MoveToQGoal;
   };  
+
+/* Right ARM related functions */
+
+  activity Arm_Right_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
+  {
+  doc "Allow to test";
+  codel <start> getPathArm(in right_side, in path_mode, port in traj) yield end, ether, computetraj, checktraj;
+  codel <computetraj> computeTrajArm(in right_side, in traj_mode, in right_time_slot) yield checktraj, end, ether;
+  codel <checktraj> checkTrajArm(in right_side) yield end, ether, launchmove;
+  codel <launchmove> launchMoveArm(in right_side) yield end, ether, waitmove;
+  codel <waitmove> waitMoveArm(in right_side) yield end, ether, waitmove;
+  codel <end> endMoveArm(in right_side) yield ether;
+  codel <stop> stopMoveArm(in right_side) yield ether;
+  throw not_connected, init_not_done, invalid_param, unknown_error;
+  task main;  
+  };
+
+  attribute Arm_Right_SetT(in right_time_slot = 0.1:"the time slot in the trajectory") {
+    doc "Set time slot of the trajectory";
+    validate Arm_SetT(local in right_time_slot);
+    throw invalid_param;
+  };
+
+  activity Arm_Right_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
+  {
+    doc "Allow to set a Qgoal";
+    codel <start> getQGoal(in right_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
+    codel <computetraj> computeTrajQGoal(in right_side, in traj_mode) yield checktraj, end, ether;
+    codel <checktraj> checkTrajQGoal(in right_side) yield end, ether, launchmove;
+    codel <launchmove> launchMoveQ(in right_side) yield end, ether, waitmove;
+    codel <waitmove> waitMoveQ(in right_side) yield end, ether, waitmove;
+    codel <end> endMoveQ(in right_side) yield ether;
+    codel <stop> stopMoveQ(in right_side) yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
+    task main;
+  };
+  
+  function Arm_Right_Stop()
+  {
+  doc "Allow to stop the move of the Head";
+  interrupts Arm_Right_Move, Arm_Right_MoveToQGoal;
+  };  
+
+/* LEFT ARM related functions */
+  activity Arm_Left_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
+  {
+  doc "Allow to test";
+  codel <start> getPathArm(in left_side, in path_mode, port in traj) yield end, ether, computetraj, checktraj;
+  codel <computetraj> computeTrajArm(in left_side, in traj_mode, in left_time_slot) yield checktraj, end, ether;
+  codel <checktraj> checkTrajArm(in left_side) yield end, ether, launchmove;
+  codel <launchmove> launchMoveArm(in left_side) yield end, ether, waitmove;
+  codel <waitmove> waitMoveArm(in left_side) yield end, ether, waitmove;
+  codel <end> endMoveArm(in left_side) yield ether;
+  codel <stop> stopMoveArm(in left_side) yield ether;
+  throw not_connected, init_not_done, invalid_param, unknown_error;
+  task main;  
+  };
+
+  attribute Arm_Left_SetT(in left_time_slot = 0.1:"the time slot in the trajectory") {
+    doc "Set time slot of the trajectory";
+    validate Arm_SetT(local in left_time_slot);
+    throw invalid_param;
+  };
+
+  activity Arm_Left_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
+  {
+    doc "Allow to set a Qgoal";
+    codel <start> getQGoal(in left_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
+    codel <computetraj> computeTrajQGoal(in left_side, in traj_mode) yield checktraj, end, ether;
+    codel <checktraj> checkTrajQGoal(in left_side) yield end, ether, launchmove;
+    codel <launchmove> launchMoveQ(in left_side) yield end, ether, waitmove;
+    codel <waitmove> waitMoveQ(in left_side) yield end, ether, waitmove;
+    codel <end> endMoveQ(in left_side) yield ether;
+    codel <stop> stopMoveQ(in left_side) yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
+    task main;
+  };
+  
+  function Arm_Left_Stop()
+  {
+  doc "Allow to stop the move of the Head";
+  interrupts Arm_Left_Move, Arm_Left_MoveToQGoal;
+  };  
+
 
   activity GetQ(in string joint_name, out double position, out double velocity, out double effort) {
     doc "Allow get robot Q";
