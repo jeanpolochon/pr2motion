@@ -23,7 +23,7 @@
 // to be able to use vector
 #include <vector>
 
-#define PR2_SIMU
+//#define PR2_SIMU
 
 #ifndef PR2_SIMU
 #include "pr2_gripper_sensor_client.hh"
@@ -72,7 +72,7 @@ StateEnum {
 /** Codel initMain of task main.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_routine.
+ * Yields to pr2motion_pause_routine.
  */
 genom_event
 initMain(double *open_position, double *open_max_effort,
@@ -85,11 +85,12 @@ initMain(double *open_position, double *open_max_effort,
          bool *joint_state_availability, pr2motion_SIDE *left_side,
          pr2motion_SIDE *right_side, genom_context self)
 {
-  char* argv[] =  { "pr2motion",
-                    "",
-                    NULL};
-  int argc = 2;
-  ros::init(argc, argv, "pr2motion");
+  printf("initMain\n");
+  // char* argv[] =  { "pr2motion",
+  //                   "",
+  //                   NULL};
+  // int argc = 2;
+  // ros::init(argc, argv, "pr2motion");
   // at the beginning the joint_state is not yet available
   *joint_state_availability = false;
   // gripper param initialisation
@@ -108,14 +109,14 @@ initMain(double *open_position, double *open_max_effort,
   *event_slip_trigger_magnitude = 0.005;
   *left_side=pr2motion_LEFT;
   *right_side=pr2motion_RIGHT;
-  return pr2motion_routine;
+  return pr2motion_pause_routine;
 }
 
 
 /** Codel routineMain of task main.
  *
  * Triggered by pr2motion_routine.
- * Yields to pr2motion_routine, pr2motion_stop.
+ * Yields to pr2motion_pause_routine, pr2motion_stop.
  */
 genom_event
 routineMain(const pr2motion_joint_state *joint_state,
@@ -140,7 +141,7 @@ routineMain(const pr2motion_joint_state *joint_state,
     if(name_size==0){
       printf("pr2motion The joint_state is empty\n");
       *joint_state_availability=false;
-      return pr2motion_routine;
+      return pr2motion_pause_routine;
     }
     
     if( (name_size!=position_size) ||
@@ -148,7 +149,7 @@ routineMain(const pr2motion_joint_state *joint_state,
 	(name_size!=effort_size)){
       printf("pr2motion There is an issue concerning the size of the joint_state vector\n");
       *joint_state_availability = false;
-      return pr2motion_routine;
+      return pr2motion_pause_routine;
     }
     if(joint_state_msg->name._maximum<name_size) {
       printf("pr2motion Need to add joint(s) to the sequence\n");
@@ -178,7 +179,7 @@ routineMain(const pr2motion_joint_state *joint_state,
       printf("pr2motion nothing to read on the port...\n");
     *joint_state_availability = false;
   }
-  return pr2motion_routine;
+  return pr2motion_pause_routine;
 }
 
 
@@ -278,7 +279,7 @@ initConnect(genom_context self)
 /** Codel startOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -303,7 +304,7 @@ startOperateGripper(pr2motion_SIDE side,
   }
   switch(result_connect){
   case Gripper::OK:
-    return pr2motion_exec;
+    return pr2motion_pause_exec;
   case Gripper::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
   case Gripper::SERVER_NOT_CONNECTED:
@@ -325,7 +326,7 @@ startOperateGripper(pr2motion_SIDE side,
   }
   switch(result_connect){
   case GripperSimple::OK:
-    return pr2motion_exec;
+    return pr2motion_pause_exec;
   case GripperSimple::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
   case GripperSimple::SERVER_NOT_CONNECTED:
@@ -339,10 +340,10 @@ startOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact,
- *           pr2motion_waitopen, pr2motion_waitclose,
- *           pr2motion_waitrelease, pr2motion_stop, pr2motion_end,
- *           pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
+ *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -380,34 +381,34 @@ execOperateGripper(pr2motion_SIDE side,
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
       left_gripper.findTwoContacts(findTwo);
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
     case pr2motion_GRIPPER_RELEASE :
       left_gripper.place(place);
-      return pr2motion_waitrelease;
+      return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open(open);
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close(close);
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
       right_gripper.findTwoContacts(findTwo);
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
     case pr2motion_GRIPPER_RELEASE :
-      return pr2motion_waitrelease;
+      return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open(open);
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       right_gripper.close(close);
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   }
 
-  /* skeleton sample */ return pr2motion_wait;
+  /* skeleton sample */ return pr2motion_pause_wait;
   // we are in simulation
 #else
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
@@ -422,19 +423,19 @@ execOperateGripper(pr2motion_SIDE side,
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open(open);
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close(close);
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open(open);
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       right_gripper.close(close);
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   }
 #endif
@@ -443,8 +444,8 @@ execOperateGripper(pr2motion_SIDE side,
 /** Codel waitOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop,
- *           pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -461,8 +462,8 @@ waitOperateGripper(pr2motion_SIDE side,
 /** Codel waitcontactOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop,
- *           pr2motion_end.
+ * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -480,12 +481,12 @@ waitcontactOperateGripper(pr2motion_SIDE side,
     if(left_gripper.findTwo_isDone())
       return pr2motion_slipservo;
     else
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
   case pr2motion_RIGHT :
     if(right_gripper.findTwo_isDone())
       return pr2motion_slipservo;
     else
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
   default:
     return pr2motion_unknown_error(self);
  }
@@ -498,8 +499,8 @@ waitcontactOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop,
- *           pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -515,14 +516,14 @@ waitopenOperateGripper(pr2motion_SIDE side,
   switch(side){
   case pr2motion_LEFT :
     if(left_gripper.open_isDone())
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
     else
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
   case pr2motion_RIGHT :
     if(right_gripper.open_isDone())
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
     else
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -532,12 +533,12 @@ waitopenOperateGripper(pr2motion_SIDE side,
     if(left_gripper.open_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
   case pr2motion_RIGHT :
     if(right_gripper.open_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitopen;
+      return pr2motion_pause_waitopen;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -548,8 +549,8 @@ waitopenOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop,
- *           pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -568,14 +569,14 @@ waitcloseOperateGripper(pr2motion_SIDE side,
       printf("close done\n");
       return pr2motion_end;
     } else {
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT :
     if(right_gripper.close_isDone()){
       printf("close done\n");
       return pr2motion_end;
     } else {
-      return pr2motion_waitclose;
+      return pr2motion_pause_waitclose;
     }
   default:
     return pr2motion_unknown_error(self);
@@ -586,7 +587,7 @@ waitcloseOperateGripper(pr2motion_SIDE side,
 /** Codel waitreleaseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -604,12 +605,12 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
     if(left_gripper.place_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
   case pr2motion_RIGHT :
     if(right_gripper.place_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitcontact;
+      return pr2motion_pause_waitcontact;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -621,7 +622,7 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
 /** Codel slipservoOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -675,7 +676,7 @@ stopOperateGripper(pr2motion_SIDE side,
       left_gripper.findTwo_cancel();
     case pr2motion_GRIPPER_RELEASE :
       left_gripper.place_cancel();
-      return pr2motion_waitrelease;
+      return pr2motion_pause_waitrelease;
 #endif
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open_cancel();
@@ -689,7 +690,7 @@ stopOperateGripper(pr2motion_SIDE side,
       right_gripper.findTwo_cancel();
     case pr2motion_GRIPPER_RELEASE :
       right_gripper.place_cancel();
-      return pr2motion_waitrelease;
+      return pr2motion_pause_waitrelease;
 #endif
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open_cancel();
@@ -724,9 +725,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel startOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -734,9 +735,12 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact, pr2motion_waitopen, pr2motion_waitclose, pr2motion_waitrelease, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
+ *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -744,9 +748,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -754,9 +759,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcontactOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -764,9 +770,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -774,9 +781,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -784,9 +792,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitreleaseOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -794,9 +802,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel slipservoOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -806,7 +814,7 @@ endOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -816,7 +824,7 @@ endOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -827,9 +835,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel startOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -837,9 +845,12 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_exec, pr2motion_wait, pr2motion_waitcontact, pr2motion_waitopen, pr2motion_waitclose, pr2motion_waitrelease, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
+ *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -847,9 +858,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_exec, pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_wait, pr2motion_exec, pr2motion_stop,
+ *           pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -857,9 +869,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcontactOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_slipservo, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -867,9 +880,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_waitopen, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -877,9 +891,10 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_waitclose, pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
+ *           pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -887,9 +902,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitreleaseOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -897,9 +912,9 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel slipservoOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -909,7 +924,7 @@ endOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -919,7 +934,7 @@ endOperateGripper(pr2motion_SIDE side,
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
@@ -930,7 +945,7 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel startMoveTorso of activity Torso_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_wait.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -949,7 +964,7 @@ startMoveTorso(float torso_position, genom_context self)
     result_move = torso.move(torso_cmd);
     printf("result_move=%d\n",result_move);
     if(result_move==Torso::OK)
-      return pr2motion_wait;
+      return pr2motion_pause_wait;
     else
       torso.cancelCmd();
       return pr2motion_invalid_param(self);
@@ -966,7 +981,7 @@ startMoveTorso(float torso_position, genom_context self)
 /** Codel waitMoveTorso of activity Torso_Move.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_wait, pr2motion_end.
+ * Yields to pr2motion_pause_wait, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -981,7 +996,7 @@ waitMoveTorso(genom_context self)
   if(torso.move_isDone())
     return pr2motion_end;
   else
-    return pr2motion_wait;
+    return pr2motion_pause_wait;
 }
 
 /** Codel endMoveTorso of activity Torso_Move.
@@ -1017,7 +1032,7 @@ stopMoveTorso(genom_context self)
 /** Codel startMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_wait.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_wait.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1035,7 +1050,7 @@ startMoveHead(pr2motion_HEAD_MODE head_mode,
   switch(result_connect){
   case RobotHead::OK:
     head.lookAt(frame_id, head_target_x, head_target_y, head_target_z);
-    return pr2motion_wait;  
+    return pr2motion_pause_wait;  
   case RobotHead::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
   case RobotHead::SERVER_NOT_CONNECTED:
@@ -1048,8 +1063,8 @@ startMoveHead(pr2motion_HEAD_MODE head_mode,
 /** Codel waitMoveHead of activity Head_Move.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_start, pr2motion_wait, pr2motion_end,
- *           pr2motion_ether.
+ * Yields to pr2motion_pause_start, pr2motion_pause_wait,
+ *           pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1110,7 +1125,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
       return pr2motion_start;
     }
   else
-    return pr2motion_wait;   
+    return pr2motion_pause_wait;   
 
 }
 
@@ -1147,8 +1162,8 @@ stopMoveHead(genom_context self)
 /** Codel getPathArm of activity Arm_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj,
- *           pr2motion_checktraj.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1216,11 +1231,11 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
     if (side == pr2motion_RIGHT) {
       right_arm.clearTrajectory();
       right_arm.gettestPath();
-      return pr2motion_computetraj;
+      return pr2motion_pause_computetraj;
     } else {
       left_arm.clearTrajectory();
       left_arm.gettestPath();
-      return pr2motion_computetraj;
+      return pr2motion_pause_computetraj;
     }
   }
 
@@ -1302,7 +1317,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       }
       right_arm.clearTrajectory();
       if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
-	return pr2motion_computetraj;
+	return pr2motion_pause_computetraj;
       } else {
 	return pr2motion_end;	 
       }
@@ -1327,7 +1342,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       }
       left_arm.clearTrajectory();
       if(left_arm.setTraj(&path_cmd) == RobotArm::OK)
-	return pr2motion_computetraj;
+	return pr2motion_pause_computetraj;
       else
 	return pr2motion_end;     
     }
@@ -1343,7 +1358,8 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
 /** Codel computeTrajArm of activity Arm_Move.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1368,7 +1384,7 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_end;
     }
     right_arm.computeTrajectory();
-    return pr2motion_checktraj;
+    return pr2motion_pause_checktraj;
   } else {
     //    left_arm.setMax(max_vel, max_acc, max_jerk);
     //    left_arm.setT(time_slot);
@@ -1385,7 +1401,7 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_end;
     }
     left_arm.computeTrajectory();
-    return pr2motion_checktraj;    
+    return pr2motion_pause_checktraj;    
   }
   return pr2motion_end;
 }
@@ -1393,7 +1409,8 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
 /** Codel checkTrajArm of activity Arm_Move.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1408,7 +1425,7 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
     result=left_arm.validateTrajectory();
   }
   if(result == RobotArm::OK)
-    return pr2motion_launchmove;
+    return pr2motion_pause_launchmove;
   else
     return pr2motion_end;
 }
@@ -1416,7 +1433,7 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveArm of activity Arm_Move.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1429,13 +1446,13 @@ launchMoveArm(pr2motion_SIDE side, genom_context self)
   } else {
     left_arm.move();
   }
-  return pr2motion_waitmove;
+  return pr2motion_pause_waitmove;
 }
 
 /** Codel waitMoveArm of activity Arm_Move.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -1444,15 +1461,24 @@ waitMoveArm(pr2motion_SIDE side, genom_context self)
 {
   printf("waitmovearm\n");
   if(side == pr2motion_RIGHT){
-    if(right_arm.move_isDone())
+    if(right_arm.move_isDone()){
+      //possible states PENDING, ACTIVE, RECALLED, REJECTED,
+      // PREEMPTED, ABORTED, SUCCEEDED, LOST
+      if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+	printf("SUCCEEDED !!\n");
+      if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ABORTED)
+	printf("ABORTED\n");
+      if(right_arm.move_getState()==actionlib::SimpleClientGoalState::PREEMPTED)
+	printf("PREEMPTED\n");
       return pr2motion_end;
+    }
     else
-      return pr2motion_waitmove;
+      return pr2motion_pause_waitmove;
   } else {
     if(left_arm.move_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitmove;    
+      return pr2motion_pause_waitmove;    
   }
 }
 
@@ -1495,7 +1521,8 @@ stopMoveArm(pr2motion_SIDE side, genom_context self)
 /** Codel getQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_computetraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error,
  *        pr2motion_joint_state_unavailable.
@@ -1626,7 +1653,7 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
    printf("6\n");
   if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
     printf("GetQGoal setTraj ok\n");
-    return pr2motion_computetraj;
+    return pr2motion_pause_computetraj;
   } else {
     printf("GetQGoal setTraj ko\n");
     return pr2motion_end;	 
@@ -1710,7 +1737,7 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
   left_arm.clearTrajectory();
   if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
     printf("GetQGoal setTraj ok\n");      
-    return pr2motion_computetraj;
+    return pr2motion_pause_computetraj;
   } else {
     printf("GetQGoal setTraj ko\n");
     return pr2motion_end;     
@@ -1722,7 +1749,8 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
 /** Codel computeTrajQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error,
  *        pr2motion_joint_state_unavailable.
@@ -1748,7 +1776,7 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_end;
     }
     right_arm.computeTrajectory();
-    return pr2motion_checktraj;
+    return pr2motion_pause_checktraj;
   } else {
     //    left_arm.setMax(max_vel, max_acc, max_jerk);
     //    left_arm.setT(time_slot);
@@ -1765,7 +1793,7 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_end;
     }
     left_arm.computeTrajectory();
-    return pr2motion_checktraj;    
+    return pr2motion_pause_checktraj;    
   }
   return pr2motion_end;
 }
@@ -1773,7 +1801,8 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
 /** Codel checkTrajQGoal of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error,
  *        pr2motion_joint_state_unavailable.
@@ -1789,7 +1818,7 @@ checkTrajQGoal(pr2motion_SIDE side, genom_context self)
     result=left_arm.validateTrajectory();
   }
   if(result == RobotArm::OK)
-    return pr2motion_launchmove;
+    return pr2motion_pause_launchmove;
   else
     return pr2motion_end;
 }
@@ -1797,7 +1826,7 @@ checkTrajQGoal(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveQ of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error,
  *        pr2motion_joint_state_unavailable.
@@ -1811,13 +1840,13 @@ launchMoveQ(pr2motion_SIDE side, genom_context self)
   } else {
     left_arm.move();
   }
-  return pr2motion_waitmove;
+  return pr2motion_pause_waitmove;
 }
 
 /** Codel waitMoveQ of activity Arm_MoveToQGoal.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error,
  *        pr2motion_joint_state_unavailable.
@@ -1847,12 +1876,12 @@ waitMoveQ(pr2motion_SIDE side, genom_context self)
     if(right_arm.move_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitmove;
+      return pr2motion_pause_waitmove;
   } else {
     if(left_arm.move_isDone())
       return pr2motion_end;
     else
-      return pr2motion_waitmove;    
+      return pr2motion_pause_waitmove;    
   }
 }
 
@@ -1893,9 +1922,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel getPathArm of activity Arm_Right_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj, pr2motion_checktraj.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1903,9 +1933,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel computeTrajArm of activity Arm_Right_Move.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1913,9 +1944,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel checkTrajArm of activity Arm_Right_Move.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1923,9 +1955,9 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveArm of activity Arm_Right_Move.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1933,9 +1965,9 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel waitMoveArm of activity Arm_Right_Move.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1945,7 +1977,7 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1955,7 +1987,7 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -1966,10 +1998,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel getQGoal of activity Arm_Right_MoveToQGoal.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_computetraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -1977,10 +2010,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel computeTrajQGoal of activity Arm_Right_MoveToQGoal.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -1988,10 +2022,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel checkTrajQGoal of activity Arm_Right_MoveToQGoal.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -1999,10 +2034,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveQ of activity Arm_Right_MoveToQGoal.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2010,10 +2045,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel waitMoveQ of activity Arm_Right_MoveToQGoal.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2023,8 +2058,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2034,8 +2069,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2046,9 +2081,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel getPathArm of activity Arm_Left_Move.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_computetraj, pr2motion_checktraj.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2056,9 +2092,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel computeTrajArm of activity Arm_Left_Move.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2066,9 +2103,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel checkTrajArm of activity Arm_Left_Move.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2076,9 +2114,9 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveArm of activity Arm_Left_Move.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2086,9 +2124,9 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel waitMoveArm of activity Arm_Left_Move.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2098,7 +2136,7 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2108,7 +2146,7 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Arm_Move */
 
@@ -2119,10 +2157,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel getQGoal of activity Arm_Left_MoveToQGoal.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_computetraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_computetraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2130,10 +2169,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel computeTrajQGoal of activity Arm_Left_MoveToQGoal.
  *
  * Triggered by pr2motion_computetraj.
- * Yields to pr2motion_checktraj, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_checktraj, pr2motion_end,
+ *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2141,10 +2181,11 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel checkTrajQGoal of activity Arm_Left_MoveToQGoal.
  *
  * Triggered by pr2motion_checktraj.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_launchmove.
+ * Yields to pr2motion_end, pr2motion_ether,
+ *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2152,10 +2193,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel launchMoveQ of activity Arm_Left_MoveToQGoal.
  *
  * Triggered by pr2motion_launchmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2163,10 +2204,10 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
 /** Codel waitMoveQ of activity Arm_Left_MoveToQGoal.
  *
  * Triggered by pr2motion_waitmove.
- * Yields to pr2motion_end, pr2motion_ether, pr2motion_waitmove.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2176,8 +2217,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 
@@ -2187,8 +2228,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- * pr2motion_invalid_param, pr2motion_unknown_error,
- * pr2motion_joint_state_unavailable.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_MoveToQGoal */
 

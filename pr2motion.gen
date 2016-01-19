@@ -133,8 +133,8 @@ component pr2motion {
 
   task main {
     period 100ms;
-    codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield routine;
-    codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield routine, stop;
+    codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield pause::routine;
+    codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield pause::routine, stop;
     codel <stop> endMain() yield ether;
   };
 
@@ -211,14 +211,14 @@ component pr2motion {
 					    in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in side, in goal_mode) yield exec, stop, ether; 
-    codel <exec> execOperateGripper(in side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield exec, wait, waitcontact, waitopen, waitclose, waitrelease, stop, end, ether;
-    codel <wait> waitOperateGripper(in side, in goal_mode) yield wait, exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield slipservo, wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield waitopen,  wait, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in side, in goal_mode) yield waitclose, wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in side, in goal_mode) yield wait, stop, end;
-    codel <slipservo> slipservoOperateGripper(in side, in goal_mode) yield wait, stop, end;
+    codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
+    codel <exec> execOperateGripper(in side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <wait> waitOperateGripper(in side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
+    codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
+    codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
+    codel <waitclose> waitcloseOperateGripper(in side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
+    codel <waitrelease> waitreleaseOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
+    codel <slipservo> slipservoOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
     codel <stop> stopOperateGripper(in side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -294,14 +294,14 @@ component pr2motion {
   activity Gripper_Right_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in right_side, in goal_mode) yield exec, stop, ether; 
-    codel <exec> execOperateGripper(in right_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield exec, wait, waitcontact, waitopen, waitclose, waitrelease, stop, end, ether;
-    codel <wait> waitOperateGripper(in right_side, in goal_mode) yield wait, exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield slipservo, wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield waitopen,  wait, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in right_side, in goal_mode) yield waitclose, wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in right_side, in goal_mode) yield wait, stop, end;
-    codel <slipservo> slipservoOperateGripper(in right_side, in goal_mode) yield wait, stop, end;
+    codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop, ether; 
+    codel <exec> execOperateGripper(in right_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <wait> waitOperateGripper(in right_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
+    codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
+    codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
+    codel <waitclose> waitcloseOperateGripper(in right_side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
+    codel <waitrelease> waitreleaseOperateGripper(in right_side, in goal_mode) yield pause::wait, stop, end;
+    codel <slipservo> slipservoOperateGripper(in right_side, in goal_mode) yield pause::wait, stop, end;
     codel <stop> stopOperateGripper(in right_side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in right_side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -377,14 +377,14 @@ component pr2motion {
   activity Gripper_Left_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in left_side, in goal_mode) yield exec, stop, ether; 
-    codel <exec> execOperateGripper(in left_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield exec, wait, waitcontact, waitopen, waitclose, waitrelease, stop, end, ether;
-    codel <wait> waitOperateGripper(in left_side, in goal_mode) yield wait, exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield slipservo, wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield waitopen,  wait, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in left_side, in goal_mode) yield waitclose, wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in left_side, in goal_mode) yield wait, stop, end;
-    codel <slipservo> slipservoOperateGripper(in left_side, in goal_mode) yield wait, stop, end;
+    codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop, ether; 
+    codel <exec> execOperateGripper(in left_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <wait> waitOperateGripper(in left_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
+    codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
+    codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield pause::waitopen,  pause::waitcontact, pause::wait, stop, end;
+    codel <waitclose> waitcloseOperateGripper(in left_side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
+    codel <waitrelease> waitreleaseOperateGripper(in left_side, in goal_mode) yield pause::wait, stop, end;
+    codel <slipservo> slipservoOperateGripper(in left_side, in goal_mode) yield pause::wait, stop, end;
     codel <stop> stopOperateGripper(in left_side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in left_side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -401,8 +401,8 @@ component pr2motion {
   activity Torso_Move(in float torso_position = 10.0:"desired torso_position")
   {
   doc "Allow to move the Torso";
-  codel <start> startMoveTorso(in torso_position) yield end, ether, wait;
-  codel <wait> waitMoveTorso() yield wait, end;
+  codel <start> startMoveTorso(in torso_position) yield end, ether, pause::wait;
+  codel <wait> waitMoveTorso() yield pause::wait, end;
   codel <end> endMoveTorso() yield ether;
   codel <stop> stopMoveTorso() yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -423,8 +423,8 @@ component pr2motion {
       in double head_target_z = 0.0:"z")
   {
     doc "Move the Head";
-  codel <start> startMoveHead(in head_mode, in head_target_frame, in head_target_x, in head_target_y, in head_target_z) yield end, ether, wait;
-  codel <wait> waitMoveHead(in head_mode, port in head_controller_state, out head_controller_state_msg) yield start, wait, end, ether;
+  codel <start> startMoveHead(in head_mode, in head_target_frame, in head_target_x, in head_target_y, in head_target_z) yield end, ether, pause::wait;
+  codel <wait> waitMoveHead(in head_mode, port in head_controller_state, out head_controller_state_msg) yield pause::start, pause::wait, end, ether;
   codel <end> endMoveHead() yield ether;
   codel <stop> stopMoveHead() yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -445,11 +445,11 @@ component pr2motion {
 			      in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in side, in path_mode, port in traj) yield end, ether, computetraj, checktraj;
-  codel <computetraj> computeTrajArm(in side, in traj_mode, in time_slot) yield checktraj, end, ether;
-  codel <checktraj> checkTrajArm(in side) yield end, ether, launchmove;
-  codel <launchmove> launchMoveArm(in side) yield end, ether, waitmove;
-  codel <waitmove> waitMoveArm(in side) yield end, ether, waitmove;
+  codel <start> getPathArm(in side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <computetraj> computeTrajArm(in side, in traj_mode, in time_slot) yield pause::checktraj, end, ether;
+  codel <checktraj> checkTrajArm(in side) yield end, ether, pause::launchmove;
+  codel <launchmove> launchMoveArm(in side) yield end, ether, pause::waitmove;
+  codel <waitmove> waitMoveArm(in side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in side) yield ether;
   codel <stop> stopMoveArm(in side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -479,11 +479,11 @@ component pr2motion {
   activity Arm_MoveToQGoal(in pr2motion::SIDE side = pr2motion::RIGHT:"0= left, 1=right", in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
   {
     doc "Allow to set a Qgoal";
-    codel <start> getQGoal(in side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
-    codel <computetraj> computeTrajQGoal(in side, in traj_mode) yield checktraj, end, ether;
-    codel <checktraj> checkTrajQGoal(in side) yield end, ether, launchmove;
-    codel <launchmove> launchMoveQ(in side) yield end, ether, waitmove;
-    codel <waitmove> waitMoveQ(in side) yield end, ether, waitmove;
+    codel <start> getQGoal(in side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield pause::computetraj, end, ether;
+    codel <computetraj> computeTrajQGoal(in side, in traj_mode) yield pause::checktraj, end, ether;
+    codel <checktraj> checkTrajQGoal(in side) yield end, ether, pause::launchmove;
+    codel <launchmove> launchMoveQ(in side) yield end, ether, pause::waitmove;
+    codel <waitmove> waitMoveQ(in side) yield end, ether, pause::waitmove;
     codel <end> endMoveQ(in side) yield ether;
     codel <stop> stopMoveQ(in side) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
@@ -502,11 +502,11 @@ component pr2motion {
   activity Arm_Right_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in right_side, in path_mode, port in traj) yield end, ether, computetraj, checktraj;
-  codel <computetraj> computeTrajArm(in right_side, in traj_mode, in right_time_slot) yield checktraj, end, ether;
-  codel <checktraj> checkTrajArm(in right_side) yield end, ether, launchmove;
-  codel <launchmove> launchMoveArm(in right_side) yield end, ether, waitmove;
-  codel <waitmove> waitMoveArm(in right_side) yield end, ether, waitmove;
+  codel <start> getPathArm(in right_side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <computetraj> computeTrajArm(in right_side, in traj_mode, in right_time_slot) yield pause::checktraj, end, ether;
+  codel <checktraj> checkTrajArm(in right_side) yield end, ether, pause::launchmove;
+  codel <launchmove> launchMoveArm(in right_side) yield end, ether, pause::waitmove;
+  codel <waitmove> waitMoveArm(in right_side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in right_side) yield ether;
   codel <stop> stopMoveArm(in right_side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -522,11 +522,11 @@ component pr2motion {
   activity Arm_Right_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
   {
     doc "Allow to set a Qgoal";
-    codel <start> getQGoal(in right_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
-    codel <computetraj> computeTrajQGoal(in right_side, in traj_mode) yield checktraj, end, ether;
-    codel <checktraj> checkTrajQGoal(in right_side) yield end, ether, launchmove;
-    codel <launchmove> launchMoveQ(in right_side) yield end, ether, waitmove;
-    codel <waitmove> waitMoveQ(in right_side) yield end, ether, waitmove;
+    codel <start> getQGoal(in right_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield pause::computetraj, end, ether;
+    codel <computetraj> computeTrajQGoal(in right_side, in traj_mode) yield pause::checktraj, end, ether;
+    codel <checktraj> checkTrajQGoal(in right_side) yield end, ether, pause::launchmove;
+    codel <launchmove> launchMoveQ(in right_side) yield end, ether, pause::waitmove;
+    codel <waitmove> waitMoveQ(in right_side) yield end, ether, pause::waitmove;
     codel <end> endMoveQ(in right_side) yield ether;
     codel <stop> stopMoveQ(in right_side) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
@@ -543,11 +543,11 @@ component pr2motion {
   activity Arm_Left_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in left_side, in path_mode, port in traj) yield end, ether, computetraj, checktraj;
-  codel <computetraj> computeTrajArm(in left_side, in traj_mode, in left_time_slot) yield checktraj, end, ether;
-  codel <checktraj> checkTrajArm(in left_side) yield end, ether, launchmove;
-  codel <launchmove> launchMoveArm(in left_side) yield end, ether, waitmove;
-  codel <waitmove> waitMoveArm(in left_side) yield end, ether, waitmove;
+  codel <start> getPathArm(in left_side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <computetraj> computeTrajArm(in left_side, in traj_mode, in left_time_slot) yield pause::checktraj, end, ether;
+  codel <checktraj> checkTrajArm(in left_side) yield end, ether, pause::launchmove;
+  codel <launchmove> launchMoveArm(in left_side) yield end, ether, pause::waitmove;
+  codel <waitmove> waitMoveArm(in left_side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in left_side) yield ether;
   codel <stop> stopMoveArm(in left_side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -563,11 +563,11 @@ component pr2motion {
   activity Arm_Left_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
   {
     doc "Allow to set a Qgoal";
-    codel <start> getQGoal(in left_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield computetraj, end, ether;
-    codel <computetraj> computeTrajQGoal(in left_side, in traj_mode) yield checktraj, end, ether;
-    codel <checktraj> checkTrajQGoal(in left_side) yield end, ether, launchmove;
-    codel <launchmove> launchMoveQ(in left_side) yield end, ether, waitmove;
-    codel <waitmove> waitMoveQ(in left_side) yield end, ether, waitmove;
+    codel <start> getQGoal(in left_side, in joint_state_availability, in joint_state_msg, in shoulder_pan_joint, in shoulder_lift_joint, in upper_arm_roll_joint, in elbow_flex_joint, in forearm_roll_joint, in wrist_flex_joint, in wrist_roll_joint) yield pause::computetraj, end, ether;
+    codel <computetraj> computeTrajQGoal(in left_side, in traj_mode) yield pause::checktraj, end, ether;
+    codel <checktraj> checkTrajQGoal(in left_side) yield end, ether, pause::launchmove;
+    codel <launchmove> launchMoveQ(in left_side) yield end, ether, pause::waitmove;
+    codel <waitmove> waitMoveQ(in left_side) yield end, ether, pause::waitmove;
     codel <end> endMoveQ(in left_side) yield ether;
     codel <stop> stopMoveQ(in left_side) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
