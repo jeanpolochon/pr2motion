@@ -59,10 +59,10 @@ RobotArm right_arm;
 Pr2Model pr2_model;
 
 /* 
-StateEnum {
-  PENDING, ACTIVE, RECALLED, REJECTED,
-  PREEMPTED, ABORTED, SUCCEEDED, LOST
-}
+   StateEnum {
+   PENDING, ACTIVE, RECALLED, REJECTED,
+   PREEMPTED, ABORTED, SUCCEEDED, LOST
+   }
 */
 
 
@@ -85,12 +85,6 @@ initMain(double *open_position, double *open_max_effort,
          bool *joint_state_availability, pr2motion_SIDE *left_side,
          pr2motion_SIDE *right_side, genom_context self)
 {
-  printf("initMain\n");
-  // char* argv[] =  { "pr2motion",
-  //                   "",
-  //                   NULL};
-  // int argc = 2;
-  // ros::init(argc, argv, "pr2motion");
   // at the beginning the joint_state is not yet available
   *joint_state_availability = false;
   // gripper param initialisation
@@ -139,7 +133,7 @@ routineMain(const pr2motion_joint_state *joint_state,
     effort_size = joint_state->data(self)->effort._length;
 
     if(name_size==0){
-      printf("pr2motion The joint_state is empty\n");
+      ROS_INFO("pr2motion The joint_state is empty\n");
       *joint_state_availability=false;
       return pr2motion_pause_routine;
     }
@@ -147,12 +141,12 @@ routineMain(const pr2motion_joint_state *joint_state,
     if( (name_size!=position_size) ||
 	(name_size!=velocity_size) ||
 	(name_size!=effort_size)){
-      printf("pr2motion There is an issue concerning the size of the joint_state vector\n");
+      ROS_INFO("pr2motion There is an issue concerning the size of the joint_state vector\n");
       *joint_state_availability = false;
       return pr2motion_pause_routine;
     }
     if(joint_state_msg->name._maximum<name_size) {
-      printf("pr2motion Need to add joint(s) to the sequence\n");
+      ROS_INFO("pr2motion Need to add joint(s) to the sequence\n");
       genom_sequence_reserve(&(joint_state_msg->name), name_size);
       joint_state_msg->name._length=name_size;
       genom_sequence_reserve(&(joint_state_msg->position), position_size);
@@ -170,13 +164,11 @@ routineMain(const pr2motion_joint_state *joint_state,
       joint_state_msg->velocity._buffer[ind]=joint_state->data(self)->velocity._buffer[ind];
       joint_state_msg->effort._buffer[ind]=joint_state->data(self)->effort._buffer[ind];
       //printf("joint state for %s is %f vel %f eff %f",joint_state_msg->name._buffer[ind],joint_state_msg->position._buffer[ind],joint_state_msg->velocity._buffer[ind],joint_state_msg->effort._buffer[ind]); 
-      }
-    //printf("\n");
+    }
     *joint_state_availability = true;
-    //robot_state.setRobotQ(joint_state_msg);
   } else {
     if(*joint_state_availability == true)
-      printf("pr2motion nothing to read on the port...\n");
+      ROS_INFO("pr2motion nothing to read on the joint_state port...\n");
     *joint_state_availability = false;
   }
   return pr2motion_pause_routine;
@@ -191,7 +183,7 @@ routineMain(const pr2motion_joint_state *joint_state,
 genom_event
 endMain(genom_context self)
 {
- return pr2motion_ether;
+  return pr2motion_ether;
 }
 
 
@@ -224,49 +216,49 @@ initConnect(genom_context self)
     // printf("initialisation of the torso with : sec = %d and nsec = %d so torso_min_duration = %f \n",torso_duration.sec, torso_duration.nsec, torso_min_duration);
     // torso_max_velocity = torso.getMaxVelocityDefault();  
   } else {
-    printf("pr2motion::initConnect: WARNING: Torso initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: Torso initialisation failed, you won't be able to use it! \n");
   }
 
   // Head Initialisation
   RobotHead::ERROR head_init_result;
   head_init_result=head.init();  
   if(head_init_result!=RobotHead::OK) {
-    printf("pr2motion::initConnect: WARNING: Head Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: Head Initialisation failed, you won't be able to use it! \n");
   }
 
   RobotArm::ERROR right_arm_init_result;
   right_arm_init_result = right_arm.init(RobotArm::RIGHT);
   if(right_arm_init_result!=RobotArm::OK) {
-    printf("pr2motion::initConnect: WARNING: right arm Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: right arm Initialisation failed, you won't be able to use it! \n");
   }
 
   RobotArm::ERROR left_arm_init_result;
   left_arm_init_result = left_arm.init(RobotArm::LEFT);
   if(left_arm_init_result!=RobotArm::OK) {
-    printf("pr2motion::initConnect: WARNING: left arm Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: left arm Initialisation failed, you won't be able to use it! \n");
   } 
 
 #ifndef PR2_SIMU
   Gripper::ERROR left_gripper_init_result;
   left_gripper_init_result=left_gripper.init(Gripper::LEFT);
   if(left_gripper_init_result!=Gripper::OK) {
-    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
   }
   Gripper::ERROR right_gripper_init_result;
   right_gripper_init_result=right_gripper.init(Gripper::RIGHT);
   if(right_gripper_init_result!=Gripper::OK) {
-    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
   }  
 #else
   GripperSimple::ERROR left_gripper_init_result;
   left_gripper_init_result=left_gripper.init(GripperSimple::LEFT);
   if(left_gripper_init_result!=GripperSimple::OK) {
-    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
   }  
   GripperSimple::ERROR right_gripper_init_result;
   right_gripper_init_result=right_gripper.init(GripperSimple::RIGHT);
   if(right_gripper_init_result!=GripperSimple::OK) {
-    printf("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
+    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
   } 
 #endif
   
@@ -408,7 +400,7 @@ execOperateGripper(pr2motion_SIDE side,
     }
   }
 
-  /* skeleton sample */ return pr2motion_pause_wait;
+  return pr2motion_pause_wait;
   // we are in simulation
 #else
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
@@ -455,8 +447,7 @@ waitOperateGripper(pr2motion_SIDE side,
                    genom_context self)
 {
 
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_end;
+  return pr2motion_end;
 }
 
 /** Codel waitcontactOperateGripper of activity Gripper_Operate.
@@ -476,7 +467,7 @@ waitcontactOperateGripper(pr2motion_SIDE side,
   if (side >= pr2motion_NB_SIDE)
     return pr2motion_end;    
 
- switch(side){
+  switch(side){
   case pr2motion_LEFT :
     if(left_gripper.findTwo_isDone())
       return pr2motion_slipservo;
@@ -489,7 +480,7 @@ waitcontactOperateGripper(pr2motion_SIDE side,
       return pr2motion_pause_waitcontact;
   default:
     return pr2motion_unknown_error(self);
- }
+  }
  
 #else
   return pr2motion_unknown_error(self); 
@@ -500,7 +491,8 @@ waitcontactOperateGripper(pr2motion_SIDE side,
  *
  * Triggered by pr2motion_waitopen.
  * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ *           pr2motion_pause_waitcontact, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -509,7 +501,7 @@ waitopenOperateGripper(pr2motion_SIDE side,
                        pr2motion_GRIPPER_MODE goal_mode,
                        genom_context self)
 {
- if (side >= pr2motion_NB_SIDE)
+  if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
 #ifndef PR2_SIMU  
@@ -566,14 +558,12 @@ waitcloseOperateGripper(pr2motion_SIDE side,
   switch(side){
   case pr2motion_LEFT :
     if(left_gripper.close_isDone()){
-      printf("close done\n");
       return pr2motion_end;
     } else {
       return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT :
     if(right_gripper.close_isDone()){
-      printf("close done\n");
       return pr2motion_end;
     } else {
       return pr2motion_pause_waitclose;
@@ -699,8 +689,6 @@ stopOperateGripper(pr2motion_SIDE side,
     }   
   }
   return pr2motion_end;
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
 }
 
 /** Codel endOperateGripper of activity Gripper_Operate.
@@ -715,8 +703,7 @@ endOperateGripper(pr2motion_SIDE side,
                   pr2motion_GRIPPER_MODE goal_mode,
                   genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+  return pr2motion_ether;
 }
 
 
@@ -771,7 +758,8 @@ endOperateGripper(pr2motion_SIDE side,
  *
  * Triggered by pr2motion_waitopen.
  * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ *           pr2motion_pause_waitcontact, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -858,8 +846,8 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_wait.
- * Yields to pr2motion_pause_wait, pr2motion_exec, pr2motion_stop,
- *           pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
+ *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -880,8 +868,8 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_pause_waitcontact,
+ *           pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -962,12 +950,11 @@ startMoveTorso(float torso_position, genom_context self)
     //    torso_cmd.min_duration=ros::Duration(torso_min_duration);
     //torso_cmd.max_velocity=torso_max_velocity;
     result_move = torso.move(torso_cmd);
-    printf("result_move=%d\n",result_move);
     if(result_move==Torso::OK)
       return pr2motion_pause_wait;
     else
       torso.cancelCmd();
-      return pr2motion_invalid_param(self);
+    return pr2motion_invalid_param(self);
   case Torso::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
   case Torso::SERVER_NOT_CONNECTED:
@@ -1085,7 +1072,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
   if(head_controller_state->data(self)!=NULL){
     name_size = head_controller_state->data(self)->joint_names._length;
     if(name_size!=2){
-      printf("Head_Move the number of joint in the head_controller_state is not correct\n");
+      ROS_INFO("Head_Move the number of joint in the head_controller_state is not correct\n");
       head.cancelCmd();
       return pr2motion_invalid_param(self);
     } else {
@@ -1110,7 +1097,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
       }
     } 
   } else {
-    printf("Head_Move cannot read head_controller_state, cannot check limits\n");
+    ROS_INFO("Head_Move cannot read head_controller_state, cannot check limits\n");
     head.cancelCmd();
     return pr2motion_invalid_param(self);    
   }
@@ -1171,10 +1158,8 @@ genom_event
 getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
            const pr2motion_traj *traj, genom_context self)
 {
-  printf("getpath arm \n");
   // goal (path) to be send to the controller
   pr2_controllers_msgs::JointTrajectoryGoal path_cmd;
-  //pr2_controllers_msgs::JointTrajectoryGoal traj_cmd;
 
   // path nb_points
   int points_vector_size;
@@ -1245,7 +1230,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
     // nb_points in the path
     points_vector_size = traj->data(self)->traj.points._length;
     if(points_vector_size==0){
-      printf("the trajectory is empty !");
+      ROS_INFO("pr2motion::Arm_Move the trajectory is empty !");
       return pr2motion_end;
     }
     path_cmd.trajectory.points.resize(points_vector_size);
@@ -1348,10 +1333,9 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
     }
   } else {
     // not able to read the trajectory on the port
-    printf("no trajectory found on the port.. \n");
+    ROS_INFO("pr2motion::Arm_Move no trajectory found on the port.. \n");
     return pr2motion_end;
   }
-  printf("aurevoir.. \n");
   return pr2motion_end;
 }
 
@@ -1367,10 +1351,7 @@ genom_event
 computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
                double time_slot, genom_context self)
 {
-  printf("computetrajarm\n");
   if(side == pr2motion_RIGHT){
-    //    right_arm.setMax(max_vel, max_acc, max_jerk);
-    //    right_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1386,8 +1367,6 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
     right_arm.computeTrajectory();
     return pr2motion_pause_checktraj;
   } else {
-    //    left_arm.setMax(max_vel, max_acc, max_jerk);
-    //    left_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1417,7 +1396,6 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
 genom_event
 checkTrajArm(pr2motion_SIDE side, genom_context self)
 {
-  printf("checktrajarm\n");
   RobotArm::ERROR result;
   if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
@@ -1440,7 +1418,6 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
 genom_event
 launchMoveArm(pr2motion_SIDE side, genom_context self)
 {
-  printf("launchmovearm\n");
   if(side == pr2motion_RIGHT){
     right_arm.move();
   } else {
@@ -1459,17 +1436,16 @@ launchMoveArm(pr2motion_SIDE side, genom_context self)
 genom_event
 waitMoveArm(pr2motion_SIDE side, genom_context self)
 {
-  printf("waitmovearm\n");
   if(side == pr2motion_RIGHT){
     if(right_arm.move_isDone()){
       //possible states PENDING, ACTIVE, RECALLED, REJECTED,
       // PREEMPTED, ABORTED, SUCCEEDED, LOST
       if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-	printf("SUCCEEDED !!\n");
+	ROS_INFO("pr2motion::Move_Arm SUCCEEDED !!\n");
       if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ABORTED)
-	printf("ABORTED\n");
+	ROS_INFO("pr2motion::Move_Arm ABORTED\n");
       if(right_arm.move_getState()==actionlib::SimpleClientGoalState::PREEMPTED)
-	printf("PREEMPTED\n");
+	ROS_INFO("pr2motion::Move_Arm PREEMPTED\n");
       return pr2motion_end;
     }
     else
@@ -1492,9 +1468,8 @@ waitMoveArm(pr2motion_SIDE side, genom_context self)
 genom_event
 endMoveArm(pr2motion_SIDE side, genom_context self)
 {
-  printf("endmovearm\n");
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+
+  return pr2motion_ether;
 }
 
 /** Codel stopMoveArm of activity Arm_Move.
@@ -1563,185 +1538,108 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
     return pr2motion_unknown_error(self);
   }
   
-  printf("GetQGoal: Arm is connected with vector length %d \n",joint_state_msg->name._length);
-  
   // check if we can get the actual arm position
   if(!joint_state_availability){
-    printf("GetQGoal cannot get robot actual position\n");
+    ROS_INFO("pr2motion::MoveArmToQGoal cannot get robot actual position\n");
     return pr2motion_joint_state_unavailable(self);
   }
     
-  printf("avant\n");
   if(side == pr2motion_RIGHT){
-    printf("1\n");
-  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
-    printf("ind= %d 2\n", ind);
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
-       printf("r_shoulder_pan_joint\n");
-      path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
-      path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[0].c_str(), 
-	     path_cmd.trajectory.points[0].positions[0], 
-	     path_cmd.trajectory.points[1].positions[0]);
+    for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
+	path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
+	path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
+	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n", 
+	// 	     path_cmd.trajectory.joint_names[0].c_str(), 
+	// 	     path_cmd.trajectory.points[0].positions[0], 
+	// 	     path_cmd.trajectory.points[1].positions[0]);
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
+	path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
+	path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
+	path_cmd.trajectory.joint_names[2]="r_upper_arm_roll_joint";
+	path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
+	path_cmd.trajectory.joint_names[3]="r_elbow_flex_joint";
+	path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
+	path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
+	path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
+	path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
+	path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
+	path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
+	path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+      }
     }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
-      printf("r_shoulder_lift_joint\n");
-      path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
-      path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[1].c_str(), 
-	     path_cmd.trajectory.points[0].positions[1], 
-	     path_cmd.trajectory.points[1].positions[1]);
+    right_arm.clearTrajectory();
+    if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
+      return pr2motion_pause_computetraj;
+    } else {
+      return pr2motion_end;	 
     }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
-      printf("r_upper_arm_roll_joint\n");      
-      path_cmd.trajectory.joint_names[2]="r_upper_arm_roll_joint";
-      path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[2].c_str(), 
-	     path_cmd.trajectory.points[0].positions[2], 
-	     path_cmd.trajectory.points[1].positions[2]);      
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
-      printf("r_elbow_flex_joint\n");           
-      path_cmd.trajectory.joint_names[3]="r_elbow_flex_joint";
-      path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[3].c_str(), 
-	     path_cmd.trajectory.points[0].positions[3], 
-	     path_cmd.trajectory.points[1].positions[3]);         
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
-      printf("r_forearm_roll_joint\n");
-      path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
-      path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[4].c_str(), 
-	     path_cmd.trajectory.points[0].positions[4], 
-	     path_cmd.trajectory.points[1].positions[4]);           
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
-      printf("r_wrist_flex_joint\n");      
-      path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
-      path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
-     printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[5].c_str(), 
-	     path_cmd.trajectory.points[0].positions[5], 
-	     path_cmd.trajectory.points[1].positions[5]);          
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
-      printf("r_wrist_roll_joint\n"); 
-      path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
-      path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
-     printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[6].c_str(), 
-	     path_cmd.trajectory.points[0].positions[6], 
-	     path_cmd.trajectory.points[1].positions[6]);             
-    }
-     printf("4\n");
-  }
-   printf("5\n");
-  right_arm.clearTrajectory();
-   printf("6\n");
-  if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
-    printf("GetQGoal setTraj ok\n");
-    return pr2motion_pause_computetraj;
   } else {
-    printf("GetQGoal setTraj ko\n");
-    return pr2motion_end;	 
-  }
-  } else {
-    printf("1, length of the joint_state %d\n",joint_state_msg->name._length);
-  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_pan_joint")==0){
-      printf("fill l_shoulder_pan_joint with 0 %f and 1 %f \n", joint_state_msg->position._buffer[ind],shoulder_pan_joint);
-
-      path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
-      path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[0].c_str(), 
-	     path_cmd.trajectory.points[0].positions[0], 
-	     path_cmd.trajectory.points[1].positions[0]);
+    for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_pan_joint")==0){
+	path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
+	path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
+	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n", 
+	// 	     path_cmd.trajectory.joint_names[0].c_str(), 
+	// 	     path_cmd.trajectory.points[0].positions[0], 
+	// 	     path_cmd.trajectory.points[1].positions[0]);
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
+	path_cmd.trajectory.joint_names[1]="l_shoulder_lift_joint";
+	path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_upper_arm_roll_joint")==0){
+	path_cmd.trajectory.joint_names[2]="l_upper_arm_roll_joint";
+	path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_elbow_flex_joint")==0){
+	path_cmd.trajectory.joint_names[3]="l_elbow_flex_joint";
+	path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_forearm_roll_joint")==0){
+	path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
+	path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_flex_joint")==0){
+	path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
+	path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
+      }
+      if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
+	path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
+	path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+	path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
+      } 
     }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
-      printf("fill l_shoulder_lift_joint\n");
-      path_cmd.trajectory.joint_names[1]="l_shoulder_lift_joint";
-      path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[1] = shoulder_lift_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[1].c_str(), 
-	     path_cmd.trajectory.points[0].positions[1], 
-	     path_cmd.trajectory.points[1].positions[1]);
-      
+    left_arm.clearTrajectory();
+    if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
+      return pr2motion_pause_computetraj;
+    } else {
+      return pr2motion_end;     
     }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_upper_arm_roll_joint")==0){
-      printf("fill l_upper_arm_roll_joint\n");
-      path_cmd.trajectory.joint_names[2]="l_upper_arm_roll_joint";
-      path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[2] = upper_arm_roll_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[2].c_str(), 
-	     path_cmd.trajectory.points[0].positions[2], 
-	     path_cmd.trajectory.points[1].positions[2]);
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_elbow_flex_joint")==0){
-      printf("fill l_elbow_flex_joint\n");
-      path_cmd.trajectory.joint_names[3]="l_elbow_flex_joint";
-      path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[3] = elbow_flex_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[3].c_str(), 
-	     path_cmd.trajectory.points[0].positions[3], 
-	     path_cmd.trajectory.points[1].positions[3]);
-   }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_forearm_roll_joint")==0){
-      printf("fill l_forearm_roll_joint\n");
-      path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
-      path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[4] = forearm_roll_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[4].c_str(), 
-	     path_cmd.trajectory.points[0].positions[4], 
-	     path_cmd.trajectory.points[1].positions[4]);
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_flex_joint")==0){
-      printf("fill l_wrist_flex_joint with 0 %f and 1 %f\n", joint_state_msg->position._buffer[ind], wrist_flex_joint);
-      path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
-      path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[5] = wrist_flex_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[5].c_str(), 
-	     path_cmd.trajectory.points[0].positions[5], 
-	     path_cmd.trajectory.points[1].positions[5]);
-    }
-    if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
-      printf("fill l_wrist_roll_joint\n");
-      path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
-      path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
-      path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
-      printf("which is consistent with %s with 0 %f and 1 %f \n", 
-	     path_cmd.trajectory.joint_names[6].c_str(), 
-	     path_cmd.trajectory.points[0].positions[6], 
-	     path_cmd.trajectory.points[1].positions[6]);
-    } 
-  }
-  left_arm.clearTrajectory();
-  if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
-    printf("GetQGoal setTraj ok\n");      
-    return pr2motion_pause_computetraj;
-  } else {
-    printf("GetQGoal setTraj ko\n");
-    return pr2motion_end;     
-  }
   }
   return pr2motion_end;
 }
@@ -1759,10 +1657,7 @@ genom_event
 computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
                  genom_context self)
 {
-  printf("ComputeTrajQGoal\n");
   if(side == pr2motion_RIGHT){
-    //    right_arm.setMax(max_vel, max_acc, max_jerk);
-    //    right_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_TRAJ_SOFTMOTION:
       right_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1773,13 +1668,11 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
     case pr2motion_TRAJ_PATH:
       right_arm.setTrajMode(RobotArm::PATH);
     default:
-      return pr2motion_end;
+      return pr2motion_invalid_param(self);
     }
     right_arm.computeTrajectory();
     return pr2motion_pause_checktraj;
   } else {
-    //    left_arm.setMax(max_vel, max_acc, max_jerk);
-    //    left_arm.setT(time_slot);
     switch (traj_mode){
     case pr2motion_TRAJ_SOFTMOTION:
       left_arm.setTrajMode(RobotArm::SOFT_MOTION);
@@ -1790,7 +1683,7 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
     case pr2motion_TRAJ_PATH:
       left_arm.setTrajMode(RobotArm::PATH);
     default:
-      return pr2motion_end;
+      return pr2motion_invalid_param(self);
     }
     left_arm.computeTrajectory();
     return pr2motion_pause_checktraj;    
@@ -1810,7 +1703,6 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
 genom_event
 checkTrajQGoal(pr2motion_SIDE side, genom_context self)
 {
-  printf("CheckTrajQGoal\n");
   RobotArm::ERROR result;
   if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
@@ -1834,7 +1726,6 @@ checkTrajQGoal(pr2motion_SIDE side, genom_context self)
 genom_event
 launchMoveQ(pr2motion_SIDE side, genom_context self)
 {
-  printf("launchMoveQ\n");
   if(side == pr2motion_RIGHT){
     right_arm.move();
   } else {
@@ -1854,24 +1745,6 @@ launchMoveQ(pr2motion_SIDE side, genom_context self)
 genom_event
 waitMoveQ(pr2motion_SIDE side, genom_context self)
 {
-  // printf("waitmovearmq\n");
-  // if(side == pr2motion_RIGHT){
-  //   if(right_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-  //     return pr2motion_end;
-  //   else if(right_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-  //     return pr2motion_waitmove;
-  //   else
-  //     return pr2motion_end;
-  // } else {
-  //   if(left_arm.move_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
-  //     return pr2motion_end;
-  //   else if(left_arm.move_getState()==actionlib::SimpleClientGoalState::ACTIVE)
-  //     return pr2motion_waitmove;
-  //   else
-  //     return pr2motion_end;
-  // }
-  // return pr2motion_waitmove;
-
   if(side == pr2motion_RIGHT){
     if(right_arm.move_isDone())
       return pr2motion_end;
@@ -1896,9 +1769,7 @@ waitMoveQ(pr2motion_SIDE side, genom_context self)
 genom_event
 endMoveQ(pr2motion_SIDE side, genom_context self)
 {
-  printf("endmovearmq\n");
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+  return pr2motion_ether;
 }
 
 /** Codel stopMoveQ of activity Arm_MoveToQGoal.
@@ -1912,8 +1783,7 @@ endMoveQ(pr2motion_SIDE side, genom_context self)
 genom_event
 stopMoveQ(pr2motion_SIDE side, genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+  return pr2motion_ether;
 }
 
 
@@ -2251,19 +2121,19 @@ getQ(const char *joint_name, bool joint_state_availability,
      genom_context self)
 {
   bool find=false;
+
   // check if we can get the actual arm position
   if(!joint_state_availability){
-    printf("GetQGoal cannot get robot actual position\n");
+    ROS_INFO("pr2motion::GetQ cannot get robot actual position\n");
     return pr2motion_joint_state_unavailable(self);
   }
 
   for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
     if(strcmp(joint_state_msg->name._buffer[ind],joint_name)==0){
-       printf("r_shoulder_pan_joint\n");
-       *position=joint_state_msg->position._buffer[ind];
-       *velocity=joint_state_msg->velocity._buffer[ind];
-       *effort=joint_state_msg->effort._buffer[ind];
-       find=true;
+      *position=joint_state_msg->position._buffer[ind];
+      *velocity=joint_state_msg->velocity._buffer[ind];
+      *effort=joint_state_msg->effort._buffer[ind];
+      find=true;
     }
   }
   
@@ -2283,6 +2153,5 @@ getQ(const char *joint_name, bool joint_state_availability,
 genom_event
 endGetQ(genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return pr2motion_ether;
+  return pr2motion_ether;
 }

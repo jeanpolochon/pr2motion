@@ -96,60 +96,60 @@ void RobotHead::listenerCallback(const pr2_controllers_msgs::JointTrajectoryCont
 {
   // count
   int count=0;
-   // pr2_controllers_msgs::JointTrajectoryControllerStat
-   //     std_msgs/Header header
-   //     string[] joint_names
-   //     trajectory_msgs/JointTrajectoryPoint desired
-   //     trajectory_msgs/JointTrajectoryPoint actual
-   //     trajectory_msgs/JointTrajectoryPoint error
-   // trajectory_msgs/JointTrajectoryPoint
-   //        float64[] positions
-   //        float64[] velocities
-   //        float64[] accelerations
-   //        float64[] effort
-   //        duration time_from_start
+  // pr2_controllers_msgs::JointTrajectoryControllerStat
+  //     std_msgs/Header header
+  //     string[] joint_names
+  //     trajectory_msgs/JointTrajectoryPoint desired
+  //     trajectory_msgs/JointTrajectoryPoint actual
+  //     trajectory_msgs/JointTrajectoryPoint error
+  // trajectory_msgs/JointTrajectoryPoint
+  //        float64[] positions
+  //        float64[] velocities
+  //        float64[] accelerations
+  //        float64[] effort
+  //        duration time_from_start
 
   // check pan boundaries
-   if(msg->joint_names[0].compare("head_pan_joint")==0) {
-     count = count+1;
-     ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[0],pan_min_, pan_max_);
-     if(msg->desired.positions[0]>pan_max_ || msg->desired.positions[0]<pan_min_) {
-       ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[0]);
-       point_head_client_->cancelAllGoals();
-     }
-   }
+  if(msg->joint_names[0].compare("head_pan_joint")==0) {
+    count = count+1;
+    ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[0],pan_min_, pan_max_);
+    if(msg->desired.positions[0]>pan_max_ || msg->desired.positions[0]<pan_min_) {
+      ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[0]);
+      point_head_client_->cancelAllGoals();
+    }
+  }
 
-   if(msg->joint_names[1].compare("head_pan_joint")==0) {
-     count = count + 1;
-ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[1],pan_min_, pan_max_);
-     if(msg->desired.positions[1]>pan_max_ || msg->desired.positions[1]<pan_min_) {
-       ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[1]);
-       point_head_client_->cancelAllGoals();
-     }
-   }
+  if(msg->joint_names[1].compare("head_pan_joint")==0) {
+    count = count + 1;
+    ROS_INFO("head desired position with pan = %f (limits [%f , %f] ) \n", msg->desired.positions[1],pan_min_, pan_max_);
+    if(msg->desired.positions[1]>pan_max_ || msg->desired.positions[1]<pan_min_) {
+      ROS_INFO("head desired position out of bound with pan = %f (limits [-2.8 , 2.8] ) \n", msg->desired.positions[1]);
+      point_head_client_->cancelAllGoals();
+    }
+  }
 
-   // check tilt boundaries
-   if(msg->joint_names[0].compare("head_tilt_joint")==0) {
-     count = count +1;
-     ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[0], tilt_min_, tilt_max_);
-     if(msg->desired.positions[0]>tilt_max_ || msg->desired.positions[0]<tilt_min_) {
-       ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[0]);
-       point_head_client_->cancelAllGoals();
-     }
-   }
+  // check tilt boundaries
+  if(msg->joint_names[0].compare("head_tilt_joint")==0) {
+    count = count +1;
+    ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[0], tilt_min_, tilt_max_);
+    if(msg->desired.positions[0]>tilt_max_ || msg->desired.positions[0]<tilt_min_) {
+      ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[0]);
+      point_head_client_->cancelAllGoals();
+    }
+  }
 
-   if(msg->joint_names[1].compare("head_tilt_joint")==0) {
-     count = count +1;
- ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[1], tilt_min_, tilt_max_);
-     if(msg->desired.positions[1]>tilt_max_ || msg->desired.positions[1]<tilt_min_) {
-       ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[1]);
-       point_head_client_->cancelAllGoals();
-     }
-   }
+  if(msg->joint_names[1].compare("head_tilt_joint")==0) {
+    count = count +1;
+    ROS_INFO("head desired position with tilt = %f (limits [%f, %f])\n", msg->desired.positions[1], tilt_min_, tilt_max_);
+    if(msg->desired.positions[1]>tilt_max_ || msg->desired.positions[1]<tilt_min_) {
+      ROS_INFO("head desired position out of bound with tilt = %f (limits [-0.37, 1.29])\n", msg->desired.positions[1]);
+      point_head_client_->cancelAllGoals();
+    }
+  }
 
-   // check if we have read pan and tilt data
-   if(count !=2)
-     ROS_INFO("ERROR: we do not get all head bounds !!!");
+  // check if we have read pan and tilt data
+  if(count !=2)
+    ROS_INFO("ERROR: we do not get all head bounds !!!");
 
 }
 
@@ -162,25 +162,25 @@ actionlib::SimpleClientGoalState RobotHead::lookAt_getState() {
   return point_head_client_->getState();
 }
 void RobotHead::lookAt_doneCb(const actionlib::SimpleClientGoalState& state,
-	      const pr2_controllers_msgs::PointHeadActionResultConstPtr& result)
-  {
-    // pr2_controllers_msgs/PointHeadActionResult result
-    // Header header
-    // actionlib_msgs/GoalStatus status
-    // PointHeadResult result    
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
-  }
+			      const pr2_controllers_msgs::PointHeadActionResultConstPtr& result)
+{
+  // pr2_controllers_msgs/PointHeadActionResult result
+  // Header header
+  // actionlib_msgs/GoalStatus status
+  // PointHeadResult result    
+  ROS_INFO("Finished in state [%s]", state.toString().c_str());
+}
 
 void RobotHead::lookAt_activeCb()
-  {
-    ROS_INFO("Goal just went active");
-  }
+{
+  ROS_INFO("Goal just went active");
+}
 
 void RobotHead::lookAt_feedbackCb(const pr2_controllers_msgs::PointHeadActionFeedbackConstPtr& feedback)
-  {
-    // pr2_controllers_msgs/SingleJointPositionFeedback feedback
-    ROS_INFO("Got Feedback\n");
-  }
+{
+  // pr2_controllers_msgs/SingleJointPositionFeedback feedback
+  ROS_INFO("Got Feedback\n");
+}
 
 void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
   //the goal message

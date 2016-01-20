@@ -171,24 +171,24 @@ RobotArm::ERROR RobotArm::init(RobotArm::SIDE side){
 
   if(traj_client_!=NULL){
     if(!(traj_client_->isServerConnected())) {
-	// wait for server answer
-	while((wait_result==false)||(nb_iter<nb_iter_max)) {
-	  wait_result=traj_client_->waitForServer(ros::Duration(5.0));
-	  nb_iter=nb_iter+1;
-	  ROS_INFO("Waiting for the arm_controller/joint_trajectory_action action server to come up");
-	}
-	// no response = init failed
-	if(wait_result==false){
-	  result=INIT_FAILED;
-	} else { 
-	  traj_mode_=RobotArm::SOFT_MOTION;
-	  clearTrajectory();
-	  max_acc_=0.5;
-	  max_vel_=0.5;
-	  max_jerk_=0.5;
-	  time_slot_=0.5;
-	}
+      // wait for server answer
+      while((wait_result==false)||(nb_iter<nb_iter_max)) {
+	wait_result=traj_client_->waitForServer(ros::Duration(5.0));
+	nb_iter=nb_iter+1;
+	ROS_INFO("Waiting for the arm_controller/joint_trajectory_action action server to come up");
       }
+      // no response = init failed
+      if(wait_result==false){
+	result=INIT_FAILED;
+      } else { 
+	traj_mode_=RobotArm::SOFT_MOTION;
+	clearTrajectory();
+	max_acc_=0.5;
+	max_vel_=0.5;
+	max_jerk_=0.5;
+	time_slot_=0.5;
+      }
+    }
   } else {
     ROS_INFO("RobotArm::init Not able to create the ArmClient");
     result= INIT_FAILED;
@@ -198,17 +198,15 @@ RobotArm::ERROR RobotArm::init(RobotArm::SIDE side){
 
 void RobotArm::clearTrajectory()
 {
-  printf("RobotArm::clearTrajectory\n");
   arm_traj_.trajectory.points.resize(0);
   arm_traj_.trajectory.joint_names.resize(0);
 }
 
 RobotArm::ERROR RobotArm::setTraj(pr2_controllers_msgs::JointTrajectoryGoal * intraj){
   ERROR result = OK;
- // path nb_points
+  // path nb_points
   int points_vector_size;
   int joint_names_vector_size;
-  printf("RobotArm::setTraj\n");
   points_vector_size =  intraj->trajectory.points.size();
   joint_names_vector_size = intraj->trajectory.joint_names.size();
   arm_traj_.trajectory.points.resize(points_vector_size);
@@ -294,146 +292,144 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
     result = INVALID_TRAJ;
   } else {
   
-  // joint vector size
-  int joint_names_vector_size = 0;
-  joint_names_vector_size = goal_cmd->trajectory.joint_names.size();
+    // joint vector size
+    int joint_names_vector_size = 0;
+    joint_names_vector_size = goal_cmd->trajectory.joint_names.size();
   
-  ROS_INFO("Validate Traj with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
+    ROS_INFO("RobotArm::validateTrajectory Validate Traj with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
 
-  // get the correct index for all needed joints in the path
-  for (size_t ind=0; ind<joint_names_vector_size; ind++) {
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_shoulder_pan_joint")==0){
-      r_shoulder_pan_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_shoulder_lift_joint")==0){
-      r_shoulder_lift_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_upper_arm_roll_joint")==0){
-      r_upper_arm_roll_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_elbow_flex_joint")==0){
-      r_elbow_flex_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_forearm_roll_joint")==0){
-      r_forearm_roll_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_wrist_flex_joint")==0){
-      r_wrist_flex_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("r_wrist_roll_joint")==0){
-      r_wrist_roll_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_shoulder_pan_joint")==0){
-      l_shoulder_pan_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_shoulder_lift_joint")==0){
-      l_shoulder_lift_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_upper_arm_roll_joint")==0){
-      l_upper_arm_roll_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_elbow_flex_joint")==0){
-      l_elbow_flex_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_forearm_roll_joint")==0){
-      l_forearm_roll_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_wrist_flex_joint")==0){
-      l_wrist_flex_joint_indice = ind;
-    }
-    if(goal_cmd->trajectory.joint_names[ind].compare("l_wrist_roll_joint")==0){
-      l_wrist_roll_joint_indice = ind;
-    }
-  }
-
-  // check each joint limits 
-  // the trajectory is considered as invalid if one of the joint position is out of the limits
-  if(arm_side_ == RIGHT) {
-    for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
-      printf("ValidateTraj analyse point %d\n",ind);
-      if((goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]<r_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
-	result = INVALID_TRAJ;
+    // get the correct index for all needed joints in the path
+    for (size_t ind=0; ind<joint_names_vector_size; ind++) {
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_shoulder_pan_joint")==0){
+	r_shoulder_pan_joint_indice = ind;
       }
-      //r_shoulder_lift_joint
-      if((goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]<r_shoulder_lift_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_shoulder_lift_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n",goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_lower_,r_shoulder_lift_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_velocity_);
-	result = INVALID_TRAJ;
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_shoulder_lift_joint")==0){
+	r_shoulder_lift_joint_indice = ind;
       }
-      //r_upper_arm_roll_joint
-      if((goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice]<r_upper_arm_roll_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice]>r_upper_arm_roll_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_upper_arm_roll_joint_indice]>r_upper_arm_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_upper_arm_roll_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice],r_upper_arm_roll_joint_limit_lower_, r_upper_arm_roll_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_upper_arm_roll_joint_indice], r_upper_arm_roll_joint_limit_velocity_);
-	result = INVALID_TRAJ;
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_upper_arm_roll_joint")==0){
+	r_upper_arm_roll_joint_indice = ind;
       }
-      //r_elbow_flex_joint
-      if((goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]<r_elbow_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_elbow_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice],r_elbow_flex_joint_limit_lower_, r_elbow_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice], r_elbow_flex_joint_limit_velocity_);
-	result = INVALID_TRAJ;
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_elbow_flex_joint")==0){
+	r_elbow_flex_joint_indice = ind;
       }
-      //r_forearm_roll_joint 
-      //CONTINUOUS
-      if((goal_cmd->trajectory.points[ind].velocities[r_forearm_roll_joint_indice]>r_forearm_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_forearm_roll_joint bounds \n");
-	result = INVALID_TRAJ;
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_forearm_roll_joint")==0){
+	r_forearm_roll_joint_indice = ind;
       }
-      //r_wrist_flex_joint
-      if((goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]<r_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_wrist_flex_joint bounds \n");
-	result = INVALID_TRAJ;   
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_wrist_flex_joint")==0){
+	r_wrist_flex_joint_indice = ind;
       }
-      //r_wrist_roll_joint
-      //CONTINUOUS
-      if((goal_cmd->trajectory.points[ind].velocities[r_wrist_roll_joint_indice]>r_wrist_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with r_wrist_roll_joint bounds \n");
-	result = INVALID_TRAJ;
+      if(goal_cmd->trajectory.joint_names[ind].compare("r_wrist_roll_joint")==0){
+	r_wrist_roll_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_shoulder_pan_joint")==0){
+	l_shoulder_pan_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_shoulder_lift_joint")==0){
+	l_shoulder_lift_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_upper_arm_roll_joint")==0){
+	l_upper_arm_roll_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_elbow_flex_joint")==0){
+	l_elbow_flex_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_forearm_roll_joint")==0){
+	l_forearm_roll_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_wrist_flex_joint")==0){
+	l_wrist_flex_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("l_wrist_roll_joint")==0){
+	l_wrist_roll_joint_indice = ind;
       }
     }
 
-  } else if (arm_side_ == LEFT) {
+    // check each joint limits 
+    // the trajectory is considered as invalid if one of the joint position is out of the limits
+    if(arm_side_ == RIGHT) {
+      for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+	if((goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]<r_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
+	  result = INVALID_TRAJ;
+	}
+	//r_shoulder_lift_joint
+	if((goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]<r_shoulder_lift_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice]>r_shoulder_lift_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_shoulder_lift_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n",goal_cmd->trajectory.points[ind].positions[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_lower_,r_shoulder_lift_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_lift_joint_indice],r_shoulder_lift_joint_limit_velocity_);
+	  result = INVALID_TRAJ;
+	}
+	//r_upper_arm_roll_joint
+	if((goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice]<r_upper_arm_roll_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice]>r_upper_arm_roll_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_upper_arm_roll_joint_indice]>r_upper_arm_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_upper_arm_roll_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[r_upper_arm_roll_joint_indice],r_upper_arm_roll_joint_limit_lower_, r_upper_arm_roll_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_upper_arm_roll_joint_indice], r_upper_arm_roll_joint_limit_velocity_);
+	  result = INVALID_TRAJ;
+	}
+	//r_elbow_flex_joint
+	if((goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]<r_elbow_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice]>r_elbow_flex_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_elbow_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[r_elbow_flex_joint_indice],r_elbow_flex_joint_limit_lower_, r_elbow_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_elbow_flex_joint_indice], r_elbow_flex_joint_limit_velocity_);
+	  result = INVALID_TRAJ;
+	}
+	//r_forearm_roll_joint 
+	//CONTINUOUS
+	if((goal_cmd->trajectory.points[ind].velocities[r_forearm_roll_joint_indice]>r_forearm_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_forearm_roll_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+	//r_wrist_flex_joint
+	if((goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]<r_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_wrist_flex_joint bounds \n");
+	  result = INVALID_TRAJ;   
+	}
+	//r_wrist_roll_joint
+	//CONTINUOUS
+	if((goal_cmd->trajectory.points[ind].velocities[r_wrist_roll_joint_indice]>r_wrist_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with r_wrist_roll_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+      }
 
-    for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
-      printf("ValidateTraj analyse point %d\n",ind);
-      //l_shoulder_pan_joint
-      if((goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]<l_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_shoulder_pan_joint bounds \n");
-	result = INVALID_TRAJ;
+    } else if (arm_side_ == LEFT) {
+
+      for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+	//l_shoulder_pan_joint
+	if((goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]<l_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_shoulder_pan_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+	//l_shoulder_lift_joint
+	if((goal_cmd->trajectory.points[ind].positions[l_shoulder_lift_joint_indice]<l_shoulder_lift_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_lift_joint_indice]>l_shoulder_lift_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_lift_joint_indice]>l_shoulder_lift_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_shoulder_lift_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+	//l_upper_arm_roll_joint
+	if((goal_cmd->trajectory.points[ind].positions[l_upper_arm_roll_joint_indice]<l_upper_arm_roll_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_upper_arm_roll_joint_indice]>l_upper_arm_roll_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_upper_arm_roll_joint_indice]>l_upper_arm_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_upper_arm_roll_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+	//l_elbow_flex_joint
+	if((goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice]<l_elbow_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice]>l_elbow_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_elbow_flex_joint_indice]>l_elbow_flex_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_elbow_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice],l_elbow_flex_joint_limit_lower_, l_elbow_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[l_elbow_flex_joint_indice], l_elbow_flex_joint_limit_velocity_);
+	  result = INVALID_TRAJ;
+	}
+	//l_forearm_roll_joint 
+	//CONTINUOUS
+	if((goal_cmd->trajectory.points[ind].velocities[l_forearm_roll_joint_indice]>l_forearm_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_forearm_roll_joint bounds \n");
+	  result = INVALID_TRAJ;
+	}
+	//l_wrist_flex_joint
+	if((goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]<l_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_wrist_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice],l_wrist_flex_joint_limit_lower_, l_wrist_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice], l_wrist_flex_joint_limit_velocity_);
+	  result = INVALID_TRAJ;   
+	}
+	//l_wrist_roll_joint
+	//CONTINUOUS  
+	if((goal_cmd->trajectory.points[ind].velocities[l_wrist_roll_joint_indice]>l_wrist_roll_joint_limit_velocity_)){
+	  ROS_INFO("RobotArm::validateTraj pb with l_wrist_roll_joint bounds \n");
+	  result = INVALID_TRAJ;     
+	}
       }
-      //l_shoulder_lift_joint
-      if((goal_cmd->trajectory.points[ind].positions[l_shoulder_lift_joint_indice]<l_shoulder_lift_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_lift_joint_indice]>l_shoulder_lift_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_lift_joint_indice]>l_shoulder_lift_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_shoulder_lift_joint bounds \n");
-	result = INVALID_TRAJ;
-      }
-      //l_upper_arm_roll_joint
-      if((goal_cmd->trajectory.points[ind].positions[l_upper_arm_roll_joint_indice]<l_upper_arm_roll_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_upper_arm_roll_joint_indice]>l_upper_arm_roll_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_upper_arm_roll_joint_indice]>l_upper_arm_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_upper_arm_roll_joint bounds \n");
-	result = INVALID_TRAJ;
-      }
-      //l_elbow_flex_joint
-      if((goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice]<l_elbow_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice]>l_elbow_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_elbow_flex_joint_indice]>l_elbow_flex_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_elbow_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[l_elbow_flex_joint_indice],l_elbow_flex_joint_limit_lower_, l_elbow_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[l_elbow_flex_joint_indice], l_elbow_flex_joint_limit_velocity_);
-	result = INVALID_TRAJ;
-      }
-      //l_forearm_roll_joint 
-      //CONTINUOUS
-      if((goal_cmd->trajectory.points[ind].velocities[l_forearm_roll_joint_indice]>l_forearm_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_forearm_roll_joint bounds \n");
-	result = INVALID_TRAJ;
-      }
-      //l_wrist_flex_joint
-      if((goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]<l_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice]>l_wrist_flex_joint_limit_velocity_)){
-      	printf("RobotArm::validateTraj pb with l_wrist_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) \n", goal_cmd->trajectory.points[ind].positions[l_wrist_flex_joint_indice],l_wrist_flex_joint_limit_lower_, l_wrist_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[l_wrist_flex_joint_indice], l_wrist_flex_joint_limit_velocity_);
-      	result = INVALID_TRAJ;   
-      }
-      //l_wrist_roll_joint
-      //CONTINUOUS  
-      if((goal_cmd->trajectory.points[ind].velocities[l_wrist_roll_joint_indice]>l_wrist_roll_joint_limit_velocity_)){
-	printf("RobotArm::validateTraj pb with l_wrist_roll_joint bounds \n");
-	result = INVALID_TRAJ;     
-      }
+    } else {
+      result = INVALID_PARAM;
     }
-  } else {
-    result = INVALID_PARAM;
-  }
   }
   return result;
 }
@@ -443,8 +439,8 @@ bool RobotArm::move_isDone() {
 }
 
 actionlib::SimpleClientGoalState RobotArm::move_getState() {
-   return traj_client_->getState();
- }
+  return traj_client_->getState();
+}
 
 void RobotArm::move()
 {
@@ -452,19 +448,19 @@ void RobotArm::move()
 }
 
 void RobotArm::move(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd){
-// trajectory_msgs/JointTrajectory trajectory
-//     Header header
-//         uint32 seq
-//         time stamp
-//         string frame_id
-//     string[] joint_names
-//     trajectory_msgs/JointTrajectoryPoint[] points
-//         float64[] positions
-//         float64[] velocities
-//         float64[] accelerations
-//         duration time_from_start
+  // trajectory_msgs/JointTrajectory trajectory
+  //     Header header
+  //         uint32 seq
+  //         time stamp
+  //         string frame_id
+  //     string[] joint_names
+  //     trajectory_msgs/JointTrajectoryPoint[] points
+  //         float64[] positions
+  //         float64[] velocities
+  //         float64[] accelerations
+  //         duration time_from_start
   
-  ROS_INFO("Sending move arm goal");
+  ROS_INFO("RobotArm::move Sending move arm goal");
   traj_client_->sendGoal(*goal_cmd); 
   // 			  boost::bind(&Torso::move_doneCb, this, _1, _2), 
   // 			  boost::bind(&Torso::move_activeCb, this),
@@ -522,7 +518,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);  
     
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = -1.0;
     goal_cmd->trajectory.points[ind].positions[1] = 0.2;
@@ -537,7 +533,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
    	goal_cmd->trajectory.points[ind].velocities[j]=0.0;
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);   
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = -1.3;
     goal_cmd->trajectory.points[ind].positions[1] = 1.0;
@@ -552,7 +548,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
    	goal_cmd->trajectory.points[ind].velocities[j]=0.0;
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);   
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = -2.0;
     goal_cmd->trajectory.points[ind].positions[1] = 1.2;
@@ -649,7 +645,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);  
     
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = 1.0;
     goal_cmd->trajectory.points[ind].positions[1] = 0.2;
@@ -664,7 +660,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
    	goal_cmd->trajectory.points[ind].velocities[j]=0.0;
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);   
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = 1.3;
     goal_cmd->trajectory.points[ind].positions[1] = 1.0;
@@ -679,7 +675,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
    	goal_cmd->trajectory.points[ind].velocities[j]=0.0;
       }
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);   
-   ind+=1;
+    ind+=1;
     goal_cmd->trajectory.points[ind].positions.resize(7);
     goal_cmd->trajectory.points[ind].positions[0] = 2.0;
     goal_cmd->trajectory.points[ind].positions[1] = 1.2;
@@ -696,7 +692,7 @@ void RobotArm::gettestPath(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd)
     goal_cmd->trajectory.points[ind].time_from_start = ros::Duration(ind+1.0);  
     
 
-   }
+  }
 }
 
 RobotArm::ERROR RobotArm::computeTrajectoryG()
@@ -710,11 +706,11 @@ RobotArm::ERROR RobotArm::computeTrajectoryG(pr2_controllers_msgs::JointTrajecto
   // path nb_points
   int points_vector_size; 
   points_vector_size=path_cmd->trajectory.points.size();
- // joint vector size
+  // joint vector size
   int joint_names_vector_size = 0;
   joint_names_vector_size = path_cmd->trajectory.joint_names.size();
    
-  ROS_INFO("Trajectory GATECH with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
+  ROS_INFO("RobotArm::computeTrajectoryG Trajectory GATECH with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
   if(points_vector_size==0)
     return INVALID_TRAJ; 
 
@@ -755,14 +751,14 @@ RobotArm::ERROR RobotArm::computeTrajectoryG(pr2_controllers_msgs::JointTrajecto
   trajectory.outputPhasePlaneTrajectory();
   if(trajectory.isValid()) {
     double duration = trajectory.getDuration();
-    ROS_INFO("Trajectory duration: %f seconds\n", duration);
+    ROS_INFO("RobotArm::computeTrajectoryG Trajectory duration: %f seconds\n", duration);
     // compute the new trajectory number of points
     int traj_nb_points=0;
     for(double t = 0.0; t < duration; t += time_slot_) {
       traj_nb_points=traj_nb_points+1;
     }
     traj_cmd->trajectory.points.resize(traj_nb_points);
-    ROS_INFO("the new number of points of the trajectory is %d \n", traj_nb_points);
+    ROS_INFO("RobotArm::computeTrajectoryG the new number of points of the trajectory is %d \n", traj_nb_points);
     double tind=0.0;
     // fill the trajectory
     for(int n=0;n<traj_nb_points;n=n+1) {
@@ -779,10 +775,10 @@ RobotArm::ERROR RobotArm::computeTrajectoryG(pr2_controllers_msgs::JointTrajecto
       }
       tind=tind+time_slot_;
     }
-    ROS_INFO("Trajectory Gatech Filled");
+    ROS_INFO("RobotArm::computeTrajectoryG Trajectory Gatech Filled");
   } else {
     result = TRAJECTORY_COMPUTATION_FAILED;
-    ROS_INFO("Trajectory generation failed \n");
+    ROS_INFO("RobotArm::computeTrajectoryG Trajectory generation failed \n");
   }
   return result;
 }
@@ -809,9 +805,8 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
 
   joint_names_vector_size = path_cmd->trajectory.joint_names.size();
   
-  ROS_INFO("Trajectory Soft Motion with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
+  ROS_INFO("RobotArm::computeTrajectorySoftMotion Trajectory Soft Motion with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
 
-  ROS_INFO("1\n");
   std::deque< std::vector<double> > via_points;
   via_points.resize(points_vector_size);
   for(int i=0; i<points_vector_size;i++) {
@@ -820,14 +815,14 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
       via_points[i][jind] = path_cmd->trajectory.points[i].positions[jind];
     }
   }
-  ROS_INFO("2\n");
+
   for (size_t jind=0; jind<joint_names_vector_size; jind++) {
     traj_cmd->trajectory.joint_names[jind] = path_cmd->trajectory.joint_names[jind];
   }
   // initialize the kinematical constraints
   SM_LIMITS limit;
   std::vector<SM_LIMITS> limits;
- // get arm_velocity_limits from the urdf model
+  // get arm_velocity_limits from the urdf model
   // Pr2 Model
   Pr2Model pr2_model;
   Pr2Model::ERROR pr2model_init_result;
@@ -835,7 +830,7 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
   if(pr2model_init_result!=Pr2Model::OK) {
     return CANNOT_READ_LIMITS;
   }
-  ROS_INFO("3\n");
+
   for (int i=0;i<joint_names_vector_size;i++) {
     limit.maxJerk = max_jerk_;
     limit.maxAcc = max_acc_;
@@ -844,10 +839,8 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
     } else {
       return UNKNOWN_JOINT;
     }
-    //limit.maxVel = max_vel_;
     limits.push_back(limit);
   }
-  ROS_INFO("4\n");
   SM_TRAJ traj;
   traj.clear();
   traj.resize(joint_names_vector_size);
@@ -860,7 +853,6 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
   if(traj.computeTrajViaPoints(via_points,limits, SM_TRAJ::SM_SMOOTH_APPROACH_VIA_POINT)==0)
     {
       //trajectory computation ok
-      ROS_INFO("Trajectory Soft Motion 4 \n");
       double duration = traj.getDuration(); // get the execution time of the computed trajectory
       
       // get the new trajectory nb_points
@@ -870,13 +862,12 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
       }
       int nb_points_smtraj=n;
       
-      ROS_INFO("Trajectory Soft Motion with duration %f and nb_points =%d \n", duration, n);
+      ROS_INFO("RobotArm::computeTrajectorySoftMotion Trajectory Soft Motion with duration %f and nb_points =%d \n", duration, n);
       
       traj_cmd->trajectory.points.resize(nb_points_smtraj);
       n=0;
       double tind=0;
       std::vector<SM_COND> cond(joint_names_vector_size);
-      ROS_INFO("Trajectory Soft Motion Fill the trajectory \n");
 
       // fill the trajectory
       for(int n = 0; n < nb_points_smtraj; n = n+1) {
@@ -893,10 +884,10 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
 	}
 	tind=tind+time_slot_;
       }
-      ROS_INFO("Trajectory Soft Motion Filled\n");
+      ROS_INFO("RobotArm::computeTrajectorySoftMotion Trajectory Soft Motion Filled\n");
     } else {
     result=TRAJECTORY_COMPUTATION_FAILED;
-    ROS_INFO("Trajectory Soft Motion Failed\n");
+    ROS_INFO("RobotArm::computeTrajectorySoftMotion Trajectory Soft Motion Failed\n");
   }
   return result;
 }
