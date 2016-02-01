@@ -39,5 +39,5 @@ distclean-local:
 #
 merge: merge-interactive
 merge-%:
-	cd ${top_srcdir} && ${GENOM3}  \
+	cd ${top_srcdir} && ${GENOM3}  -DPR2_SIMU \
 		skeleton -l 'c++' -m $* pr2motion.gen

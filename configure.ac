@@ -40,7 +40,7 @@ AC_PATH_PROG(GENOM3, [genom3], AC_MSG_ERROR([genom3 tool not found], 2))
 
 
 dnl --with-templates option
-AG_OPT_TEMPLATES([$GENOM3 ],
+AG_OPT_TEMPLATES([$GENOM3  -DPR2_SIMU],
     [$srcdir/pr2motion.gen])
 
 

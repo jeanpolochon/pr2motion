@@ -445,7 +445,7 @@ component pr2motion {
 			      in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <start> getPathArm(in side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
   codel <computetraj> computeTrajArm(in side, in traj_mode, in time_slot) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in side) yield end, ether, pause::waitmove;
@@ -502,7 +502,7 @@ component pr2motion {
   activity Arm_Right_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in right_side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <start> getPathArm(in right_side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
   codel <computetraj> computeTrajArm(in right_side, in traj_mode, in right_time_slot) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in right_side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in right_side) yield end, ether, pause::waitmove;
@@ -543,7 +543,7 @@ component pr2motion {
   activity Arm_Left_Move(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in pr2motion::PATH_MODE path_mode = pr2motion::PATH_PORT:"0=port, 1=test")
   {
   doc "Allow to test";
-  codel <start> getPathArm(in left_side, in path_mode, port in traj) yield end, ether, pause::computetraj, pause::checktraj;
+  codel <start> getPathArm(in left_side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
   codel <computetraj> computeTrajArm(in left_side, in traj_mode, in left_time_slot) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in left_side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in left_side) yield end, ether, pause::waitmove;

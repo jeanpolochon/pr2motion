@@ -375,7 +375,7 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
 	}
 	//r_wrist_flex_joint
 	if((goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]<r_wrist_flex_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_wrist_flex_joint_indice]>r_wrist_flex_joint_limit_velocity_)){
-	  ROS_INFO("RobotArm::validateTraj pb with r_wrist_flex_joint bounds \n");
+	  ROS_INFO("RobotArm::validateTraj pb with r_wrist_flex_joint bounds, current values are : position %f (limits low %f up %f) velocity %f (limit %f) for point %d\n", goal_cmd->trajectory.points[ind].positions[r_wrist_flex_joint_indice],r_wrist_flex_joint_limit_lower_, r_wrist_flex_joint_limit_upper_, goal_cmd->trajectory.points[ind].velocities[r_wrist_flex_joint_indice], r_wrist_flex_joint_limit_velocity_, ind);  
 	  result = INVALID_TRAJ;   
 	}
 	//r_wrist_roll_joint

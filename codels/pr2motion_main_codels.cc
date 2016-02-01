@@ -23,7 +23,7 @@
 // to be able to use vector
 #include <vector>
 
-//#define PR2_SIMU
+#define PR2_SIMU
 
 #ifndef PR2_SIMU
 #include "pr2_gripper_sensor_client.hh"
@@ -1156,7 +1156,9 @@ stopMoveHead(genom_context self)
  */
 genom_event
 getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
-           const pr2motion_traj *traj, genom_context self)
+           const pr2motion_traj *traj, bool joint_state_availability,
+           const pr2motion_sensor_msgs_jointstate *joint_state_msg,
+           genom_context self)
 {
   // goal (path) to be send to the controller
   pr2_controllers_msgs::JointTrajectoryGoal path_cmd;
@@ -1200,6 +1202,12 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
     result_connect = left_arm.isConnected();
   }
 
+  // check if we can get the actual arm position
+  if(!joint_state_availability){
+    ROS_INFO("pr2motion::MoveArmToQGoal cannot get robot actual position\n");
+    return pr2motion_joint_state_unavailable(self);
+  }
+
   switch(result_connect){
   case RobotArm::OK:
     break;
@@ -1233,6 +1241,10 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       ROS_INFO("pr2motion::Arm_Move the trajectory is empty !");
       return pr2motion_end;
     }
+
+    // we add the current position as the first point in the trajectory
+    points_vector_size = points_vector_size + 1;
+
     path_cmd.trajectory.points.resize(points_vector_size);
 
     // get the correct index for all needed joints in the path
@@ -1280,8 +1292,9 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
 	l_wrist_roll_joint_indice = ind;
       }
     }
-    
+
     if(side == pr2motion_RIGHT){
+
       path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
       path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
       path_cmd.trajectory.joint_names[1]="r_shoulder_lift_joint";
@@ -1290,16 +1303,46 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       path_cmd.trajectory.joint_names[4]="r_forearm_roll_joint";
       path_cmd.trajectory.joint_names[5]="r_wrist_flex_joint";
       path_cmd.trajectory.joint_names[6]="r_wrist_roll_joint";
-      for ( size_t ind=0; ind < points_vector_size ; ind++) {
+
+      // fill the first point with the current position
+      path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
+
+      for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
+	  path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
+	path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
+	  path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
+	  path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+	}
+      }      
+
+      // fill the rest of the path
+      for ( size_t ind=1; ind < points_vector_size ; ind++) {
 	path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
-	path_cmd.trajectory.points[ind].positions[0] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_shoulder_pan_joint_indice];
-	path_cmd.trajectory.points[ind].positions[1] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_shoulder_lift_joint_indice];
-	path_cmd.trajectory.points[ind].positions[2] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_upper_arm_roll_joint_indice];
-	path_cmd.trajectory.points[ind].positions[3] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_elbow_flex_joint_indice];
-	path_cmd.trajectory.points[ind].positions[4] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_forearm_roll_joint_indice];
-	path_cmd.trajectory.points[ind].positions[5] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_wrist_flex_joint_indice];
-	path_cmd.trajectory.points[ind].positions[6] = traj->data(self)->traj.points._buffer[ind].positions._buffer[r_wrist_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[0] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_shoulder_pan_joint_indice];
+	path_cmd.trajectory.points[ind].positions[1] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_shoulder_lift_joint_indice];
+	path_cmd.trajectory.points[ind].positions[2] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_upper_arm_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[3] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_elbow_flex_joint_indice];
+	path_cmd.trajectory.points[ind].positions[4] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_forearm_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[5] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_wrist_flex_joint_indice];
+	path_cmd.trajectory.points[ind].positions[6] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[r_wrist_roll_joint_indice];
       }
+
       right_arm.clearTrajectory();
       if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
 	return pr2motion_pause_computetraj;
@@ -1315,15 +1358,40 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       path_cmd.trajectory.joint_names[4]="l_forearm_roll_joint";
       path_cmd.trajectory.joint_names[5]="l_wrist_flex_joint";
       path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
-      for ( size_t ind=0; ind < points_vector_size ; ind++) {
+      // fill the first point with the current position
+      path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
+      for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_pan_joint")==0){
+	  path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
+	path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_upper_arm_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_elbow_flex_joint")==0){
+	  path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_forearm_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_flex_joint")==0){
+	  path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
+	}
+	if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
+	  path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
+	}
+      }      
+      for ( size_t ind=1; ind < points_vector_size ; ind++) {
 	path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
-	path_cmd.trajectory.points[ind].positions[0] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_shoulder_pan_joint_indice];
-	path_cmd.trajectory.points[ind].positions[1] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_shoulder_lift_joint_indice];
-	path_cmd.trajectory.points[ind].positions[2] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_upper_arm_roll_joint_indice];
-	path_cmd.trajectory.points[ind].positions[3] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_elbow_flex_joint_indice];
-	path_cmd.trajectory.points[ind].positions[4] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_forearm_roll_joint_indice];
-	path_cmd.trajectory.points[ind].positions[5] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_wrist_flex_joint_indice];
-	path_cmd.trajectory.points[ind].positions[6] = traj->data(self)->traj.points._buffer[ind].positions._buffer[l_wrist_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[0] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_shoulder_pan_joint_indice];
+	path_cmd.trajectory.points[ind].positions[1] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_shoulder_lift_joint_indice];
+	path_cmd.trajectory.points[ind].positions[2] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_upper_arm_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[3] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_elbow_flex_joint_indice];
+	path_cmd.trajectory.points[ind].positions[4] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_forearm_roll_joint_indice];
+	path_cmd.trajectory.points[ind].positions[5] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_wrist_flex_joint_indice];
+	path_cmd.trajectory.points[ind].positions[6] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_wrist_roll_joint_indice];
       }
       left_arm.clearTrajectory();
       if(left_arm.setTraj(&path_cmd) == RobotArm::OK)
@@ -1397,6 +1465,9 @@ genom_event
 checkTrajArm(pr2motion_SIDE side, genom_context self)
 {
   RobotArm::ERROR result;
+
+  return pr2motion_pause_launchmove;
+
   if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
   } else {
