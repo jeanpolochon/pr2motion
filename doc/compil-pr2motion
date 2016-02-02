@@ -1,5 +1,19 @@
 you will need pr2_gripper_sensor_action package
 
+CONFIG FILE
+============
+# you need to configure the following variables
+# consider that ROBOTPKG_BASE is your install path, e.g.
+export ROBOTPKG_BASE=/home/aclodic/Demo_Saphari/openrobots_indigo
+# then
+export PATH=$PATH:$ROBOTPKG_BASE/bin:$ROBOTPKG_BASE/sbin
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$ROBOTPKG_BASE/lib/pkgconfig
+export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$ROBOTPKG_BASE/src/ros-nodes:$ROBOTPKG_BASE/share
+export PYTHONPATH=$PYTHONPATH:$ROBOTPKG_BASE/lib/python2.7/site-packages
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROBOTPKG_BASE/lib
+
+
+
 0) GET THE MODULE
 =================
 git clone https://aclodic@redmine.laas.fr/laas/users/aclodic/pr2motion.git
