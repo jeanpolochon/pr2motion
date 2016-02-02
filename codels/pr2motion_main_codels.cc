@@ -23,7 +23,6 @@
 // to be able to use vector
 #include <vector>
 
-#define PR2_SIMU
 
 #ifndef PR2_SIMU
 #include "pr2_gripper_sensor_client.hh"
@@ -282,7 +281,7 @@ startOperateGripper(pr2motion_SIDE side,
 {
   // check parameters and whether the corresponding gripper client is connected
 
-#ifndef PR2_SIMU 
+#ifndef PR2_SIMU
   Gripper::ERROR result_connect;
   switch(side){
   case pr2motion_LEFT :
@@ -1109,7 +1108,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
     if(head_mode==pr2motion_HEAD_LOOKAT) {
       return pr2motion_end;
     } else {
-      return pr2motion_start;
+      return pr2motion_pause_start;
     }
   else
     return pr2motion_pause_wait;   
@@ -1152,7 +1151,8 @@ stopMoveHead(genom_context self)
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
@@ -1413,7 +1413,8 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
  * Yields to pr2motion_pause_checktraj, pr2motion_end,
  *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
@@ -1459,7 +1460,8 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 checkTrajArm(pr2motion_SIDE side, genom_context self)
@@ -1484,7 +1486,8 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 launchMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1502,7 +1505,8 @@ launchMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 waitMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1534,7 +1538,8 @@ waitMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 endMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1548,7 +1553,8 @@ endMoveArm(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 genom_event
 stopMoveArm(pr2motion_SIDE side, genom_context self)
@@ -1866,7 +1872,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1877,7 +1884,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_pause_checktraj, pr2motion_end,
  *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1888,7 +1896,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1898,7 +1907,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1908,7 +1918,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1918,7 +1929,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -1928,7 +1940,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2025,7 +2038,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_computetraj, pr2motion_pause_checktraj.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2036,7 +2050,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_pause_checktraj, pr2motion_end,
  *           pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2047,7 +2062,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Yields to pr2motion_end, pr2motion_ether,
  *           pr2motion_pause_launchmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2057,7 +2073,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_launchmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2067,7 +2084,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_waitmove.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_waitmove.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2077,7 +2095,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 
@@ -2087,7 +2106,8 @@ stopMoveQ(pr2motion_SIDE side, genom_context self)
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
+ *        pr2motion_invalid_param, pr2motion_unknown_error,
+ *        pr2motion_joint_state_unavailable.
  */
 /* already defined in service Arm_Move */
 

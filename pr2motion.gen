@@ -208,7 +208,7 @@ component pr2motion {
 
   // we are on the real robot
   activity Gripper_Operate(in pr2motion::SIDE side = pr2motion::RIGHT:"0= left, 1=right",
-					    in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
+					    in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
@@ -291,7 +291,7 @@ component pr2motion {
 
 
   // we are on the real robot
-  activity Gripper_Right_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
+  activity Gripper_Right_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop, ether; 
@@ -374,7 +374,7 @@ component pr2motion {
 
 
   // we are on the real robot
-  activity Gripper_Left_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"0=OPEN, 1=CLOSE, 2=GRAB, 3=RELEASE")
+  activity Gripper_Left_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop, ether; 
@@ -398,7 +398,7 @@ component pr2motion {
   }; 
 
 
-  activity Torso_Move(in float torso_position = 10.0:"desired torso_position")
+  activity Torso_Move(in float torso_position = 0.1:"desired torso_position")
   {
   doc "Allow to move the Torso";
   codel <start> startMoveTorso(in torso_position) yield end, ether, pause::wait;
@@ -452,7 +452,7 @@ component pr2motion {
   codel <waitmove> waitMoveArm(in side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in side) yield ether;
   codel <stop> stopMoveArm(in side) yield ether;
-  throw not_connected, init_not_done, invalid_param, unknown_error;
+  throw not_connected, init_not_done, invalid_param, unknown_error, joint_state_unavailable;
   task main;  
   };
 
@@ -509,7 +509,7 @@ component pr2motion {
   codel <waitmove> waitMoveArm(in right_side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in right_side) yield ether;
   codel <stop> stopMoveArm(in right_side) yield ether;
-  throw not_connected, init_not_done, invalid_param, unknown_error;
+  throw not_connected, init_not_done, invalid_param, unknown_error, joint_state_unavailable;
   task main;  
   };
 
@@ -550,7 +550,7 @@ component pr2motion {
   codel <waitmove> waitMoveArm(in left_side) yield end, ether, pause::waitmove;
   codel <end> endMoveArm(in left_side) yield ether;
   codel <stop> stopMoveArm(in left_side) yield ether;
-  throw not_connected, init_not_done, invalid_param, unknown_error;
+  throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
   task main;  
   };
 
