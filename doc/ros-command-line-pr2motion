@@ -1,0 +1,45 @@
+# available actions are
+/pr2motion/Arm_Left_Move
+/pr2motion/Arm_Left_MoveToQGoal
+/pr2motion/Arm_Move
+/pr2motion/Arm_MoveToQGoal
+/pr2motion/Arm_Right_Move
+/pr2motion/Arm_Right_MoveToQGoal
+/pr2motion/GetQ
+/pr2motion/Gripper_Left_Operate
+/pr2motion/Gripper_Operate
+/pr2motion/Gripper_Right_Operate
+/pr2motion/Head_Move
+/pr2motion/Init
+/pr2motion/Torso_Move
+
+#available services are for now
+/pr2motion/Gripper_Left_Stop
+/pr2motion/Gripper_Right_Stop
+/pr2motion/Head_Stop
+/pr2motion/Torso_Stop
+/pr2motion/connect_port
+/pr2motion/connect_service
+
+
+#if you want to use pr2motion through command line, here is an example of how to handle that
+#strangely, it is not possible to pass an enum value through command line so you have to now it
+rosaction call /pr2motion/Head_Move '{head_mode: {value: 0}, head_target_frame: "r_gripper_tool_frame", head_target_x: 0.0, head_target_y: 0, head_target_z: 0}'
+
+#for example here:  
+$rosmsg show  pr2motion/Head_MoveGoal
+pr2motion/pr2motion_HEAD_MODE head_mode
+  uint32 pr2motion_HEAD_LOOKAT=0
+  uint32 pr2motion_HEAD_FOLLOWING=1
+  uint32 pr2motion_HEAD_NB_MODE=2
+  uint32 value
+string head_target_frame
+float64 head_target_x
+float64 head_target_y
+float64 head_target_z
+
+#then refer to the test-pr2motion.tcl file to get the parameters
+
+
+
+

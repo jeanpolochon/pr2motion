@@ -1,0 +1,47 @@
+# this file intend to explain how to use pr2motion module
+
+# proc mhpArmGotoQ { q1 q2 q3 q4 q5 q6 q7 {useCartesian GEN_FALSE} {objectName NO_NAME} } {
+
+#     global usedEndEffector
+#     global useLwr
+#     global usePr2
+#     if { [string compare $usedEndEffector "jidoSAHand"] == 0 } {
+#         sahand::TrackStop
+#         sahMidStiffness
+#     }
+#     if [expr $useLwr == 1] {
+#        lwr::SetMonitorForceParam  0.5 0.5 0.1 0.003 0.005 0.1
+#     }
+#     mhp::ArmPlanTask  0 GEN_TRUE MHP_ARM_FREE  MHP_RIGHT_ARM  0.0 0.0 0.0 0.0 0.0 0.0 0.0 $q1 $q2 $q3 $q4 $q5 $q6 $q7 $objectName NO_NAME NO_NAME $useCartesian 0  0.0 0.0 0.0 0.0 0.0 0.0  0  0  0.0 0.0 0.0 0.0 0.0 0.0
+#     after 100
+#     ::mhp::ArmSelectTraj 0
+#     after 200
+#     if [expr $useLwr == 1] {
+#        lwr::SetTimeScale 1.0
+#        lwr::TrackQ  LWR_ARM_RIGHT "mhpArmTraj" LWR_TRACK_POSTER
+#     } elseif [expr $usePr2 == 1] {
+#        pr2SoftMotion::TrackQ  "mhpArmTraj" PR2SM_TRACK_POSTER RARM
+#     }
+#    # sahZeroStiffness
+#     puts "execution OK"
+# }
+
+
+proc pr2motionload { } {
+    package require genomix  
+    genomix::connect ; genomix1 load pr2motion
+}
+
+proc pr2motioninit { } {
+    # initialize the module
+    # ie connect to the pr2_controllers
+    pr2motion::Init {}
+    # connect to joint_states topic (that will be copied into joint_state)
+    pr2motion::connect_port joint_state joint_states
+    # connect to gtp_trajectory (that will be copied into traj)
+    pr2motion::connect_port traj gtp_trajectory
+    # connect to /head_traj_controller_state (that will be copied into head_controller_state)
+    ::pr2motion::connect_port  head_controller_state /head_traj_controller/state
+}
+
+

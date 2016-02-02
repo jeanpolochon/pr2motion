@@ -1,0 +1,39 @@
+you will need pr2_gripper_sensor_action package
+
+0) GET THE MODULE
+=================
+git clone https://aclodic@redmine.laas.fr/laas/users/aclodic/pr2motion.git
+
+# and cd in it
+
+cd pr2motion
+
+1) GENOM3
+=========
+
+genom3 skeleton -l c++ -i pr2motion.gen
+
+2) AUTORECONF
+=============
+
+autoreconf -vi
+
+3) CONFIGURE
+============
+
+mkdir build
+cd build
+../configure --with-templates=ros/server,ros/client/c,ros/client/ros 
+
+# add --enable-simu if you want to use it in simulation only
+../configure --with-templates=ros/server,ros/client/c,ros/client/ros --enable-simu
+
+
+#if you want to install it somewhere, use the prefix option
+../configure --prefix=$WHEREYOUWANT --with-templates=ros/server,ros/client/c,ros/client/ros
+
+4) MAKE
+=======
+
+make
+make install
