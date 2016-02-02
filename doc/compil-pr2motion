@@ -1,7 +1,18 @@
 you will need pr2_gripper_sensor_action package
 
+#you will need 
+genom3 genom3-ros 
+# and if you want to use tcl faicilities
+eltclsh genomix tcl-genomix
+
 CONFIG FILE
 ============
+
+# you need to set variables related to your catkin_ws
+source catkin_ws/devel/setup.bash
+
+# then
+
 # you need to configure the following variables
 # consider that ROBOTPKG_BASE is your install path, e.g.
 export ROBOTPKG_BASE=/home/aclodic/Demo_Saphari/openrobots_indigo
