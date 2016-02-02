@@ -5,6 +5,17 @@ genom3 genom3-ros
 # and if you want to use tcl faicilities
 eltclsh genomix tcl-genomix
 
+
+# you would need also softMotion-libs but not the robotpkg one
+git clone git://trac.laas.fr/robots/softMotion-libs
+cd softMotion-libs
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$ROBOTPKG_BASE
+make 
+make install
+
+
 CONFIG FILE
 ============
 
@@ -56,7 +67,7 @@ cd build
 
 #if you want to install it somewhere, use the prefix option
 ../configure --prefix=$WHEREYOUWANT --with-templates=ros/server,ros/client/c,ros/client/ros
-
+../configure --prefix=$ROBOTPKG_BASE --with-templates=ros/server,ros/client/c,ros/client/ros --enable-simu
 4) MAKE
 =======
 
