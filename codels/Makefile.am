@@ -36,7 +36,7 @@ libpr2motion_codels_la_LDFLAGS+=	-release $(PACKAGE_VERSION)
 BUILT_SOURCES=	pr2motion_c_types.h
 CLEANFILES=	${BUILT_SOURCES}
 pr2motion_c_types.h: ${top_srcdir}/pr2motion.gen
-	${GENOM3}  -DPR2_SIMU mappings \
+	${GENOM3}  mappings \
 	  -MD -MF .deps/$@.d -MT $@ --signature -l c $< >$@
 
 -include .deps/pr2motion_c_types.h.d

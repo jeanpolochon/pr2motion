@@ -29,7 +29,6 @@ LT_INIT
 AC_PROG_CC
 AC_PROG_CXX
 
-
 dnl External packages
 PKG_CHECK_MODULES(requires, [
   genom3 >= 2.99.4
@@ -38,11 +37,12 @@ PKG_CHECK_MODULES(requires, [
 
 AC_PATH_PROG(GENOM3, [genom3], AC_MSG_ERROR([genom3 tool not found], 2))
 
+dnl --enable-simu option
+AC_ARG_ENABLE([simu], [AC_HELP_STRING( [--enable-simu], [used to turn on the SIMU flag])], [ AC_DEFINE([PR2_SIMU],[1],["Defined if we are in simu"]) ], [])
 
 dnl --with-templates option
-AG_OPT_TEMPLATES([$GENOM3  -DPR2_SIMU],
+AG_OPT_TEMPLATES([$GENOM3 ],
     [$srcdir/pr2motion.gen])
-
 
 dnl Output
 AC_CONFIG_FILES([
@@ -53,3 +53,4 @@ AC_CONFIG_FILES([
 ])
 AC_OUTPUT
 AG_OUTPUT_TEMPLATES
+
