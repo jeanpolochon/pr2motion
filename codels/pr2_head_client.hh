@@ -82,6 +82,8 @@ public:
   // cancelCmd
   // cancel cmd send to the head_controller_client
   void cancelCmd();
+
+  ERROR setMaxVelocity(double);
 };
 
 #endif

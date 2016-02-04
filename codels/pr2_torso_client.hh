@@ -105,6 +105,10 @@ public:
   // cancelCmd
   // cancel all commands send to the controller
   void cancelCmd();  
+
+  // setTorsoMaxVelocity
+  //
+  ERROR setTorsoMaxVelocity(double);
 };
 
 #endif

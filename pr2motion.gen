@@ -397,6 +397,13 @@ component pr2motion {
     interrupts Gripper_Left_Operate;
   }; 
 
+  
+  function Z_Torso_SetMaxVelocity(in double torso_max_velocity) 
+  {
+  doc "Set Torso maxvelocity";
+  codel setTorsoMaxVelocity(in torso_max_velocity);
+  throw invalid_param;
+  };
 
   activity Torso_Move(in float torso_position = 0.1:"desired torso_position")
   {
@@ -413,6 +420,13 @@ component pr2motion {
   {
   doc "Allow to stop the move of the Torso";
   interrupts Torso_Move;
+  };
+  
+  function Z_Head_SetMaxVelocity(in double head_max_velocity) 
+  {
+  doc "Set Head maxvelocity";
+  codel setHeadMaxVelocity(in head_max_velocity);
+  throw invalid_param;
   };
 
   activity Head_Move(

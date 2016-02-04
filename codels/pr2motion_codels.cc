@@ -17,6 +17,11 @@
 #include "acpr2motion.h"
 #include "pr2motion_c_types.h"
 
+#include "pr2_torso_client.hh"
+#include "pr2_head_client.hh"
+
+extern RobotHead head;
+extern Torso torso;
 
 /* --- Attribute Gripper_SetOpenGoal ------------------------------------ */
 
@@ -129,3 +134,41 @@ Arm_SetT(double time_slot, genom_context self)
  */
 /* already defined in service Arm_SetT validation */
 
+
+
+/* --- Function Z_Torso_SetMaxVelocity ---------------------------------- */
+
+/** Codel setTorsoMaxVelocity of function Z_Torso_SetMaxVelocity.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param.
+ */
+genom_event
+setTorsoMaxVelocity(double torso_max_velocity, genom_context self)
+{
+  Torso::ERROR result= Torso::OK;
+  result = torso.setTorsoMaxVelocity(torso_max_velocity);
+  if(result != Torso::OK) {
+    return pr2motion_invalid_param(self);
+  } 
+  return genom_ok;
+}
+
+
+/* --- Function Z_Head_SetMaxVelocity ----------------------------------- */
+
+/** Codel setHeadMaxVelocity of function Z_Head_SetMaxVelocity.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param.
+ */
+genom_event
+setHeadMaxVelocity(double head_max_velocity, genom_context self)
+{
+  RobotHead::ERROR result= RobotHead::OK;
+  result = head.setMaxVelocity(head_max_velocity);
+  if(result != RobotHead::OK) {
+    return pr2motion_invalid_param(self);
+  } 
+  return genom_ok;
+}

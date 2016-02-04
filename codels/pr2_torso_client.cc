@@ -34,6 +34,9 @@ Torso::ERROR Torso::init(){
       position_min_=pr2_model.getJointLimitLower("torso_lift_joint");
       position_max_=pr2_model.getJointLimitUpper("torso_lift_joint");
       max_velocity_max_=pr2_model.getJointLimitVelocity("torso_lift_joint");
+      if(max_velocity_>max_velocity_max_) {
+	max_velocity_ = 0.9 * max_velocity_max_;
+      }
     } else {
       return UNKNOWN_JOINT;
     }
@@ -156,4 +159,15 @@ Torso::ERROR Torso::move(pr2_controllers_msgs::SingleJointPositionGoal goal_cmd)
 
 void Torso::cancelCmd(){
   torso_client_->cancelAllGoals();
+}
+
+Torso::ERROR Torso::setTorsoMaxVelocity(double max_velocity){
+  ERROR result=OK;
+  if(max_velocity<max_velocity_max_) {
+    max_velocity_=max_velocity;
+  } else {
+    ROS_INFO("Torso::setMaxVelocity : max_velocity_max = %f where you propose max_velocity = %f, keep max_velocity %f", max_velocity_max_, max_velocity, max_velocity_);
+    result = INVALID_PARAM;
+  }
+  return result;
 }

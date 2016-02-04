@@ -7,12 +7,23 @@ RobotHead::RobotHead()
     tilt_max_(1.29),
     point_head_client_(NULL),
     min_duration_(0.5),
-    max_velocity_(3.0)
+    max_velocity_(0.8)
 {
 }
 
 RobotHead::~RobotHead(){
   delete point_head_client_;
+}
+
+RobotHead::ERROR RobotHead::setMaxVelocity(double max_velocity){
+  ERROR result=OK;
+  if(max_velocity<max_velocity_max_) {
+    max_velocity_=max_velocity;
+  } else {
+    ROS_INFO("RobotHead::setMaxVelocity : max_velocity_max = %f where you propose max_velocity = %f, keep max_velocity %f", max_velocity_max_, max_velocity, max_velocity_);
+    result = INVALID_PARAM;
+  }
+  return result;
 }
 
 RobotHead::ERROR RobotHead::init(){
@@ -33,6 +44,10 @@ RobotHead::ERROR RobotHead::init(){
       tilt_max_=pr2_model.getJointLimitUpper("head_tilt_joint");
       max_velocity_max_=pr2_model.getJointLimitVelocity("head_tilt_joint")>pr2_model.getJointLimitVelocity("head_pan_joint")?pr2_model.getJointLimitVelocity("head_pan_joint"):pr2_model.getJointLimitVelocity("head_tilt_joint");
       ROS_INFO("RobotHead pan_min %f, pax_max %f, tilt_min_ %f, tilt_max_ %f, max_velocity_max_ %f\n",pan_min_, pan_max_, tilt_min_, tilt_max_, max_velocity_max_);
+      // reset max_velocity if it has been set too high
+      if(max_velocity_>max_velocity_max_){
+	max_velocity_=0.9*max_velocity_max_;
+      }
     } else {
       return UNKNOWN_JOINT;
     }
