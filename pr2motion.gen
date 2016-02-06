@@ -42,12 +42,6 @@ component pr2motion {
     boolean head_controller_state_availability;
 
     // GRIPPER
-    //Pr2GripperCommandGoal
-    double open_position;
-    double open_max_effort;
-    //Pr2GripperCommandGoal
-    double close_position;
-    double close_max_effort;
     //#ifndef PR2_SIMU
     // PR2_Gripper_Sensor_Action is not defined in simulation
     //PR2GripperFindContactGoal
@@ -63,12 +57,6 @@ component pr2motion {
 
 
     // LEFT GRIPPER
-    //Pr2GripperCommandGoal
-    double left_open_position;
-    double left_open_max_effort;
-    //Pr2GripperCommandGoal
-    double left_close_position;
-    double left_close_max_effort;
     //#ifndef PR2_SIMU
     // PR2_Gripper_Sensor_Action is not defined in simulation
     //PR2GripperFindContactGoal
@@ -83,12 +71,6 @@ component pr2motion {
     //#endif
 
     // RIGHT GRIPPER
-    //Pr2GripperCommandGoal
-    double right_open_position;
-    double right_open_max_effort;
-    //Pr2GripperCommandGoal
-    double right_close_position;
-    double right_close_max_effort;
     //#ifndef PR2_SIMU
     // PR2_Gripper_Sensor_Action is not defined in simulation
     //PR2GripperFindContactGoal
@@ -133,7 +115,7 @@ component pr2motion {
 
   task main {
     period 100ms;
-    codel <start> initMain(out open_position, out open_max_effort, out close_position, out close_max_effort, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield pause::routine;
+    codel <start> initMain(out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield pause::routine;
     codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield pause::routine, stop;
     codel <stop> endMain() yield ether;
   };
@@ -149,26 +131,77 @@ component pr2motion {
  
 /* GRIPPERS related functions */
   
-  attribute Gripper_SetOpenGoal(in open_position = 0.09:"max open position",
-  			  in open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max open position";
-    validate Gripper_SetOpenGoal(local in open_position, local in open_max_effort);
+  function Z_Gripper_SetOpenParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT",in double open_position = 0.08:"max open position",
+  			  in double open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set open parameters (position and max_effort)";
+    codel setOpenParam(in side, in open_position, in open_max_effort);
+    throw invalid_param, unknown_error;
   };
-  
-  attribute Gripper_GetOpenGoal(out open_position, out open_max_effort) {
-    doc "Get max open position";
+
+  function Z_Gripper_Right_SetOpenParam(in double open_position = 0.08:"max open position",
+  			  in double open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set open parameters (position and max_effort)";
+    codel setOpenParam(in right_side, in open_position, in open_max_effort);
+    throw invalid_param, unknown_error;
+  };  
+
+  function Z_Gripper_Left_SetOpenParam(in double open_position = 0.08:"max open position",
+  			  in double open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
+    doc "Set open parameters (position and max_effort)";
+    codel setOpenParam(in left_side, in open_position, in open_max_effort);
+    throw invalid_param, unknown_error;
+  };  
+
+  function Z_Gripper_GetOpenParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", out double open_position, out double open_max_effort) {
+    doc "Get open parameters (position and max_effort)";
+    codel getOpenParam(in side, out open_position, out open_max_effort);
+    throw invalid_param, unknown_error;
   };
-  
-  attribute Gripper_SetCloseGoal(in close_position = 0.08:"max open position",
-  			in close_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max close position";
-    validate Gripper_SetCloseGoal(local in close_position, local in close_max_effort);
+  function Z_Gripper_Right_GetOpenParam(out double open_position, out double open_max_effort) {
+    doc "Get open parameters (position and max_effort)";
+    codel getOpenParam(in right_side, out open_position, out open_max_effort);
+    throw invalid_param, unknown_error;
+  };  
+  function Z_Gripper_Left_GetOpenParam(out double open_position, out double open_max_effort) {
+    doc "Get open parameters (position and max_effort)";
+    codel getOpenParam(in left_side, out open_position, out open_max_effort);
+    throw invalid_param, unknown_error;
   };
-  
-  attribute Gripper_GetCloseGoal(out close_position,
-  			out close_max_effort) {
-    doc "Get max close position";
+
+  function Z_Gripper_SetCloseParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", in double close_position = 0.0:"max close position",
+  			  in double close_max_effort = 50.0:"max effort (50.0 close gently)") {
+    doc "Set close parameters (position and max_effort)";
+    codel setCloseParam(in side, in close_position, in close_max_effort);
+    throw invalid_param, unknown_error;
   };
+  function Z_Gripper_Right_SetCloseParam(in double close_position = 0.0:"max close position",
+  			  in double close_max_effort = 50.0:"max effort (50.0 close gently)") {
+    doc "Set close parameters (position and max_effort)";
+    codel setCloseParam(in right_side, in close_position, in close_max_effort);
+    throw invalid_param, unknown_error;
+  };  
+  function Z_Gripper_Left_SetCloseParam(in double close_position = 0.0:"max close position",
+  			  in double close_max_effort = 50.0:"max effort (50.0 close gently)") {
+    doc "Set close parameters (position and max_effort)";
+    codel setCloseParam(in left_side, in close_position, in close_max_effort);
+    throw invalid_param, unknown_error;
+  };  
+
+  function Z_Gripper_GetCloseParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", out double close_position, out double close_max_effort) {
+    doc "Get close parameters (position and max_effort)";
+    codel getCloseParam(in side, out close_position, out close_max_effort);
+    throw invalid_param, unknown_error;
+  }; 
+  function Z_Gripper_Right_GetCloseParam(out double close_position, out double close_max_effort) {
+    doc "Get close parameters (position and max_effort)";
+    codel getCloseParam(in right_side, out close_position, out close_max_effort);
+    throw invalid_param, unknown_error;
+  }; 
+  function Z_Gripper_Left_GetCloseParam(out double close_position, out double close_max_effort) {
+    doc "Get close parameters (position and max_effort)";
+    codel getCloseParam(in left_side, out close_position, out close_max_effort);
+    throw invalid_param, unknown_error;
+  }; 
 
   attribute Gripper_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
   			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
@@ -212,7 +245,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
@@ -233,27 +266,6 @@ component pr2motion {
 
 /* Right GRIPPER related functions */
   
-  attribute Gripper_Right_SetOpenGoal(in open_position = 0.09:"max open position",
-  			  in open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max open position";
-    validate Gripper_SetOpenGoal(local in open_position, local in open_max_effort);
-  };
-  
-  attribute Gripper_Right_GetOpenGoal(out open_position, out open_max_effort) {
-    doc "Get max open position";
-  };
-  
-  attribute Gripper_Right_SetCloseGoal(in close_position = 0.08:"max open position",
-  			in close_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max close position";
-    validate Gripper_SetCloseGoal(local in close_position, local in close_max_effort);
-  };
-  
-  attribute Gripper_Right_GetCloseGoal(out close_position,
-  			out close_max_effort) {
-    doc "Get max close position";
-  };
-
   attribute Gripper_Right_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
   			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
     doc "Set find contact goal";
@@ -295,7 +307,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in right_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in right_side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in right_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
@@ -316,27 +328,6 @@ component pr2motion {
 
 /* Left GRIPPER related functions */
   
-  attribute Gripper_Left_SetOpenGoal(in open_position = 0.09:"max open position",
-  			  in open_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max open position";
-    validate Gripper_SetOpenGoal(local in open_position, local in open_max_effort);
-  };
-  
-  attribute Gripper_Left_GetOpenGoal(out open_position, out open_max_effort) {
-    doc "Get max open position";
-  };
-  
-  attribute Gripper_Left_SetCloseGoal(in close_position = 0.08:"max open position",
-  			in close_max_effort = -1.0:"max effort (-1.0 unlimited effort)") {
-    doc "Set max close position";
-    validate Gripper_SetCloseGoal(local in close_position, local in close_max_effort);
-  };
-  
-  attribute Gripper_Left_GetCloseGoal(out close_position,
-  			out close_max_effort) {
-    doc "Get max close position";
-  };
-
   attribute Gripper_Left_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
   			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
     doc "Set find contact goal";
@@ -378,7 +369,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in left_side, in goal_mode, in open_position, in open_max_effort, in close_position, in close_max_effort, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in left_side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in left_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield pause::waitopen,  pause::waitcontact, pause::wait, stop, end;

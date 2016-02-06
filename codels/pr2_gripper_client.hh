@@ -1,8 +1,12 @@
+#ifndef _PR2_GRIPPERSIMPLE_CLIENT_H
+#define _PR2_GRIPPERSIMPLE_CLIENT_H
+
 #include <ros/ros.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandFeedback.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandResult.h>
 #include <actionlib/client/simple_action_client.h>
+#include <pr2_model.hh>
 
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::Pr2GripperCommandAction> GripperSimpleClient;
 // Our Action interface type, provided as a typedef for convenience                   
@@ -12,6 +16,16 @@ private:
   GripperSimpleClient* gripper_client_;  
   actionlib::SimpleClientGoalState::StateEnum close_state_;
   actionlib::SimpleClientGoalState::StateEnum open_state_;
+  double open_position_;
+  double open_position_max_;
+  double open_position_min_;
+  double open_max_effort_;
+  double open_max_effort_max_;
+  double close_position_;
+  double close_position_max_;
+  double close_position_min_;
+  double close_max_effort_;
+  double close_max_effort_max_;
 
 public:
   enum SIDE { LEFT, RIGHT, NB_SIDE };
@@ -30,21 +44,30 @@ public:
   //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal. 
   
   // CLOSE
+  ERROR setClosePosition(double);
+  double getClosePosition();
+  ERROR setCloseMaxEffort(double);
+  double getCloseMaxEffort();
   bool close_isDone();
   actionlib::SimpleClientGoalState close_getState();
   void close_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr&);
   void close_activeCb();
   void close_feedbackCb(const pr2_controllers_msgs::Pr2GripperCommandFeedbackConstPtr&);
-  void close(pr2_controllers_msgs::Pr2GripperCommandGoal);
+  void close();
   void close_cancel();
 
   // OPEN
+  ERROR setOpenPosition(double);
+  double getOpenPosition();
+  ERROR setOpenMaxEffort(double);
+  double getOpenMaxEffort();
   bool open_isDone();
   actionlib::SimpleClientGoalState open_getState();
   void open_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr&);
   void open_activeCb();
   void open_feedbackCb(const pr2_controllers_msgs::Pr2GripperCommandFeedbackConstPtr&);
-  void open(pr2_controllers_msgs::Pr2GripperCommandGoal);
+  void open();
   void open_cancel();
 
 };
+#endif

@@ -74,9 +74,7 @@ Pr2Model pr2_model;
  * Yields to pr2motion_pause_routine.
  */
 genom_event
-initMain(double *open_position, double *open_max_effort,
-         double *close_position, double *close_max_effort,
-         pr2motion_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
+initMain(pr2motion_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
          bool *findtwo_zero_fingertip_sensors,
          pr2motion_GRIPPER_EVENT_DETECTOR *event_trigger_conditions,
          double *event_acceleration_trigger_magnitude,
@@ -86,13 +84,6 @@ initMain(double *open_position, double *open_max_effort,
 {
   // at the beginning the joint_state is not yet available
   *joint_state_availability = false;
-  // gripper param initialisation
-  *open_position = 0.09;
-  // unlimited
-  *open_max_effort=-1.0;
-  *close_position = 0.0;
-  // close gently
-  *close_max_effort = -1.0;
   // close until both fingers contact
   *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_BOTH;
   // zero fingertip sensor values before moving
@@ -342,8 +333,6 @@ startOperateGripper(pr2motion_SIDE side,
 genom_event
 execOperateGripper(pr2motion_SIDE side,
                    pr2motion_GRIPPER_MODE goal_mode,
-                   double open_position, double open_max_effort,
-                   double close_position, double close_max_effort,
                    pr2motion_GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
                    bool findtwo_zero_fingertip_sensors,
                    pr2motion_GRIPPER_EVENT_DETECTOR event_trigger_conditions,
@@ -353,12 +342,6 @@ execOperateGripper(pr2motion_SIDE side,
 {
   // we are on the real robot
 #ifndef PR2_SIMU
-  pr2_controllers_msgs::Pr2GripperCommandGoal open;
-  open.command.position = open_position;    // position open (9 cm)
-  open.command.max_effort = open_max_effort;  // unlimited motor effort
-  pr2_controllers_msgs::Pr2GripperCommandGoal close;
-  close.command.position = close_position;    // position open (9 cm)
-  close.command.max_effort = close_max_effort;  // unlimited motor effort
   pr2_gripper_sensor_msgs::PR2GripperFindContactGoal findTwo;
   findTwo.command.contact_conditions = findtwo_contact_conditions;
   findTwo.command.zero_fingertip_sensors = findtwo_zero_fingertip_sensors;  
@@ -377,10 +360,10 @@ execOperateGripper(pr2motion_SIDE side,
       left_gripper.place(place);
       return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
-      left_gripper.open(open);
+      left_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      left_gripper.close(close);
+      left_gripper.close();
       return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT:
@@ -391,10 +374,10 @@ execOperateGripper(pr2motion_SIDE side,
     case pr2motion_GRIPPER_RELEASE :
       return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
-      right_gripper.open(open);
+      right_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      right_gripper.close(close);
+      right_gripper.close();
       return pr2motion_pause_waitclose;
     }
   }
@@ -402,30 +385,23 @@ execOperateGripper(pr2motion_SIDE side,
   return pr2motion_pause_wait;
   // we are in simulation
 #else
-  pr2_controllers_msgs::Pr2GripperCommandGoal open;
-  open.command.position = open_position;    // position open (9 cm)
-  open.command.max_effort = open_max_effort;  // unlimited motor effort
-  pr2_controllers_msgs::Pr2GripperCommandGoal close;
-  close.command.position = close_position;    // position open (9 cm)
-  close.command.max_effort = close_max_effort;  // unlimited motor effort
-
   switch(side){
   case pr2motion_LEFT :
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
-      left_gripper.open(open);
+      left_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      left_gripper.close(close);
+      left_gripper.close();
       return pr2motion_pause_waitclose;
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
-      right_gripper.open(open);
+      right_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      right_gripper.close(close);
+      right_gripper.close();
       return pr2motion_pause_waitclose;
     }
   }
