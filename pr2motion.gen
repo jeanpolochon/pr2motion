@@ -78,12 +78,12 @@ component pr2motion {
     /* double max_vel; */
     /* double max_acc; */
     /* double max_jerk; */
-    double time_slot;
+    //double time_slot;
 
     // LEFT ARM
-    double left_time_slot;
+    //double left_time_slot;
     // RIGHT ARM
-    double right_time_slot;
+    //double right_time_slot;
   };
 
   task main {
@@ -440,7 +440,7 @@ component pr2motion {
   {
   doc "Allow to test";
   codel <start> getPathArm(in side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
-  codel <computetraj> computeTrajArm(in side, in traj_mode, in time_slot) yield pause::checktraj, end, ether;
+  codel <computetraj> computeTrajArm(in side, in traj_mode) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in side) yield end, ether, pause::waitmove;
   codel <waitmove> waitMoveArm(in side) yield end, ether, pause::waitmove;
@@ -464,10 +464,22 @@ component pr2motion {
   /*   doc "Get max velocity, max acceleration and max jerk"; */
   /* }; */
 
-  attribute Arm_SetT(in time_slot = 0.1:"the time slot in the trajectory") {
+  function Z_Arm_SetT(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", in double time_slot = 0.1:"the time slot in the trajectory") {
     doc "Set time slot of the trajectory";
-    validate Arm_SetT(local in time_slot);
-    throw invalid_param;
+    codel Arm_SetT(in side, in time_slot);
+    throw invalid_param, unknown_error;
+  };
+
+  function Z_Arm_Right_SetT(in double time_slot = 0.1:"the time slot in the trajectory") {
+    doc "Set time slot of the trajectory";
+    codel Arm_SetT(in right_side, in time_slot);
+    throw invalid_param, unknown_error;
+  };
+
+  function Z_Arm_Left_SetT(in double time_slot = 0.1:"the time slot in the trajectory") {
+    doc "Set time slot of the trajectory";
+    codel Arm_SetT(in left_side, in time_slot);
+    throw invalid_param, unknown_error;
   };
 
   activity Arm_MoveToQGoal(in pr2motion::SIDE side = pr2motion::RIGHT:"0= left, 1=right", in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
@@ -497,7 +509,7 @@ component pr2motion {
   {
   doc "Allow to test";
   codel <start> getPathArm(in right_side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
-  codel <computetraj> computeTrajArm(in right_side, in traj_mode, in right_time_slot) yield pause::checktraj, end, ether;
+  codel <computetraj> computeTrajArm(in right_side, in traj_mode) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in right_side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in right_side) yield end, ether, pause::waitmove;
   codel <waitmove> waitMoveArm(in right_side) yield end, ether, pause::waitmove;
@@ -505,12 +517,6 @@ component pr2motion {
   codel <stop> stopMoveArm(in right_side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error, joint_state_unavailable;
   task main;  
-  };
-
-  attribute Arm_Right_SetT(in right_time_slot = 0.1:"the time slot in the trajectory") {
-    doc "Set time slot of the trajectory";
-    validate Arm_SetT(local in right_time_slot);
-    throw invalid_param;
   };
 
   activity Arm_Right_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")
@@ -538,7 +544,7 @@ component pr2motion {
   {
   doc "Allow to test";
   codel <start> getPathArm(in left_side, in path_mode, port in traj, in joint_state_availability, in joint_state_msg) yield end, ether, pause::computetraj, pause::checktraj;
-  codel <computetraj> computeTrajArm(in left_side, in traj_mode, in left_time_slot) yield pause::checktraj, end, ether;
+  codel <computetraj> computeTrajArm(in left_side, in traj_mode) yield pause::checktraj, end, ether;
   codel <checktraj> checkTrajArm(in left_side) yield end, ether, pause::launchmove;
   codel <launchmove> launchMoveArm(in left_side) yield end, ether, pause::waitmove;
   codel <waitmove> waitMoveArm(in left_side) yield end, ether, pause::waitmove;
@@ -546,12 +552,6 @@ component pr2motion {
   codel <stop> stopMoveArm(in left_side) yield ether;
   throw not_connected, init_not_done, invalid_param, unknown_error,joint_state_unavailable;
   task main;  
-  };
-
-  attribute Arm_Left_SetT(in left_time_slot = 0.1:"the time slot in the trajectory") {
-    doc "Set time slot of the trajectory";
-    validate Arm_SetT(local in left_time_slot);
-    throw invalid_param;
   };
 
   activity Arm_Left_MoveToQGoal(in pr2motion::TRAJ_MODE traj_mode = pr2motion::TRAJ_SOFTMOTION:"0=soft_motion, 1=gatech, 2=path", in double shoulder_pan_joint = 0.0 : "right limits: (-2.135,0.564) left limits:(-0.564,2.088)", in double shoulder_lift_joint = 0.0 : "right limits: (-0.3535,1.2963) left limits: (-0.353,1.2963)", in double upper_arm_roll_joint = 0.0 : "right limits: (-3.75, 0.65) left limits: (-0.65,3.75)", in double elbow_flex_joint = -0.5 : "right limits: (-2.12,-0.15) left limits: (-2.12,-0.15)", in double forearm_roll_joint = 0.0 : "continous joint", in double wrist_flex_joint = -0.2 : "right limits: (-2.0,-0.1) left limits: (-2.0,-0.1)", in double wrist_roll_joint = 0.0 : "continous joint")

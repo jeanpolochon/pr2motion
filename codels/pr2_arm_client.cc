@@ -35,7 +35,7 @@ RobotArm::ERROR RobotArm::init(RobotArm::SIDE side){
   ERROR result=OK;
   bool wait_result=false;
   int nb_iter=0;
-  int nb_iter_max=10;
+  int nb_iter_max=7;
 
   // get arm_joint_limits from the urdf model
   // Pr2 Model

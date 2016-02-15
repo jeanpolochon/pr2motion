@@ -24,6 +24,8 @@
 #endif
 #include "pr2_torso_client.hh"
 #include "pr2_head_client.hh"
+#include "pr2_arm_client.hh"
+#include "pr2_state_client.hh"
 
 #ifndef PR2_SIMU
 // we are on the real robot
@@ -37,42 +39,8 @@ extern GripperSimple right_gripper;
 
 extern RobotHead head;
 extern Torso torso;
-
-/* --- Attribute Arm_SetT ----------------------------------------------- */
-
-/** Validation codel Arm_SetT of attribute Arm_SetT.
- *
- * Returns genom_ok.
- * Throws pr2motion_invalid_param.
- */
-genom_event
-Arm_SetT(double time_slot, genom_context self)
-{
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return genom_ok;
-}
-
-
-/* --- Attribute Arm_Right_SetT ----------------------------------------- */
-
-/** Validation codel Arm_SetT of attribute Arm_Right_SetT.
- *
- * Returns genom_ok.
- * Throws pr2motion_invalid_param.
- */
-/* already defined in service Arm_SetT validation */
-
-
-
-/* --- Attribute Arm_Left_SetT ------------------------------------------ */
-
-/** Validation codel Arm_SetT of attribute Arm_Left_SetT.
- *
- * Returns genom_ok.
- * Throws pr2motion_invalid_param.
- */
-/* already defined in service Arm_SetT validation */
-
+extern RobotArm left_arm;
+extern RobotArm right_arm;
 
 
 /* --- Function Z_Gripper_SetOpenParam ---------------------------------- */
@@ -650,3 +618,53 @@ setHeadMaxVelocity(double head_max_velocity, genom_context self)
   } 
   return genom_ok;
 }
+
+
+/* --- Function Z_Arm_SetT ---------------------------------------------- */
+
+/** Codel Arm_SetT of function Z_Arm_SetT.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+Arm_SetT(pr2motion_SIDE side, double time_slot, genom_context self)
+{
+  RobotArm::ERROR result=RobotArm::OK;
+  
+  switch(side){
+  case pr2motion_LEFT :
+    result = left_arm.setT(time_slot);
+  case pr2motion_RIGHT :
+    result = right_arm.setT(time_slot);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+
+  if(result!=RobotArm::OK)
+    return pr2motion_invalid_param(self);
+
+  return genom_ok;
+}
+
+
+/* --- Function Z_Arm_Right_SetT ---------------------------------------- */
+
+/** Codel Arm_SetT of function Z_Arm_Right_SetT.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Arm_SetT */
+
+
+
+/* --- Function Z_Arm_Left_SetT ----------------------------------------- */
+
+/** Codel Arm_SetT of function Z_Arm_Left_SetT.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Arm_SetT */
+

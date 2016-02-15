@@ -1369,7 +1369,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
  */
 genom_event
 computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
-               double time_slot, genom_context self)
+               genom_context self)
 {
   if(side == pr2motion_RIGHT){
     switch (traj_mode){
