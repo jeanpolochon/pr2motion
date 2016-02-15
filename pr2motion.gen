@@ -42,44 +42,17 @@ component pr2motion {
     boolean head_controller_state_availability;
 
     // GRIPPER
-    //#ifndef PR2_SIMU
-    // PR2_Gripper_Sensor_Action is not defined in simulation
-    //PR2GripperFindContactGoal
-    pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions;
-    boolean findtwo_zero_fingertip_sensors;
-    //PR2GripperEventDetectorGoal
-    pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions;
-    double event_acceleration_trigger_magnitude;
-    double event_slip_trigger_magnitude;
     //PR2GripperForceServoCommand
     double force_fingertip_force;
     //#endif
 
 
     // LEFT GRIPPER
-    //#ifndef PR2_SIMU
-    // PR2_Gripper_Sensor_Action is not defined in simulation
-    //PR2GripperFindContactGoal
-    pr2motion::GRIPPER_CONTACT_CONDITIONS left_findtwo_contact_conditions;
-    boolean left_findtwo_zero_fingertip_sensors;
-    //PR2GripperEventDetectorGoal
-    pr2motion::GRIPPER_EVENT_DETECTOR left_event_trigger_conditions;
-    double left_event_acceleration_trigger_magnitude;
-    double left_event_slip_trigger_magnitude;
     //PR2GripperForceServoCommand
     double left_force_fingertip_force;
     //#endif
 
     // RIGHT GRIPPER
-    //#ifndef PR2_SIMU
-    // PR2_Gripper_Sensor_Action is not defined in simulation
-    //PR2GripperFindContactGoal
-    pr2motion::GRIPPER_CONTACT_CONDITIONS right_findtwo_contact_conditions;
-    boolean right_findtwo_zero_fingertip_sensors;
-    //PR2GripperEventDetectorGoal
-    pr2motion::GRIPPER_EVENT_DETECTOR right_event_trigger_conditions;
-    double right_event_acceleration_trigger_magnitude;
-    double right_event_slip_trigger_magnitude;
     //PR2GripperForceServoCommand
     double right_force_fingertip_force;
     //#endif
@@ -115,7 +88,7 @@ component pr2motion {
 
   task main {
     period 100ms;
-    codel <start> initMain(out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude, out joint_state_availability, out left_side, out right_side) yield pause::routine;
+    codel <start> initMain(out joint_state_availability, out left_side, out right_side) yield pause::routine;
     codel <routine> routineMain(port in joint_state, out joint_state_msg, inout joint_state_availability) yield pause::routine, stop;
     codel <stop> endMain() yield ether;
   };
@@ -203,30 +176,97 @@ component pr2motion {
     throw invalid_param, unknown_error;
   }; 
 
-  attribute Gripper_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
-  			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
-    doc "Set find contact goal";
-  };
-  
-  attribute Gripper_GetFindContactGoal(out findtwo_contact_conditions,
-						 out findtwo_zero_fingertip_sensors) {
-    doc "Get find contact goal";
+  function Z_Gripper_SetFindContactParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", in pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH (both fingers must make contact) LEFT (just left finger) RIGHT (just right finger) EITHER=3 (either)",
+  			      in boolean  findtwo_zero_fingertip_sensors = TRUE :"TRUE or FALSE") {
+    doc "Set find contact parameters";
+    codel setFindContactParam(in side, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;
   };
 
+  function Z_Gripper_Right_SetFindContactParam(in pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH (both fingers must make contact) LEFT (just left finger) RIGHT (just right finger) EITHER=3 (either)",
+  			      in boolean  findtwo_zero_fingertip_sensors = TRUE :"TRUE or FALSE") {
+    doc "Set find contact parameters";
+    codel setFindContactParam(in right_side, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;
+  };  
+
+  function Z_Gripper_Left_SetFindContactParam(in pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH (both fingers must make contact) LEFT (just left finger) RIGHT (just right finger) EITHER=3 (either)",
+  			      in boolean  findtwo_zero_fingertip_sensors = TRUE :"TRUE or FALSE") {
+    doc "Set find contact parameters";
+    codel setFindContactParam(in left_side, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;
+  };  
+
+  function Z_Gripper_GetFindContactParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", out pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
+						 out boolean findtwo_zero_fingertip_sensors) {
+    doc "Get find contact parameters";
+    codel getFindContactParam(in side, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;    
+  };
+
+  function Z_Gripper_Right_GetFindContactParam(out pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
+						 out boolean findtwo_zero_fingertip_sensors) {
+    doc "Get find contact parameters";
+    codel getFindContactParam(in right_side, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;    
+  };
+
+  function Z_Gripper_Left_GetFindContactParam(out pr2motion::GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
+						 out boolean findtwo_zero_fingertip_sensors) {
+    doc "Get find contact parameters";
+    codel getFindContactParam(in left_side, out findtwo_contact_conditions, out findtwo_zero_fingertip_sensors);
+    throw invalid_param, unknown_error;    
+  };
   
-  attribute Gripper_SetEventDetectorGoal(in event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
-  				in event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
-  				in event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
+  function Z_Gripper_SetEventDetectorParam(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", in pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
+  				in double event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
+  				in double event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
   {
     doc "Set event detector goal";
+    codel setEventDetectorParam(in side, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error;   
   };
 
-  attribute Gripper_GetEventDetectorGoal(out event_trigger_conditions,
-						   out event_acceleration_trigger_magnitude,
-  				out event_slip_trigger_magnitude)
+ function Z_Gripper_Right_SetEventDetectorParam(in pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
+  				in double event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
+  				in double event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
+  {
+    doc "Set event detector goal";
+    codel setEventDetectorParam(in right_side, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error;   
+  };
+
+ function Z_Gripper_Left_SetEventDetectorParam(in pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
+  				in double event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
+  				in double event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
+  {
+    doc "Set event detector goal";
+    codel setEventDetectorParam(in left_side, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error;   
+  };
+
+  function Z_Gripper_GetEventDetectorGoal(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", out pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions, out double event_acceleration_trigger_magnitude, out double event_slip_trigger_magnitude)
   {
     doc "Get event detector goal";
+    codel getEventDetectorParam(in side, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error; 
   };
+
+  function Z_Gripper_Right_GetEventDetectorGoal(out pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions, out double event_acceleration_trigger_magnitude, out double event_slip_trigger_magnitude)
+  {
+    doc "Get event detector goal";
+    codel getEventDetectorParam(in right_side, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error; 
+  };
+
+  function Z_Gripper_Left_GetEventDetectorGoal(out pr2motion::GRIPPER_EVENT_DETECTOR event_trigger_conditions, out double event_acceleration_trigger_magnitude, out double event_slip_trigger_magnitude)
+  {
+    doc "Get event detector goal";
+    codel getEventDetectorParam(in left_side, out event_trigger_conditions, out event_acceleration_trigger_magnitude, out event_slip_trigger_magnitude);
+    throw invalid_param, unknown_error; 
+  };
+
+
 
   attribute Gripper_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
   {
@@ -245,7 +285,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
@@ -266,31 +306,6 @@ component pr2motion {
 
 /* Right GRIPPER related functions */
   
-  attribute Gripper_Right_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
-  			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
-    doc "Set find contact goal";
-  };
-  
-  attribute Gripper_Right_GetFindContactGoal(out findtwo_contact_conditions,
-						 out findtwo_zero_fingertip_sensors) {
-    doc "Get find contact goal";
-  };
-
-  
-  attribute Gripper_Right_SetEventDetectorGoal(in event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
-  				in event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
-  				in event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
-  {
-    doc "Set event detector goal";
-  };
-
-  attribute Gripper_Right_GetEventDetectorGoal(out event_trigger_conditions,
-						   out event_acceleration_trigger_magnitude,
-  				out event_slip_trigger_magnitude)
-  {
-    doc "Get event detector goal";
-  };
-
   attribute Gripper_Right_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
   {
     doc "Set force servo goal";
@@ -307,7 +322,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in right_side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in right_side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in right_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
@@ -326,33 +341,7 @@ component pr2motion {
     interrupts Gripper_Right_Operate;
   }; 
 
-/* Left GRIPPER related functions */
-  
-  attribute Gripper_Left_SetFindContactGoal(in findtwo_contact_conditions = pr2motion::GRIPPER_CONTACT_BOTH:"see pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.msg, for now BOTH=0 (both fingers must make contact) LEFT=1 (just left finger) RIGHT=2 (just right finger) EITHER=3 (either)",
-  			      in findtwo_zero_fingertip_sensors = TRUE :"true or false") {
-    doc "Set find contact goal";
-  };
-  
-  attribute Gripper_Left_GetFindContactGoal(out findtwo_contact_conditions,
-						 out findtwo_zero_fingertip_sensors) {
-    doc "Get find contact goal";
-  };
-
-  
-  attribute Gripper_Left_SetEventDetectorGoal(in event_trigger_conditions = pr2motion::GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC:"see pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand.msg, for now FINGER_SIDE_IMPACT_OR_ACC = 0 (trigger on either acceleration contact or finger sensor side impact) SLIP_AND_ACC = 1 (trigger once  both slip and acceleration signals occur), FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC = 2 (trigger on either slip, acceleration, or finger sensor side impact),  SLIP = 3 (trigger only on slip information), ACC = 4  (trigger only on acceleration contact information)",
-  				in event_acceleration_trigger_magnitude = 4.0:"the amount of acceleration to trigger on (acceleration vector magnitude) Units = m/s^2",
-  				in event_slip_trigger_magnitude = .005:"the slip detector gain to trigger on (either finger)")
-  {
-    doc "Set event detector goal";
-  };
-
-  attribute Gripper_Left_GetEventDetectorGoal(out event_trigger_conditions,
-						   out event_acceleration_trigger_magnitude,
-  				out event_slip_trigger_magnitude)
-  {
-    doc "Get event detector goal";
-  };
-
+/* Left GRIPPER related functions */  
   attribute Gripper_Left_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
   {
     doc "Set force servo goal";
@@ -369,7 +358,7 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in left_side, in goal_mode, in findtwo_contact_conditions, in findtwo_zero_fingertip_sensors, in event_trigger_conditions, in event_acceleration_trigger_magnitude, in event_slip_trigger_magnitude) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in left_side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
     codel <wait> waitOperateGripper(in left_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield pause::waitopen,  pause::waitcontact, pause::wait, stop, end;

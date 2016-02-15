@@ -74,23 +74,11 @@ Pr2Model pr2_model;
  * Yields to pr2motion_pause_routine.
  */
 genom_event
-initMain(pr2motion_GRIPPER_CONTACT_CONDITIONS *findtwo_contact_conditions,
-         bool *findtwo_zero_fingertip_sensors,
-         pr2motion_GRIPPER_EVENT_DETECTOR *event_trigger_conditions,
-         double *event_acceleration_trigger_magnitude,
-         double *event_slip_trigger_magnitude,
-         bool *joint_state_availability, pr2motion_SIDE *left_side,
+initMain(bool *joint_state_availability, pr2motion_SIDE *left_side,
          pr2motion_SIDE *right_side, genom_context self)
 {
   // at the beginning the joint_state is not yet available
   *joint_state_availability = false;
-  // close until both fingers contact
-  *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_BOTH;
-  // zero fingertip sensor values before moving
-  *findtwo_zero_fingertip_sensors = true;
-  *event_trigger_conditions = pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC;
-  *event_acceleration_trigger_magnitude = 4.0;
-  *event_slip_trigger_magnitude = 0.005;
   *left_side=pr2motion_LEFT;
   *right_side=pr2motion_RIGHT;
   return pr2motion_pause_routine;
@@ -333,31 +321,18 @@ startOperateGripper(pr2motion_SIDE side,
 genom_event
 execOperateGripper(pr2motion_SIDE side,
                    pr2motion_GRIPPER_MODE goal_mode,
-                   pr2motion_GRIPPER_CONTACT_CONDITIONS findtwo_contact_conditions,
-                   bool findtwo_zero_fingertip_sensors,
-                   pr2motion_GRIPPER_EVENT_DETECTOR event_trigger_conditions,
-                   double event_acceleration_trigger_magnitude,
-                   double event_slip_trigger_magnitude,
                    genom_context self)
 {
   // we are on the real robot
 #ifndef PR2_SIMU
-  pr2_gripper_sensor_msgs::PR2GripperFindContactGoal findTwo;
-  findTwo.command.contact_conditions = findtwo_contact_conditions;
-  findTwo.command.zero_fingertip_sensors = findtwo_zero_fingertip_sensors;  
-  pr2_gripper_sensor_msgs::PR2GripperEventDetectorGoal place;
-  place.command.trigger_conditions = event_trigger_conditions;  
-  place.command.acceleration_trigger_magnitude = event_acceleration_trigger_magnitude;  // set the contact acceleration to n m/s^2
-  place.command.slip_trigger_magnitude = event_slip_trigger_magnitude;
-
   switch(side){
   case pr2motion_LEFT :
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
-      left_gripper.findTwoContacts(findTwo);
+      left_gripper.findTwoContacts();
       return pr2motion_pause_waitcontact;
     case pr2motion_GRIPPER_RELEASE :
-      left_gripper.place(place);
+      left_gripper.place();
       return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open();
@@ -369,7 +344,7 @@ execOperateGripper(pr2motion_SIDE side,
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
-      right_gripper.findTwoContacts(findTwo);
+      right_gripper.findTwoContacts();
       return pr2motion_pause_waitcontact;
     case pr2motion_GRIPPER_RELEASE :
       return pr2motion_pause_waitrelease;
