@@ -10,6 +10,8 @@
 #include <pr2_gripper_sensor_msgs/PR2GripperFindContactCommand.h>
 #include <pr2_gripper_sensor_msgs/PR2GripperSlipServoAction.h>
 #include <pr2_gripper_sensor_msgs/PR2GripperEventDetectorAction.h>
+#include <pr2_gripper_sensor_msgs/PR2GripperGrabAction.h>
+#include <pr2_gripper_sensor_msgs/PR2GripperReleaseAction.h>
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -23,6 +25,11 @@ typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperEventDe
 // Our Action interface type, provided as a typedef for convenience                   
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::Pr2GripperCommandAction> GripperClient;
 // Our Action interface type, provided as a typedef for convenience                   
+typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperGrabAction> GrabClient;
+// Our Action interface type, provided as a typedef for convenience                   
+typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperReleaseAction> ReleaseClient;
+// Our Action interface type, provided as a typedef for convenience                   
+
 
 class Gripper{
 private:
@@ -30,11 +37,8 @@ private:
   ContactClient* contact_client_;
   SlipClient* slip_client_;
   EventDetectorClient* event_detector_client_;
-  actionlib::SimpleClientGoalState::StateEnum close_state_;
-  actionlib::SimpleClientGoalState::StateEnum open_state_;
-  actionlib::SimpleClientGoalState::StateEnum findTwo_state_;
-  actionlib::SimpleClientGoalState::StateEnum slipservo_state_;
-  actionlib::SimpleClientGoalState::StateEnum place_state_;
+  GrabClient* grab_client_;
+  ReleaseClient* release_client_;
 
   // open cmd data
   double open_position_;
@@ -119,6 +123,10 @@ private:
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorData place_feedback;
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorData place_result;
 
+  /*  PR2GripperGrabCommand command */
+  /*    float64 hardness_gain  */
+  double grab_hardness_gain_;
+  
 public:
   enum SIDE { LEFT, RIGHT, NB_SIDE };
   enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR }; 
@@ -197,5 +205,24 @@ public:
   void place_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperEventDetectorFeedbackConstPtr&);
   void place(); 
   void place_cancel();
+
+ // GRAB
+  bool grab_isDone();
+  actionlib::SimpleClientGoalState grab_getState();
+  void grab_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperGrabResultConstPtr&);
+  void grab_activeCb();
+  void grab_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperGrabFeedbackConstPtr&);
+  void grab();
+  void grab_cancel();
+
+ // RELEASE
+  bool release_isDone();
+  actionlib::SimpleClientGoalState release_getState();
+  void release_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperReleaseResultConstPtr&);
+  void release_activeCb();
+  void release_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperReleaseFeedbackConstPtr&);
+  void release();
+  void release_cancel();
+
 };
 #endif

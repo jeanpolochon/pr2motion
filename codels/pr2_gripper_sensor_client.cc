@@ -10,8 +10,9 @@ Gripper::Gripper()
     findtwo_contact_conditions_(pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::BOTH),
     findtwo_zero_finger_tip_sensors_(true),
     place_trigger_conditions_(pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC),
-    place_acceleration_trigger_magnitude_(4.0),
-    place_slip_trigger_magnitude_(.005)
+    place_acceleration_trigger_magnitude_(5.0),
+    place_slip_trigger_magnitude_(.01),
+    grab_hardness_gain_(0.03)
 {
 }
 Gripper::~Gripper(){
@@ -19,7 +20,8 @@ Gripper::~Gripper(){
   delete contact_client_;
   delete slip_client_;
   delete event_detector_client_;
-
+  delete grab_client_;
+  delete release_client_;
 }
 
 Gripper::ERROR Gripper::init(Gripper::SIDE side){
@@ -78,15 +80,19 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
       contact_client_  = new ContactClient("r_gripper_sensor_controller/find_contact",true);
       slip_client_  = new SlipClient("r_gripper_sensor_controller/slip_servo",true);
       event_detector_client_  = new EventDetectorClient("r_gripper_sensor_controller/event_detector",true);
+      grab_client_ = new GrabClient("r_gripper_sensor_controller/grab", true);
+      release_client_ = new ReleaseClient("r_gripper_sensor_controller/release",true);
     } else {
       gripper_client_ = new GripperClient("l_gripper_sensor_controller/gripper_action", true);
       contact_client_  = new ContactClient("l_gripper_sensor_controller/find_contact",true);
       slip_client_  = new SlipClient("l_gripper_sensor_controller/slip_servo",true);
       event_detector_client_  = new EventDetectorClient("l_gripper_sensor_controller/event_detector",true);
+      grab_client_ = new GrabClient("l_gripper_sensor_controller/grab", true);
+      release_client_ = new ReleaseClient("l_gripper_sensor_controller/release",true);
     }
   }
 
-  if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)){
+  if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)&&(grab_client_!=NULL)&&(release_client_!=NULL)){
     if(!gripper_client_->isServerConnected()){
       //wait for the gripper action server to come up 
       while(!gripper_client_->waitForServer(ros::Duration(5.0))){
@@ -120,6 +126,22 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
 	result = SERVER_NOT_CONNECTED;
       }	
     }
+    if(!grab_client_->isServerConnected()){
+      while(!grab_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
+      }    
+      if(!grab_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }	
+    }    
+    if(!release_client_->isServerConnected()){
+      while(!release_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
+      }    
+      if(!release_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }	
+    }  
   } else {
     ROS_INFO("Not able to create GripperSensorClient\n");
     result=INIT_FAILED;
@@ -507,6 +529,95 @@ Gripper::ERROR Gripper::setFindTwoZeroFingerTipSensors(bool findtwo_zero_finger_
 bool Gripper::getFindTwoZeroFingerTipSensors(){
   return findtwo_zero_finger_tip_sensors_;
 }
+
+
+// GRAB
+
+bool Gripper::grab_isDone() {
+  return (grab_client_->getState()).isDone();
+}
+
+actionlib::SimpleClientGoalState Gripper::grab_getState() {
+  return grab_client_->getState();
+}
+void Gripper::grab_doneCb(const actionlib::SimpleClientGoalState& state,
+			   const pr2_gripper_sensor_msgs::PR2GripperGrabResultConstPtr& result)
+{
+  ROS_INFO("Finished in state [%s]", state.toString().c_str());
+}
+void Gripper::grab_activeCb()
+{
+  ROS_INFO("Goal just went active");
+}
+void Gripper::grab_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperGrabFeedbackConstPtr& feedback)
+{
+  ROS_INFO("Got Feedback\n");
+}
+void Gripper::grab(){
+  // PR2GripperGrabCommand command
+  //  float64 hardness_gain
+  pr2_gripper_sensor_msgs::PR2GripperGrabGoal grip_cmd;
+  grip_cmd.command.hardness_gain = grab_hardness_gain_;
+  ROS_INFO("Sending grab goal");
+  //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
+  grab_client_->sendGoal(grip_cmd, 
+			    boost::bind(&Gripper::grab_doneCb, this, _1, _2), 
+			    boost::bind(&Gripper::grab_activeCb, this),
+			    boost::bind(&Gripper::grab_feedbackCb, this, _1));
+}
+void Gripper::grab_cancel(){
+  grab_client_->cancelAllGoals();
+}
+
+// RELEASE
+
+bool Gripper::release_isDone() {
+  return (release_client_->getState()).isDone();
+}
+
+actionlib::SimpleClientGoalState Gripper::release_getState() {
+  return release_client_->getState();
+}
+void Gripper::release_doneCb(const actionlib::SimpleClientGoalState& state,
+			   const pr2_gripper_sensor_msgs::PR2GripperReleaseResultConstPtr& result)
+{
+  ROS_INFO("Finished in state [%s]", state.toString().c_str());
+}
+void Gripper::release_activeCb()
+{
+  ROS_INFO("Goal just went active");
+}
+void Gripper::release_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperReleaseFeedbackConstPtr& feedback)
+{
+  ROS_INFO("Got Feedback\n");
+}
+void Gripper::release(){
+  // PR2GripperReleaseCommand command
+  //   pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand event
+  //       int8 FINGER_SIDE_IMPACT_OR_ACC=0
+  //       int8 SLIP_AND_ACC=1
+  //       int8 FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC=2
+  //       int8 SLIP=3
+  //       int8 ACC=4
+  //       int8 trigger_conditions
+  //       float64 acceleration_trigger_magnitude
+  //       float64 slip_trigger_magnitude
+  pr2_gripper_sensor_msgs::PR2GripperReleaseGoal release_cmd;
+  release_cmd.command.event.trigger_conditions = place_trigger_conditions_;
+  release_cmd.command.event.acceleration_trigger_magnitude = place_acceleration_trigger_magnitude_;
+  release_cmd.command.event.slip_trigger_magnitude = place_slip_trigger_magnitude_;
+  ROS_INFO("Sending grab goal");
+  //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
+  release_client_->sendGoal(release_cmd, 
+			    boost::bind(&Gripper::release_doneCb, this, _1, _2), 
+			    boost::bind(&Gripper::release_activeCb, this),
+			    boost::bind(&Gripper::release_feedbackCb, this, _1));
+}
+void Gripper::release_cancel(){
+  release_client_->cancelAllGoals();
+}
+
+
 
 // int main(int argc, char** argv){
 //   ros::init(argc, argv, "simple_gripper");
