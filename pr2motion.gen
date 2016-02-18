@@ -285,12 +285,14 @@ component pr2motion {
   {
     doc "Allow to operate the Gripper";
     codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
+    codel <exec> execOperateGripper(in side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, pause::waitgrasp, pause::waitrelease2, stop, end, ether;
     codel <wait> waitOperateGripper(in side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
     codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
     codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
     codel <waitclose> waitcloseOperateGripper(in side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
     codel <waitrelease> waitreleaseOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
+    codel <waitgrasp> waitgraspOperateGripper(in side, in goal_mode) yield pause::waitgrasp, stop, end;
+    codel <waitrelease2> waitrelease2OperateGripper(in side, in goal_mode) yield pause::waitrelease2, stop, end;
     codel <slipservo> slipservoOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
     codel <stop> stopOperateGripper(in side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in side, in goal_mode) yield ether;

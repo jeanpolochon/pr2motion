@@ -313,6 +313,7 @@ startOperateGripper(pr2motion_SIDE side,
  * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
  *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
  *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
+ *           pr2motion_pause_waitgrasp, pr2motion_pause_waitrelease2,
  *           pr2motion_stop, pr2motion_end, pr2motion_ether.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
@@ -340,6 +341,12 @@ execOperateGripper(pr2motion_SIDE side,
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close();
       return pr2motion_pause_waitclose;
+    case pr2motion_GRIPPER_GRAB2 :
+      left_gripper.grab();
+      return pr2motion_pause_waitgrasp;
+    case pr2motion_GRIPPER_RELEASE2 :
+      left_gripper.release();
+      return pr2motion_pause_waitrelease2;
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
@@ -354,6 +361,12 @@ execOperateGripper(pr2motion_SIDE side,
     case pr2motion_GRIPPER_CLOSE :
       right_gripper.close();
       return pr2motion_pause_waitclose;
+    case pr2motion_GRIPPER_GRAB2 :
+      right_gripper.grab();
+      return pr2motion_pause_waitgrasp;
+    case pr2motion_GRIPPER_RELEASE2 :
+      right_gripper.release();
+      return pr2motion_pause_waitrelease2;
     }
   }
 
@@ -551,6 +564,77 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
       return pr2motion_end;
     else
       return pr2motion_pause_waitcontact;
+  default:
+    return pr2motion_unknown_error(self);
+  }
+#else
+  return pr2motion_unknown_error(self);
+#endif
+}
+
+/** Codel waitgraspOperateGripper of activity Gripper_Operate.
+ *
+ * Triggered by pr2motion_waitgrasp.
+ * Yields to pr2motion_pause_waitgrasp, pr2motion_stop, pr2motion_end.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+waitgraspOperateGripper(pr2motion_SIDE side,
+                        pr2motion_GRIPPER_MODE goal_mode,
+                        genom_context self)
+{
+#ifndef PR2_SIMU
+  if (side >= pr2motion_NB_SIDE)
+    return pr2motion_invalid_param(self);    
+
+  switch(side){
+  case pr2motion_LEFT :
+    if(left_gripper.grab_isDone())
+      return pr2motion_end;
+    else
+      return pr2motion_pause_waitgrasp;
+  case pr2motion_RIGHT :
+    if(right_gripper.grab_isDone())
+      return pr2motion_end;
+    else
+      return pr2motion_pause_waitgrasp;
+  default:
+    return pr2motion_unknown_error(self);
+  }
+#else
+  return pr2motion_unknown_error(self);
+#endif
+}
+
+/** Codel waitrelease2OperateGripper of activity Gripper_Operate.
+ *
+ * Triggered by pr2motion_waitrelease2.
+ * Yields to pr2motion_pause_waitrelease2, pr2motion_stop,
+ *           pr2motion_end.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+waitrelease2OperateGripper(pr2motion_SIDE side,
+                           pr2motion_GRIPPER_MODE goal_mode,
+                           genom_context self)
+{
+#ifndef PR2_SIMU
+  if (side >= pr2motion_NB_SIDE)
+    return pr2motion_invalid_param(self);    
+
+  switch(side){
+  case pr2motion_LEFT :
+    if(left_gripper.release_isDone())
+      return pr2motion_end;
+    else
+      return pr2motion_pause_waitrelease2;
+  case pr2motion_RIGHT :
+    if(right_gripper.release_isDone())
+      return pr2motion_end;
+    else
+      return pr2motion_pause_waitrelease2;
   default:
     return pr2motion_unknown_error(self);
   }

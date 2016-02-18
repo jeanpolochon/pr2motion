@@ -606,7 +606,7 @@ void Gripper::release(){
   release_cmd.command.event.trigger_conditions = place_trigger_conditions_;
   release_cmd.command.event.acceleration_trigger_magnitude = place_acceleration_trigger_magnitude_;
   release_cmd.command.event.slip_trigger_magnitude = place_slip_trigger_magnitude_;
-  ROS_INFO("Sending grab goal");
+  ROS_INFO("Sending release goal");
   //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
   release_client_->sendGoal(release_cmd, 
 			    boost::bind(&Gripper::release_doneCb, this, _1, _2), 

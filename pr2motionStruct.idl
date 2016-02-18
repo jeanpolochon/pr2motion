@@ -60,6 +60,8 @@ module pr2motion {
     GRIPPER_CLOSE,
     GRIPPER_GRAB,        
     GRIPPER_RELEASE,
+    GRIPPER_GRAB2,
+    GRIPPER_RELEASE2,
     GRIPPER_NB_MODE
   };
 // #else
