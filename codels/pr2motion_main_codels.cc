@@ -503,22 +503,22 @@ waitopenOperateGripper(pr2motion_SIDE side,
   if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
 
-#ifndef PR2_SIMU  
-  switch(side){
-  case pr2motion_LEFT :
-    if(left_gripper.open_isDone())
-      return pr2motion_pause_waitcontact;
-    else
-      return pr2motion_pause_waitopen;
-  case pr2motion_RIGHT :
-    if(right_gripper.open_isDone())
-      return pr2motion_pause_waitcontact;
-    else
-      return pr2motion_pause_waitopen;
-  default:
-    return pr2motion_unknown_error(self);
-  }
-#else
+// #ifndef PR2_SIMU  
+//   switch(side){
+//   case pr2motion_LEFT :
+//     if(left_gripper.open_isDone())
+//       return pr2motion_pause_waitcontact;
+//     else
+//       return pr2motion_pause_waitopen;
+//   case pr2motion_RIGHT :
+//     if(right_gripper.open_isDone())
+//       return pr2motion_pause_waitcontact;
+//     else
+//       return pr2motion_pause_waitopen;
+//   default:
+//     return pr2motion_unknown_error(self);
+//   }
+// #else
   switch(side){
   case pr2motion_LEFT :
     if(left_gripper.open_isDone())
@@ -533,7 +533,7 @@ waitopenOperateGripper(pr2motion_SIDE side,
   default:
     return pr2motion_unknown_error(self);
   }
-#endif
+// #endif
 
 }
 
