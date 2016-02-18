@@ -329,48 +329,84 @@ execOperateGripper(pr2motion_SIDE side,
   switch(side){
   case pr2motion_LEFT :
     switch(goal_mode){
-    case pr2motion_GRIPPER_GRAB :
-      left_gripper.findTwoContacts();
-      return pr2motion_pause_waitcontact;
-    case pr2motion_GRIPPER_RELEASE :
-      left_gripper.place();
-      return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close();
       return pr2motion_pause_waitclose;
-    case pr2motion_GRIPPER_GRAB2 :
+    case pr2motion_GRIPPER_GRAB :
       left_gripper.grab();
       return pr2motion_pause_waitgrasp;
-    case pr2motion_GRIPPER_RELEASE2 :
+    case pr2motion_GRIPPER_RELEASE :
       left_gripper.release();
       return pr2motion_pause_waitrelease2;
+    default :
+      return pr2motion_invalid_param(self);
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
-    case pr2motion_GRIPPER_GRAB :
-      right_gripper.findTwoContacts();
-      return pr2motion_pause_waitcontact;
-    case pr2motion_GRIPPER_RELEASE :
-      return pr2motion_pause_waitrelease;
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
       right_gripper.close();
       return pr2motion_pause_waitclose;
-    case pr2motion_GRIPPER_GRAB2 :
+    case pr2motion_GRIPPER_GRAB :
       right_gripper.grab();
       return pr2motion_pause_waitgrasp;
-    case pr2motion_GRIPPER_RELEASE2 :
+    case pr2motion_GRIPPER_RELEASE :
       right_gripper.release();
       return pr2motion_pause_waitrelease2;
+    default :
+      return pr2motion_invalid_param(self);
     }
   }
+  // switch(side){
+  // case pr2motion_LEFT :
+  //   switch(goal_mode){
+  //   case pr2motion_GRIPPER_GRAB :
+  //     left_gripper.findTwoContacts();
+  //     return pr2motion_pause_waitcontact;
+  //   case pr2motion_GRIPPER_RELEASE :
+  //     left_gripper.place();
+  //     return pr2motion_pause_waitrelease;
+  //   case pr2motion_GRIPPER_OPEN :
+  //     left_gripper.open();
+  //     return pr2motion_pause_waitopen;
+  //   case pr2motion_GRIPPER_CLOSE :
+  //     left_gripper.close();
+  //     return pr2motion_pause_waitclose;
+  //   case pr2motion_GRIPPER_GRAB2 :
+  //     left_gripper.grab();
+  //     return pr2motion_pause_waitgrasp;
+  //   case pr2motion_GRIPPER_RELEASE2 :
+  //     left_gripper.release();
+  //     return pr2motion_pause_waitrelease2;
+  //   }
+  // case pr2motion_RIGHT:
+  //   switch(goal_mode){
+  //   case pr2motion_GRIPPER_GRAB :
+  //     right_gripper.findTwoContacts();
+  //     return pr2motion_pause_waitcontact;
+  //   case pr2motion_GRIPPER_RELEASE :
+  //     return pr2motion_pause_waitrelease;
+  //   case pr2motion_GRIPPER_OPEN :
+  //     right_gripper.open();
+  //     return pr2motion_pause_waitopen;
+  //   case pr2motion_GRIPPER_CLOSE :
+  //     right_gripper.close();
+  //     return pr2motion_pause_waitclose;
+  //   case pr2motion_GRIPPER_GRAB2 :
+  //     right_gripper.grab();
+  //     return pr2motion_pause_waitgrasp;
+  //   case pr2motion_GRIPPER_RELEASE2 :
+  //     right_gripper.release();
+  //     return pr2motion_pause_waitrelease2;
+  //   }
+  // }
 
-  return pr2motion_pause_wait;
+  // return pr2motion_pause_wait;
   // we are in simulation
 #else
   switch(side){
