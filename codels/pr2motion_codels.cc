@@ -69,9 +69,11 @@ setOpenParam(pr2motion_SIDE side, double open_position,
   case pr2motion_LEFT :
     open_position_result = left_gripper.setOpenPosition(open_position);
     open_max_effort_result = left_gripper.setOpenMaxEffort(open_max_effort);
+    break;
   case pr2motion_RIGHT :
     open_position_result = right_gripper.setOpenPosition(open_position);
     open_max_effort_result = right_gripper.setOpenMaxEffort(open_max_effort);
+    break;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -129,10 +131,13 @@ getOpenParam(pr2motion_SIDE side, double *open_position,
   case pr2motion_LEFT :
     *open_position = left_gripper.getOpenPosition();
     *open_max_effort = left_gripper.getOpenMaxEffort();
+    break;
   case pr2motion_RIGHT :
     *open_position = right_gripper.getOpenPosition();
     *open_max_effort = right_gripper.getOpenMaxEffort();
+    break;
   default:
+    ROS_INFO("what happens, side = %d and %d %d\n",side, pr2motion_LEFT, pr2motion_RIGHT); 
     return pr2motion_unknown_error(self);
   }
 
@@ -188,9 +193,11 @@ setCloseParam(pr2motion_SIDE side, double close_position,
   case pr2motion_LEFT :
     close_position_result = left_gripper.setClosePosition(close_position);
     close_max_effort_result = left_gripper.setCloseMaxEffort(close_max_effort);
+    break;
   case pr2motion_RIGHT :
     close_position_result = right_gripper.setClosePosition(close_position);
     close_max_effort_result = right_gripper.setCloseMaxEffort(close_max_effort);
+    break;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -248,9 +255,11 @@ getCloseParam(pr2motion_SIDE side, double *close_position,
   case pr2motion_LEFT :
     *close_position = left_gripper.getClosePosition();
     *close_max_effort = left_gripper.getCloseMaxEffort();
+    break;
   case pr2motion_RIGHT :
     *close_position = right_gripper.getClosePosition();
     *close_max_effort = right_gripper.getCloseMaxEffort();
+    break;
   default:
     return pr2motion_unknown_error(self);
   }
@@ -302,12 +311,16 @@ setFindContactParam(pr2motion_SIDE side,
   switch(findtwo_contact_conditions){
   case pr2motion_GRIPPER_CONTACT_BOTH :
     findtwo_contact_conditions_int = pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::BOTH;
+    break;
   case pr2motion_GRIPPER_CONTACT_LEFT :
     findtwo_contact_conditions_int = pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::LEFT;
+    break;
   case pr2motion_GRIPPER_CONTACT_RIGHT :
     findtwo_contact_conditions_int = pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::RIGHT;
+    break;
   case pr2motion_GRIPPER_CONTACT_EITHER :
     findtwo_contact_conditions_int = pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::EITHER;
+    break;
   default :
     return pr2motion_unknown_error(self);
   }
@@ -387,12 +400,16 @@ getFindContactParam(pr2motion_SIDE side,
   switch(findtwo_contact_conditions_int){
   case pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::BOTH :
     *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_BOTH;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::LEFT :
     *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_LEFT;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::RIGHT :
     *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_RIGHT;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperFindContactCommand::EITHER :
     *findtwo_contact_conditions = pr2motion_GRIPPER_CONTACT_EITHER;
+    break;
   default :
     return pr2motion_unknown_error(self);
   }
@@ -448,14 +465,19 @@ setEventDetectorParam(pr2motion_SIDE side,
   switch(event_trigger_conditions_int){
   case pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC :
     event_trigger_conditions_int =pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_ACC;
+    break;
   case pr2motion_GRIPPER_FINGER_SLIP_AND_ACC :
     event_trigger_conditions_int = pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::SLIP_AND_ACC;
+    break;
   case pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC :
     event_trigger_conditions_int = pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;
+    break;
   case pr2motion_GRIPPER_SLIP :
     event_trigger_conditions_int = pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::SLIP;
+    break;
   case pr2motion_GRIPPER_ACC :
     event_trigger_conditions_int = pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::ACC;
+    break;
   default :
     return pr2motion_unknown_error(self);
   }
@@ -541,14 +563,19 @@ getEventDetectorParam(pr2motion_SIDE side,
   switch(event_trigger_conditions_int){
   case pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_ACC :
     *event_trigger_conditions = pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_ACC;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::SLIP_AND_ACC :
     *event_trigger_conditions = pr2motion_GRIPPER_FINGER_SLIP_AND_ACC;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC :
     *event_trigger_conditions = pr2motion_GRIPPER_FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::SLIP :
     *event_trigger_conditions = pr2motion_GRIPPER_SLIP;
+    break;
   case pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::ACC :
     *event_trigger_conditions = pr2motion_GRIPPER_ACC;
+    break;
   default :
     return pr2motion_unknown_error(self);
   }
@@ -635,8 +662,10 @@ Arm_SetT(pr2motion_SIDE side, double time_slot, genom_context self)
   switch(side){
   case pr2motion_LEFT :
     result = left_arm.setT(time_slot);
+    break;
   case pr2motion_RIGHT :
     result = right_arm.setT(time_slot);
+    break;
   default:
     return pr2motion_unknown_error(self);
   }
