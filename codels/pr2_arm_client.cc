@@ -844,7 +844,6 @@ RobotArm::ERROR RobotArm::computeTrajectorySoftMotion(pr2_controllers_msgs::Join
   SM_TRAJ traj;
   traj.clear();
   traj.resize(joint_names_vector_size);
-  ROS_INFO("5\n");
   // 2 different computation of trajectories
   // Trajectory Type 1 : Compute a trajectory that stops at each via point
   //traj.computeTrajViaPoints(via_points,limits,SM_TRAJ::SM_STOP_AT_VIA_POINT);
