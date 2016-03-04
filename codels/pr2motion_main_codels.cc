@@ -459,42 +459,6 @@ waitplaceOperateGripper(pr2motion_SIDE side,
 #endif
 }
 
-/** Codel waitcontactOperateGripper of activity Gripper_Operate.
- *
- * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-genom_event
-waitcontactOperateGripper(pr2motion_SIDE side,
-                          pr2motion_GRIPPER_MODE goal_mode,
-                          genom_context self)
-{
-#ifndef PR2_SIMU
-  if (side >= pr2motion_NB_SIDE)
-    return pr2motion_end;    
-
-  switch(side){
-  case pr2motion_LEFT :
-    if(left_gripper.findTwo_isDone())
-      return pr2motion_slipservo;
-    else
-      return pr2motion_pause_waitcontact;
-  case pr2motion_RIGHT :
-    if(right_gripper.findTwo_isDone())
-      return pr2motion_slipservo;
-    else
-      return pr2motion_pause_waitcontact;
-  default:
-    return pr2motion_unknown_error(self);
-  }
- 
-#else
-  return pr2motion_unknown_error(self); 
-#endif
-}
 
 /** Codel waitopenOperateGripper of activity Gripper_Operate.
  *
@@ -606,9 +570,10 @@ waitfindtwoOperateGripper(pr2motion_SIDE side,
       case pr2motion_GRIPPER_RELEASE :
       default:
 	return pr2motion_invalid_param(self);
-      } else {
-	return pr2motion_pause_waitfindtwo;
       }
+    } else {
+      return pr2motion_pause_waitfindtwo;
+    }
   case pr2motion_RIGHT :
     if(right_gripper.findTwo_isDone()){
       switch(goal_mode){
@@ -620,12 +585,13 @@ waitfindtwoOperateGripper(pr2motion_SIDE side,
       case pr2motion_GRIPPER_RELEASE :
       default:
 	return pr2motion_invalid_param(self);
-      } else {
-	return pr2motion_pause_waitfindtwo;
-      }
+      } 
+    } else {
+      return pr2motion_pause_waitfindtwo;
+    }
   default:
     return pr2motion_unknown_error(self);
-  }
+    }
 #else
   return pr2motion_unknown_error(self);
 #endif
@@ -660,13 +626,14 @@ stopOperateGripper(pr2motion_SIDE side,
       left_gripper.findTwo_cancel();
       left_gripper.place_cancel();
       return pr2motion_end;
+#else
+    case pr2motion_GRIPPER_CLOSE :
+      left_gripper.close_cancel();
+      return pr2motion_end;     
 #endif
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open_cancel();
-      return pr2motion_end;
-    case pr2motion_GRIPPER_CLOSE :
-      left_gripper.close_cancel();
-      return pr2motion_end;      
+      return pr2motion_end;     
     }
   case pr2motion_RIGHT :
     switch(goal_mode){
@@ -677,12 +644,13 @@ stopOperateGripper(pr2motion_SIDE side,
       right_gripper.place_cancel();
       right_gripper.findTwo_cancel();
       return pr2motion_end;
+#else
+    case pr2motion_GRIPPER_CLOSE :
+      right_gripper.close_cancel();
+      return pr2motion_end;
 #endif
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open_cancel();
-      return pr2motion_end;
-    case pr2motion_GRIPPER_CLOSE :
-      right_gripper.close_cancel();
       return pr2motion_end;
     }   
   }
@@ -1476,8 +1444,7 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
 {
   RobotArm::ERROR result;
 
-  return pr2motion_pause_launchmove;
-
+#ifndef PR2_SIMU
   if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
   } else {
@@ -1487,6 +1454,12 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
     return pr2motion_pause_launchmove;
   else
     return pr2motion_end;
+
+#else
+  // do not test limits in simulation 
+  ROS_INFO("pr2motion::Arm_Move we do not test limits in simulation\n");
+  return pr2motion_pause_launchmove;
+#endif
 }
 
 /** Codel launchMoveArm of activity Arm_Move.
@@ -1788,6 +1761,7 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
 genom_event
 checkTrajQGoal(pr2motion_SIDE side, genom_context self)
 {
+#ifndef PR2_SIMU
   RobotArm::ERROR result;
   if(side == pr2motion_RIGHT){
     result=right_arm.validateTrajectory();
@@ -1798,6 +1772,11 @@ checkTrajQGoal(pr2motion_SIDE side, genom_context self)
     return pr2motion_pause_launchmove;
   else
     return pr2motion_end;
+#else
+  // do not test limits in simulation
+  ROS_INFO("pr2motion::Arm_MoveToQGoal: we do not test limits in simulation mode\n");
+  return pr2motion_pause_launchmove;
+#endif
 }
 
 /** Codel launchMoveQ of activity Arm_MoveToQGoal.

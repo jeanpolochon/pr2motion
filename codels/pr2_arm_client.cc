@@ -290,6 +290,11 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
 
   if(points_vector_size==0){
     result = INVALID_TRAJ;
+    return result;
+  } else if(points_vector_size==1) {
+    // we do not check the first point to avoid to be blocked in an invalid position
+    // so if the trajectory as only one point, return
+    return result;
   } else {
   
     // joint vector size
@@ -347,7 +352,9 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
     // check each joint limits 
     // the trajectory is considered as invalid if one of the joint position is out of the limits
     if(arm_side_ == RIGHT) {
-      for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+      // we do not consider the first point to avoid to be blocked in an invalid position
+      // that's why ind=1 at the beginning
+      for (size_t ind=1;ind<goal_cmd->trajectory.points.size();ind++){
 	if((goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]<r_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice]>r_shoulder_pan_joint_limit_velocity_)){
 	  ROS_INFO("RobotArm::validateTraj pb with r_shoulder_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_lower_,r_shoulder_pan_joint_limit_upper_,goal_cmd->trajectory.points[ind].velocities[r_shoulder_pan_joint_indice],r_shoulder_pan_joint_limit_velocity_);
 	  result = INVALID_TRAJ;
@@ -387,8 +394,9 @@ RobotArm::ERROR RobotArm::validateTrajectory(pr2_controllers_msgs::JointTrajecto
       }
 
     } else if (arm_side_ == LEFT) {
-
-      for (size_t ind=0;ind<goal_cmd->trajectory.points.size();ind++){
+      // we do not consider the first point to avoid to be blocked in an invalid position
+      // that's why ind=1 at the beginning
+      for (size_t ind=1;ind<goal_cmd->trajectory.points.size();ind++){
 	//l_shoulder_pan_joint
 	if((goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]<l_shoulder_pan_joint_limit_lower_) || (goal_cmd->trajectory.points[ind].positions[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_upper_) || (goal_cmd->trajectory.points[ind].velocities[l_shoulder_pan_joint_indice]>l_shoulder_pan_joint_limit_velocity_)){
 	  ROS_INFO("RobotArm::validateTraj pb with l_shoulder_pan_joint bounds \n");

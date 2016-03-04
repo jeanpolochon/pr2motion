@@ -637,7 +637,7 @@ setForceServoGoal(pr2motion_SIDE side, double fingertip_force,
     return pr2motion_unknown_error(self);
   }
 
-  if(fingertip_force_result != Gripper::OK)
+  if(fingertip_force_result != Gripper::OK) {
     return pr2motion_invalid_param(self);
   }
 
