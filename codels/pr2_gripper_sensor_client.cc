@@ -11,8 +11,9 @@ Gripper::Gripper()
     findtwo_zero_finger_tip_sensors_(true),
     place_trigger_conditions_(pr2_gripper_sensor_msgs::PR2GripperEventDetectorCommand::FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC),
     place_acceleration_trigger_magnitude_(5.0),
-    place_slip_trigger_magnitude_(.01),
-    grab_hardness_gain_(0.03)
+    place_slip_trigger_magnitude_(.05),
+    grab_hardness_gain_(0.03),
+    fingertip_force_(10)
 {
 }
 Gripper::~Gripper(){
@@ -22,6 +23,7 @@ Gripper::~Gripper(){
   delete event_detector_client_;
   delete grab_client_;
   delete release_client_;
+  delete force_client_;
 }
 
 Gripper::ERROR Gripper::init(Gripper::SIDE side){
@@ -72,7 +74,7 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
     }
   }
   
-  if((gripper_client_==NULL)||(contact_client_==NULL)||(slip_client_==NULL)||(event_detector_client_==NULL)){
+  if((gripper_client_==NULL)||(contact_client_==NULL)||(slip_client_==NULL)||(event_detector_client_==NULL)||(grab_client_==NULL)||(release_client_==NULL)||(force_client_==NULL)){
     if (side==RIGHT) {
       //Initialize the client for the Action interface to the gripper controller
       //and tell the action client that we want to spin a thread by default
@@ -82,6 +84,7 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
       event_detector_client_  = new EventDetectorClient("r_gripper_sensor_controller/event_detector",true);
       grab_client_ = new GrabClient("r_gripper_sensor_controller/grab", true);
       release_client_ = new ReleaseClient("r_gripper_sensor_controller/release",true);
+      force_client_ = new ForceClient("r_gripper_sensor_controller/force_servo",true);
     } else {
       gripper_client_ = new GripperClient("l_gripper_sensor_controller/gripper_action", true);
       contact_client_  = new ContactClient("l_gripper_sensor_controller/find_contact",true);
@@ -89,10 +92,11 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
       event_detector_client_  = new EventDetectorClient("l_gripper_sensor_controller/event_detector",true);
       grab_client_ = new GrabClient("l_gripper_sensor_controller/grab", true);
       release_client_ = new ReleaseClient("l_gripper_sensor_controller/release",true);
+      force_client_ = new ForceClient("l_gripper_sensor_controller/force_servo",true);     
     }
   }
 
-  if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)&&(grab_client_!=NULL)&&(release_client_!=NULL)){
+  if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)&&(grab_client_!=NULL)&&(release_client_!=NULL)&&(force_client_!=NULL)){
     if(!gripper_client_->isServerConnected()){
       //wait for the gripper action server to come up 
       while(!gripper_client_->waitForServer(ros::Duration(5.0))){
@@ -136,9 +140,17 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
     }    
     if(!release_client_->isServerConnected()){
       while(!release_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/release action server to come up");
       }    
       if(!release_client_->isServerConnected()){
+	result = SERVER_NOT_CONNECTED;
+      }	
+    }
+    if(!force_client_->isServerConnected()){
+      while(!force_client_->waitForServer(ros::Duration(5.0))){
+	ROS_INFO("Waiting for the r_gripper_sensor_controller/force_servo action server to come up");
+      }    
+      if(!force_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }	
     }  
@@ -615,6 +627,64 @@ void Gripper::release(){
 }
 void Gripper::release_cancel(){
   release_client_->cancelAllGoals();
+}
+
+// FORCE_SERVO
+int8_t Gripper::getForceServoFingertipForce(){
+  return fingertip_force_;
+}
+
+Gripper::ERROR Gripper::setForceServoFingertipForce(double fingertip_force){
+  ERROR result=OK;
+  if((fingertip_force>0) && (fingertip_force<=15))
+    fingertip_force_=fingertip_force;
+  else
+    result = INVALID_PARAM;
+  return result;
+}
+
+bool Gripper::forceServo_isDone() {
+  return (force_client_->getState()).isDone();
+}
+
+actionlib::SimpleClientGoalState Gripper::forceServo_getState() {
+  return force_client_->getState();
+}
+void Gripper::forceServo_doneCb(const actionlib::SimpleClientGoalState& state,
+			   const pr2_gripper_sensor_msgs::PR2GripperForceServoResultConstPtr& result)
+{
+  ROS_INFO("Finished in state [%s]", state.toString().c_str());
+}
+void Gripper::forceServo_activeCb()
+{
+  ROS_INFO("Goal just went active");
+}
+void Gripper::forceServo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperForceServoFeedbackConstPtr& feedback)
+{
+  ROS_INFO("Got Feedback\n");
+}
+void Gripper::forceServo(){
+ /* PR2GripperForceServoCommand
+     # the amount of fingertip force (in Newtons) to apply.
+     # NOTE: the joint will squeeze until each finger reaches this level
+     # values < 0 (opening force) are ignored
+     #
+     # 10 N can crack an egg or crush a soda can.
+     # 15 N can firmly pick up a can of soup.
+     # Experiment on your own.
+     #
+     float64 fingertip_force */
+  pr2_gripper_sensor_msgs::PR2GripperForceServoGoal force_cmd;
+  force_cmd.command.fingertip_force = fingertip_force_;
+  ROS_INFO("Sending hold goal");
+  force_client_->sendGoal(force_cmd, 
+			    boost::bind(&Gripper::forceServo_doneCb, this, _1, _2), 
+			    boost::bind(&Gripper::forceServo_activeCb, this),
+			    boost::bind(&Gripper::forceServo_feedbackCb, this, _1));
+}
+
+void Gripper::forceServo_cancel(){
+  force_client_->cancelAllGoals();
 }
 
 

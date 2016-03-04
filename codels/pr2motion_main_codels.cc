@@ -249,7 +249,7 @@ initConnect(genom_context self)
 /** Codel startOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -310,11 +310,9 @@ startOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
- *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
- *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
- *           pr2motion_pause_waitgrasp, pr2motion_pause_waitrelease2,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_pause_waitclose,
+ *           pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -326,127 +324,139 @@ execOperateGripper(pr2motion_SIDE side,
 {
   // we are on the real robot
 #ifndef PR2_SIMU
-  // switch(side){
-  // case pr2motion_LEFT :
-  //   switch(goal_mode){
-  //   case pr2motion_GRIPPER_OPEN :
-  //     left_gripper.open();
-  //     return pr2motion_pause_waitopen;
-  //   case pr2motion_GRIPPER_CLOSE :
-  //     left_gripper.close();
-  //     return pr2motion_pause_waitclose;
-  //   case pr2motion_GRIPPER_GRAB :
-  //     left_gripper.grab();
-  //     return pr2motion_pause_waitgrasp;
-  //   case pr2motion_GRIPPER_RELEASE :
-  //     left_gripper.release();
-  //     return pr2motion_pause_waitrelease2;
-  //   default :
-  //     return pr2motion_invalid_param(self);
-  //   }
-  // case pr2motion_RIGHT:
-  //   switch(goal_mode){
-  //   case pr2motion_GRIPPER_OPEN :
-  //     right_gripper.open();
-  //     return pr2motion_pause_waitopen;
-  //   case pr2motion_GRIPPER_CLOSE :
-  //     right_gripper.close();
-  //     return pr2motion_pause_waitclose;
-  //   case pr2motion_GRIPPER_GRAB :
-  //     right_gripper.grab();
-  //     return pr2motion_pause_waitgrasp;
-  //   case pr2motion_GRIPPER_RELEASE :
-  //     right_gripper.release();
-  //     return pr2motion_pause_waitrelease2;
-  //   default :
-  //     return pr2motion_invalid_param(self);
-  //   }
-  // }
   switch(side){
   case pr2motion_LEFT :
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
-      left_gripper.findTwoContacts();
-      return pr2motion_pause_waitcontact;
+      left_gripper.place();
+      return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_RELEASE :
       left_gripper.place();
-      return pr2motion_pause_waitrelease;
+      return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      left_gripper.close();
-      return pr2motion_pause_waitclose;
-    case pr2motion_GRIPPER_GRAB2 :
-      left_gripper.grab();
-      return pr2motion_pause_waitgrasp;
-    case pr2motion_GRIPPER_RELEASE2 :
-      left_gripper.release();
-      return pr2motion_pause_waitrelease2;
+      left_gripper.findTwoContacts();
+      return pr2motion_pause_waitfindtwo;
+    default:
+      return pr2motion_invalid_param(self);
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_GRAB :
-      right_gripper.findTwoContacts();
-      return pr2motion_pause_waitcontact;
+      right_gripper.place();
+      return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_RELEASE :
-      return pr2motion_pause_waitrelease;
+      return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
-      right_gripper.close();
-      return pr2motion_pause_waitclose;
-    case pr2motion_GRIPPER_GRAB2 :
-      right_gripper.grab();
-      return pr2motion_pause_waitgrasp;
-    case pr2motion_GRIPPER_RELEASE2 :
-      right_gripper.release();
-      return pr2motion_pause_waitrelease2;
+      right_gripper.findTwoContacts();
+      return pr2motion_pause_waitfindtwo;
+    default:
+      return pr2motion_invalid_param(self);      
     }
+  default:
+    return pr2motion_invalid_param(self);  
   }
 
-  return pr2motion_pause_wait;
   // we are in simulation
 #else
   switch(side){
   case pr2motion_LEFT :
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_RELEASE :
       left_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_GRAB :
       left_gripper.close();
       return pr2motion_pause_waitclose;
+    default:
+      return pr2motion_invalid_param(self);        
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
     case pr2motion_GRIPPER_OPEN :
+    case pr2motion_GRIPPER_RELEASE :
       right_gripper.open();
       return pr2motion_pause_waitopen;
     case pr2motion_GRIPPER_CLOSE :
+    case pr2motion_GRIPPER_GRAB :
       right_gripper.close();
       return pr2motion_pause_waitclose;
+    default:
+      return pr2motion_invalid_param(self);  
     }
+  default:
+    return pr2motion_invalid_param(self);  
   }
 #endif
 }
 
-/** Codel waitOperateGripper of activity Gripper_Operate.
+/** Codel waitplaceOperateGripper of activity Gripper_Operate.
  *
- * Triggered by pr2motion_wait.
- * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Triggered by pr2motion_waitplace.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitOperateGripper(pr2motion_SIDE side,
-                   pr2motion_GRIPPER_MODE goal_mode,
-                   genom_context self)
+waitplaceOperateGripper(pr2motion_SIDE side,
+                        pr2motion_GRIPPER_MODE goal_mode,
+                        genom_context self)
 {
+#ifndef PR2_SIMU
+      if(right_gripper.place_isDone())
+      return pr2motion_end;
+  switch(side){
+  case pr2motion_LEFT :
+    if(left_gripper.place_isDone()){
+      switch(goal_mode){
+      case pr2motion_GRIPPER_GRAB :
+	left_gripper.findTwoContacts();
+	return pr2motion_pause_waitfindtwo;
+      case pr2motion_GRIPPER_RELEASE :
+	left_gripper.open();
+	return pr2motion_pause_waitopen;
+      case pr2motion_GRIPPER_OPEN :
+      case pr2motion_GRIPPER_CLOSE :
+      default:
+	return pr2motion_invalid_param(self);
+       }
+    } else {
+      return pr2motion_pause_waitplace;
+    }
+  case pr2motion_RIGHT:
+    if(right_gripper.place_isDone()){
+      switch(goal_mode){
+      case pr2motion_GRIPPER_GRAB :
+	right_gripper.findTwoContacts();
+	return pr2motion_pause_waitfindtwo;
+      case pr2motion_GRIPPER_RELEASE :
+	right_gripper.open();
+	return pr2motion_pause_waitopen;
+      case pr2motion_GRIPPER_OPEN :
+      case pr2motion_GRIPPER_CLOSE :
+      default:
+	return pr2motion_invalid_param(self);
+       }
+    } else {
+      return pr2motion_pause_waitplace;
+    }
+  default:
+    return pr2motion_invalid_param(self);
+  }
 
-  return pr2motion_end;
+  // we are in simulation
+#else
+  // we should not be here in simulation
+  return pr2motion_unknown_error(self);
+#endif
 }
 
 /** Codel waitcontactOperateGripper of activity Gripper_Operate.
@@ -489,9 +499,7 @@ waitcontactOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
- *           pr2motion_pause_waitcontact, pr2motion_stop,
- *           pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -507,12 +515,12 @@ waitopenOperateGripper(pr2motion_SIDE side,
   switch(side){
   case pr2motion_LEFT :
     if(left_gripper.open_isDone())
-      return pr2motion_pause_waitcontact;
+      return pr2motion_end;
     else
       return pr2motion_pause_waitopen;
   case pr2motion_RIGHT :
     if(right_gripper.open_isDone())
-      return pr2motion_pause_waitcontact;
+      return pr2motion_end;
     else
       return pr2motion_pause_waitopen;
   default:
@@ -540,8 +548,7 @@ waitopenOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -550,38 +557,36 @@ waitcloseOperateGripper(pr2motion_SIDE side,
                         pr2motion_GRIPPER_MODE goal_mode,
                         genom_context self)
 {
-
   if (side >= pr2motion_NB_SIDE)
     return pr2motion_invalid_param(self);    
-  
+
   switch(side){
   case pr2motion_LEFT :
-    if(left_gripper.close_isDone()){
+    if(left_gripper.close_isDone())
       return pr2motion_end;
-    } else {
+    else
       return pr2motion_pause_waitclose;
-    }
   case pr2motion_RIGHT :
-    if(right_gripper.close_isDone()){
+    if(right_gripper.close_isDone())
       return pr2motion_end;
-    } else {
+    else
       return pr2motion_pause_waitclose;
-    }
   default:
     return pr2motion_unknown_error(self);
   }
 
 }
 
-/** Codel waitreleaseOperateGripper of activity Gripper_Operate.
+/** Codel waitfindtwoOperateGripper of activity Gripper_Operate.
  *
- * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
+ * Triggered by pr2motion_waitfindtwo.
+ * Yields to pr2motion_pause_waitfindtwo, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 genom_event
-waitreleaseOperateGripper(pr2motion_SIDE side,
+waitfindtwoOperateGripper(pr2motion_SIDE side,
                           pr2motion_GRIPPER_MODE goal_mode,
                           genom_context self)
 {
@@ -591,15 +596,33 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
 
   switch(side){
   case pr2motion_LEFT :
-    if(left_gripper.place_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitcontact;
+    if(left_gripper.findTwo_isDone()){
+      switch(goal_mode){
+      case pr2motion_GRIPPER_GRAB :
+      case pr2motion_GRIPPER_CLOSE :
+	left_gripper.forceServo();
+	return pr2motion_end;
+      case pr2motion_GRIPPER_OPEN :
+      case pr2motion_GRIPPER_RELEASE :
+      default:
+	return pr2motion_invalid_param(self);
+      } else {
+	return pr2motion_pause_waitfindtwo;
+      }
   case pr2motion_RIGHT :
-    if(right_gripper.place_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitcontact;
+    if(right_gripper.findTwo_isDone()){
+      switch(goal_mode){
+      case pr2motion_GRIPPER_GRAB :
+      case pr2motion_GRIPPER_CLOSE :
+	right_gripper.forceServo();
+	return pr2motion_end;
+      case pr2motion_GRIPPER_OPEN :
+      case pr2motion_GRIPPER_RELEASE :
+      default:
+	return pr2motion_invalid_param(self);
+      } else {
+	return pr2motion_pause_waitfindtwo;
+      }
   default:
     return pr2motion_unknown_error(self);
   }
@@ -608,107 +631,6 @@ waitreleaseOperateGripper(pr2motion_SIDE side,
 #endif
 }
 
-/** Codel waitgraspOperateGripper of activity Gripper_Operate.
- *
- * Triggered by pr2motion_waitgrasp.
- * Yields to pr2motion_pause_waitgrasp, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-genom_event
-waitgraspOperateGripper(pr2motion_SIDE side,
-                        pr2motion_GRIPPER_MODE goal_mode,
-                        genom_context self)
-{
-#ifndef PR2_SIMU
-  if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
-
-  switch(side){
-  case pr2motion_LEFT :
-    if(left_gripper.grab_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitgrasp;
-  case pr2motion_RIGHT :
-    if(right_gripper.grab_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitgrasp;
-  default:
-    return pr2motion_unknown_error(self);
-  }
-#else
-  return pr2motion_unknown_error(self);
-#endif
-}
-
-/** Codel waitrelease2OperateGripper of activity Gripper_Operate.
- *
- * Triggered by pr2motion_waitrelease2.
- * Yields to pr2motion_pause_waitrelease2, pr2motion_stop,
- *           pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-genom_event
-waitrelease2OperateGripper(pr2motion_SIDE side,
-                           pr2motion_GRIPPER_MODE goal_mode,
-                           genom_context self)
-{
-#ifndef PR2_SIMU
-  if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
-
-  switch(side){
-  case pr2motion_LEFT :
-    if(left_gripper.release_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitrelease2;
-  case pr2motion_RIGHT :
-    if(right_gripper.release_isDone())
-      return pr2motion_end;
-    else
-      return pr2motion_pause_waitrelease2;
-  default:
-    return pr2motion_unknown_error(self);
-  }
-#else
-  return pr2motion_unknown_error(self);
-#endif
-}
-
-/** Codel slipservoOperateGripper of activity Gripper_Operate.
- *
- * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-genom_event
-slipservoOperateGripper(pr2motion_SIDE side,
-                        pr2motion_GRIPPER_MODE goal_mode,
-                        genom_context self)
-{
-  if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
-
-#ifndef PR2_SIMU
-  switch(side){
-  case pr2motion_LEFT :
-    left_gripper.slipServo();
-    return pr2motion_end;
-  case pr2motion_RIGHT :
-    right_gripper.slipServo();
-    return pr2motion_end;
-  default:
-    return pr2motion_unknown_error(self);
-  }
-#else
-  return pr2motion_unknown_error(self);
-#endif
-}
 
 /** Codel stopOperateGripper of activity Gripper_Operate.
  *
@@ -733,29 +655,35 @@ stopOperateGripper(pr2motion_SIDE side,
     switch(goal_mode){
 #ifndef PR2_SIMU
     case pr2motion_GRIPPER_GRAB :
-      left_gripper.findTwo_cancel();
     case pr2motion_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_CLOSE :
+      left_gripper.findTwo_cancel();
       left_gripper.place_cancel();
-      return pr2motion_pause_waitrelease;
+      return pr2motion_end;
 #endif
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open_cancel();
+      return pr2motion_end;
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close_cancel();
+      return pr2motion_end;      
     }
   case pr2motion_RIGHT :
     switch(goal_mode){
 #ifndef PR2_SIMU
     case pr2motion_GRIPPER_GRAB :
-      right_gripper.findTwo_cancel();
     case pr2motion_GRIPPER_RELEASE :
+    case pr2motion_GRIPPER_CLOSE :      
       right_gripper.place_cancel();
-      return pr2motion_pause_waitrelease;
+      right_gripper.findTwo_cancel();
+      return pr2motion_end;
 #endif
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open_cancel();
+      return pr2motion_end;
     case pr2motion_GRIPPER_CLOSE :
       right_gripper.close_cancel();
+      return pr2motion_end;
     }   
   }
   return pr2motion_end;
@@ -782,7 +710,7 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel startOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -792,32 +720,20 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
- *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
- *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_pause_waitclose,
+ *           pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
 
-/** Codel waitOperateGripper of activity Gripper_Right_Operate.
+/** Codel waitplaceOperateGripper of activity Gripper_Right_Operate.
  *
- * Triggered by pr2motion_wait.
- * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-/* already defined in service Gripper_Operate */
-
-
-/** Codel waitcontactOperateGripper of activity Gripper_Right_Operate.
- *
- * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Triggered by pr2motion_waitplace.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -827,9 +743,7 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_pause_waitopen, pr2motion_pause_wait,
- *           pr2motion_pause_waitcontact, pr2motion_stop,
- *           pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -839,28 +753,18 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Right_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
 
-/** Codel waitreleaseOperateGripper of activity Gripper_Right_Operate.
+/** Codel waitfindtwoOperateGripper of activity Gripper_Right_Operate.
  *
- * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-/* already defined in service Gripper_Operate */
-
-
-/** Codel slipservoOperateGripper of activity Gripper_Right_Operate.
- *
- * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
+ * Triggered by pr2motion_waitfindtwo.
+ * Yields to pr2motion_pause_waitfindtwo, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -893,7 +797,7 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel startOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_start.
- * Yields to pr2motion_pause_exec, pr2motion_stop, pr2motion_ether.
+ * Yields to pr2motion_pause_exec, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -903,32 +807,20 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel execOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_exec.
- * Yields to pr2motion_pause_exec, pr2motion_pause_wait,
- *           pr2motion_pause_waitcontact, pr2motion_pause_waitopen,
- *           pr2motion_pause_waitclose, pr2motion_pause_waitrelease,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_pause_waitclose,
+ *           pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
 
-/** Codel waitOperateGripper of activity Gripper_Left_Operate.
+/** Codel waitplaceOperateGripper of activity Gripper_Left_Operate.
  *
- * Triggered by pr2motion_wait.
- * Yields to pr2motion_pause_wait, pr2motion_pause_exec,
- *           pr2motion_stop, pr2motion_end, pr2motion_ether.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-/* already defined in service Gripper_Operate */
-
-
-/** Codel waitcontactOperateGripper of activity Gripper_Left_Operate.
- *
- * Triggered by pr2motion_waitcontact.
- * Yields to pr2motion_pause_slipservo, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Triggered by pr2motion_waitplace.
+ * Yields to pr2motion_pause_waitplace, pr2motion_pause_waitopen,
+ *           pr2motion_pause_waitfindtwo, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -938,8 +830,7 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitopenOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitopen.
- * Yields to pr2motion_pause_waitopen, pr2motion_pause_waitcontact,
- *           pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitopen, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
@@ -949,28 +840,18 @@ endOperateGripper(pr2motion_SIDE side,
 /** Codel waitcloseOperateGripper of activity Gripper_Left_Operate.
  *
  * Triggered by pr2motion_waitclose.
- * Yields to pr2motion_pause_waitclose, pr2motion_pause_wait,
- *           pr2motion_stop, pr2motion_end.
+ * Yields to pr2motion_pause_waitclose, pr2motion_end, pr2motion_stop.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */
 /* already defined in service Gripper_Operate */
 
 
-/** Codel waitreleaseOperateGripper of activity Gripper_Left_Operate.
+/** Codel waitfindtwoOperateGripper of activity Gripper_Left_Operate.
  *
- * Triggered by pr2motion_waitrelease.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
- * Throws pr2motion_not_connected, pr2motion_init_not_done,
- *        pr2motion_invalid_param, pr2motion_unknown_error.
- */
-/* already defined in service Gripper_Operate */
-
-
-/** Codel slipservoOperateGripper of activity Gripper_Left_Operate.
- *
- * Triggered by pr2motion_slipservo.
- * Yields to pr2motion_pause_wait, pr2motion_stop, pr2motion_end.
+ * Triggered by pr2motion_waitfindtwo.
+ * Yields to pr2motion_pause_waitfindtwo, pr2motion_stop,
+ *           pr2motion_end.
  * Throws pr2motion_not_connected, pr2motion_init_not_done,
  *        pr2motion_invalid_param, pr2motion_unknown_error.
  */

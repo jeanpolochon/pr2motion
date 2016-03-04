@@ -12,6 +12,8 @@
 #include <pr2_gripper_sensor_msgs/PR2GripperEventDetectorAction.h>
 #include <pr2_gripper_sensor_msgs/PR2GripperGrabAction.h>
 #include <pr2_gripper_sensor_msgs/PR2GripperReleaseAction.h>
+#include <pr2_gripper_sensor_msgs/PR2GripperForceServoAction.h>
+
 
 #include <actionlib/client/simple_action_client.h>
 
@@ -29,7 +31,7 @@ typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperGrabAct
 // Our Action interface type, provided as a typedef for convenience                   
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperReleaseAction> ReleaseClient;
 // Our Action interface type, provided as a typedef for convenience                   
-
+typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperForceServoAction> ForceClient;
 
 class Gripper{
 private:
@@ -39,6 +41,7 @@ private:
   EventDetectorClient* event_detector_client_;
   GrabClient* grab_client_;
   ReleaseClient* release_client_;
+  ForceClient* force_client_;
 
   // open cmd data
   double open_position_;
@@ -127,6 +130,18 @@ private:
   /*    float64 hardness_gain  */
   double grab_hardness_gain_;
   
+  /* PR2GripperForceServoCommand
+     # the amount of fingertip force (in Newtons) to apply.
+     # NOTE: the joint will squeeze until each finger reaches this level
+     # values < 0 (opening force) are ignored
+     #
+     # 10 N can crack an egg or crush a soda can.
+     # 15 N can firmly pick up a can of soup.
+     # Experiment on your own.
+     #
+     float64 fingertip_force */
+  double fingertip_force_;
+
 public:
   enum SIDE { LEFT, RIGHT, NB_SIDE };
   enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR }; 
@@ -223,6 +238,17 @@ public:
   void release_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperReleaseFeedbackConstPtr&);
   void release();
   void release_cancel();
+
+  // FORCESERVO
+  int8_t getForceServoFingertipForce();
+  ERROR setForceServoFingertipForce(double);
+  bool forceServo_isDone();
+  actionlib::SimpleClientGoalState forceServo_getState();
+  void forceServo_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperForceServoResultConstPtr&);
+  void forceServo_activeCb();
+  void forceServo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperForceServoFeedbackConstPtr&);
+  void forceServo();
+  void forceServo_cancel();
 
 };
 #endif

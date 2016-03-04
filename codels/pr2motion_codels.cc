@@ -609,6 +609,104 @@ getEventDetectorParam(pr2motion_SIDE side,
 
 
 
+/* --- Function Z_Gripper_SetForceServoGoal ----------------------------- */
+
+/** Codel setForceServoGoal of function Z_Gripper_SetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+setForceServoGoal(pr2motion_SIDE side, double fingertip_force,
+                  genom_context self)
+{
+#ifndef PR2_SIMU
+  Gripper::ERROR fingertip_force_result=Gripper::OK;
+
+  if (side >= pr2motion_NB_SIDE)
+    return pr2motion_invalid_param(self);   
+
+  switch(side){
+  case pr2motion_LEFT :
+    fingertip_force_result = left_gripper.setForceServoFingertipForce(fingertip_force);
+    break;
+  case pr2motion_RIGHT :
+    fingertip_force_result = right_gripper.setForceServoFingertipForce(fingertip_force);
+    break;
+  default:
+    return pr2motion_unknown_error(self);
+  }
+
+  if(fingertip_force_result != Gripper::OK)
+    return pr2motion_invalid_param(self);
+  }
+
+#else
+  return genom_ok;
+#endif
+}
+
+
+/* --- Function Z_Gripper_Right_SetForceServoGoal ----------------------- */
+
+/** Codel setForceServoGoal of function Z_Gripper_Right_SetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Gripper_SetForceServoGoal */
+
+
+
+/* --- Function Z_Gripper_Left_SetForceServoGoal ------------------------ */
+
+/** Codel setForceServoGoal of function Z_Gripper_Left_SetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Gripper_SetForceServoGoal */
+
+
+
+/* --- Function Z_Gripper_GetForceServoGoal ----------------------------- */
+
+/** Codel getForceServoGoal of function Z_Gripper_GetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+getForceServoGoal(pr2motion_SIDE side, double *fingertip_force,
+                  genom_context self)
+{
+  /* skeleton sample: insert your code */
+  /* skeleton sample */ return genom_ok;
+}
+
+
+/* --- Function Z_Gripper_Right_GetForceServoGoal ----------------------- */
+
+/** Codel getForceServoGoal of function Z_Gripper_Right_GetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Gripper_GetForceServoGoal */
+
+
+
+/* --- Function Z_Gripper_Left_GetForceServoGoal ------------------------ */
+
+/** Codel getForceServoGoal of function Z_Gripper_Left_GetForceServoGoal.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Z_Gripper_GetForceServoGoal */
+
+
+
 /* --- Function Z_Torso_SetMaxVelocity ---------------------------------- */
 
 /** Codel setTorsoMaxVelocity of function Z_Torso_SetMaxVelocity.

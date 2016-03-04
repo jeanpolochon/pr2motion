@@ -41,21 +41,6 @@ component pr2motion {
     pr2motion::pr2_controllers_msgs_jointtrajectorycontrollerstate head_controller_state_msg;
     boolean head_controller_state_availability;
 
-    // GRIPPER
-    //PR2GripperForceServoCommand
-    double force_fingertip_force;
-    //#endif
-
-
-    // LEFT GRIPPER
-    //PR2GripperForceServoCommand
-    double left_force_fingertip_force;
-    //#endif
-
-    // RIGHT GRIPPER
-    //PR2GripperForceServoCommand
-    double right_force_fingertip_force;
-    //#endif
 
     // LEFT_SIDE
     pr2motion::SIDE left_side;
@@ -266,34 +251,58 @@ component pr2motion {
     throw invalid_param, unknown_error; 
   };
 
-
-
-  attribute Gripper_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
+  function Z_Gripper_SetForceServoGoal(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", in double fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
   {
     doc "Set force servo goal";
+    codel setForceServoGoal(in side, in fingertip_force);
+    throw invalid_param, unknown_error;
   };
 
-  attribute Gripper_GetForceServoGoal(out force_fingertip_force)
+  function Z_Gripper_Right_SetForceServoGoal(in double fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
+  {
+    doc "Set force servo goal";
+    codel setForceServoGoal(in right_side, in fingertip_force);
+    throw invalid_param, unknown_error;
+  };
+
+  function Z_Gripper_Left_SetForceServoGoal(in double fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
+  {
+    doc "Set force servo goal";
+    codel setForceServoGoal(in left_side, in fingertip_force);
+    throw invalid_param, unknown_error;
+  };
+
+  function Z_Gripper_GetForceServoGoal(in pr2motion::SIDE side = pr2motion::RIGHT:"pr2motion::LEFT or pr2motion::RIGHT", out double fingertip_force)
   {
     doc "Get force servo goal";
+    codel getForceServoGoal(in side, out fingertip_force);
+    throw invalid_param, unknown_error;
   };
 
+  function Z_Gripper_Right_GetForceServoGoal(out double fingertip_force)
+  {
+    doc "Get force servo goal";
+    codel getForceServoGoal(in right_side, out fingertip_force);
+    throw invalid_param, unknown_error;
+  };
 
-  // we are on the real robot
+  function Z_Gripper_Left_GetForceServoGoal(out double fingertip_force)
+  {
+    doc "Get force servo goal";
+    codel getForceServoGoal(in left_side, out fingertip_force);
+    throw invalid_param, unknown_error;
+  };
+
   activity Gripper_Operate(in pr2motion::SIDE side = pr2motion::RIGHT:"0= left, 1=right",
 					    in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, pause::waitgrasp, pause::waitrelease2, stop, end, ether;
-    codel <wait> waitOperateGripper(in side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
-    codel <waitgrasp> waitgraspOperateGripper(in side, in goal_mode) yield pause::waitgrasp, stop, end;
-    codel <waitrelease2> waitrelease2OperateGripper(in side, in goal_mode) yield pause::waitrelease2, stop, end;
-    codel <slipservo> slipservoOperateGripper(in side, in goal_mode) yield pause::wait, stop, end;
+    codel <start> startOperateGripper(in side, in goal_mode) yield pause::exec, stop; 
+    codel <exec> execOperateGripper(in side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, pause::waitclose, stop;
+    codel <waitplace> waitplaceOperateGripper(in side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, stop; 
+    codel <waitopen> waitopenOperateGripper(in side, in goal_mode) yield pause::waitopen, end, stop;
+    codel <waitclose> waitcloseOperateGripper(in side, in goal_mode) yield pause::waitclose, end, stop;
+    codel <waitfindtwo> waitfindtwoOperateGripper(in side, in goal_mode) yield pause::waitfindtwo, stop, end;
     codel <stop> stopOperateGripper(in side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -308,29 +317,16 @@ component pr2motion {
 
 /* Right GRIPPER related functions */
   
-  attribute Gripper_Right_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
-  {
-    doc "Set force servo goal";
-  };
-
-  attribute Gripper_Right_GetForceServoGoal(out force_fingertip_force)
-  {
-    doc "Get force servo goal";
-  };
-
-
   // we are on the real robot
   activity Gripper_Right_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in right_side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
-    codel <wait> waitOperateGripper(in right_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in right_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield pause::waitopen,  pause::wait, pause::waitcontact, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in right_side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in right_side, in goal_mode) yield pause::wait, stop, end;
-    codel <slipservo> slipservoOperateGripper(in right_side, in goal_mode) yield pause::wait, stop, end;
+    codel <start> startOperateGripper(in right_side, in goal_mode) yield pause::exec, stop; 
+    codel <exec> execOperateGripper(in right_side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, pause::waitclose, stop;
+    codel <waitplace> waitplaceOperateGripper(in right_side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, stop; 
+    codel <waitopen> waitopenOperateGripper(in right_side, in goal_mode) yield pause::waitopen, end, stop;
+    codel <waitclose> waitcloseOperateGripper(in right_side, in goal_mode) yield pause::waitclose, end, stop;
+    codel <waitfindtwo> waitfindtwoOperateGripper(in right_side, in goal_mode) yield pause::waitfindtwo, stop, end;
     codel <stop> stopOperateGripper(in right_side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in right_side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
@@ -344,33 +340,20 @@ component pr2motion {
   }; 
 
 /* Left GRIPPER related functions */  
-  attribute Gripper_Left_SetForceServoGoal(in force_fingertip_force = 10 : "see pr2_gripper_sensor_msgs/PR2GripperForceServoCommand.msg, the amount of fingertip force (in Newtons) to apply. NOTE: the joint will squeeze until each finger reaches this level; values < 0 (opening force) are ignored ; 10 N can crack an egg or crush a soda can ; 15 N can firmly pick up a can of soup.")
-  {
-    doc "Set force servo goal";
-  };
 
-  attribute Gripper_Left_GetForceServoGoal(out force_fingertip_force)
-  {
-    doc "Get force servo goal";
-  };
-
-
-  // we are on the real robot
   activity Gripper_Left_Operate(in pr2motion::GRIPPER_MODE goal_mode = pr2motion::GRIPPER_OPEN:"pr2motion::GRIPPER_OPEN, pr2motion::GRIPPER_CLOSE, pr2motion::GRIPPER_GRAB, pr2motion::GRIPPER_RELEASE")
   {
     doc "Allow to operate the Gripper";
-    codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop, ether; 
-    codel <exec> execOperateGripper(in left_side, in goal_mode) yield pause::exec, pause::wait, pause::waitcontact, pause::waitopen, pause::waitclose, pause::waitrelease, stop, end, ether;
-    codel <wait> waitOperateGripper(in left_side, in goal_mode) yield pause::wait, pause::exec, stop, end, ether;
-    codel <waitcontact> waitcontactOperateGripper(in left_side, in goal_mode) yield pause::slipservo, pause::wait, stop, end; 
-    codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield pause::waitopen,  pause::waitcontact, pause::wait, stop, end;
-    codel <waitclose> waitcloseOperateGripper(in left_side, in goal_mode) yield pause::waitclose, pause::wait, stop, end;
-    codel <waitrelease> waitreleaseOperateGripper(in left_side, in goal_mode) yield pause::wait, stop, end;
-    codel <slipservo> slipservoOperateGripper(in left_side, in goal_mode) yield pause::wait, stop, end;
+    codel <start> startOperateGripper(in left_side, in goal_mode) yield pause::exec, stop; 
+    codel <exec> execOperateGripper(in left_side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, pause::waitclose, stop;
+    codel <waitplace> waitplaceOperateGripper(in left_side, in goal_mode) yield pause::waitplace, pause::waitopen, pause::waitfindtwo, stop; 
+    codel <waitopen> waitopenOperateGripper(in left_side, in goal_mode) yield pause::waitopen, end, stop;
+    codel <waitclose> waitcloseOperateGripper(in left_side, in goal_mode) yield pause::waitclose, end, stop;
+    codel <waitfindtwo> waitfindtwoOperateGripper(in left_side, in goal_mode) yield pause::waitfindtwo, stop, end;
     codel <stop> stopOperateGripper(in left_side, in goal_mode) yield ether;
     codel <end> endOperateGripper(in left_side, in goal_mode) yield ether;
     throw not_connected, init_not_done, invalid_param, unknown_error;
-    task main;    
+    task main;   
   };
 
   function Gripper_Left_Stop()
