@@ -51,9 +51,8 @@ Torso::ERROR Torso::init(){
     //check if the client is already connected
     if(!torso_client_->isServerConnected()) {
       // wait for the connection
-      while(!torso_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the torso action server to come up");
-      }
+      ROS_INFO("Waiting for the torso action server to come up");
+      torso_client_->waitForServer(ros::Duration(5.0));
       if(!torso_client_->isServerConnected()) {
 	result=SERVER_NOT_CONNECTED;
       }

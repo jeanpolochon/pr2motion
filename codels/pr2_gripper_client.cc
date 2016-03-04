@@ -74,9 +74,8 @@ GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
   if(gripper_client_!=NULL) {
     if(!gripper_client_->isServerConnected()){
       //wait for the gripper action server to come up 
-      while(!gripper_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the gripper controller to come up\n");
-      }
+      ROS_INFO("Waiting for the gripper controller to come up\n");
+      gripper_client_->waitForServer(ros::Duration(5.0));
       if(!gripper_client_->isServerConnected()) {
 	result=SERVER_NOT_CONNECTED;
       }

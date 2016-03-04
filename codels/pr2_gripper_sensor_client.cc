@@ -99,57 +99,50 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
   if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)&&(grab_client_!=NULL)&&(release_client_!=NULL)&&(force_client_!=NULL)){
     if(!gripper_client_->isServerConnected()){
       //wait for the gripper action server to come up 
-      while(!gripper_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/gripper_action action server to come up");
-      }
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/gripper_action action server to come up");
+      gripper_client_->waitForServer(ros::Duration(5.0));
       if(!gripper_client_->isServerConnected()){
 	result=SERVER_NOT_CONNECTED;
       }
     }
     if(!contact_client_->isServerConnected()){
-      while(!contact_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/find_contact action server to come up");
-      }
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/find_contact action server to come up");
+      contact_client_->waitForServer(ros::Duration(5.0));
       if(!contact_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }
     }
     if(!slip_client_->isServerConnected()){
-      while(!slip_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/slip_servo action server to come up");
-      }    
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/slip_servo action server to come up");
+      slip_client_->waitForServer(ros::Duration(5.0));
       if(!slip_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }
     }
     if(!event_detector_client_->isServerConnected()){
-      while(!event_detector_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
-      }    
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
+      event_detector_client_->waitForServer(ros::Duration(5.0));
       if(!event_detector_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }	
     }
     if(!grab_client_->isServerConnected()){
-      while(!grab_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
-      }    
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
+      grab_client_->waitForServer(ros::Duration(5.0));
       if(!grab_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }	
     }    
     if(!release_client_->isServerConnected()){
-      while(!release_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/release action server to come up");
-      }    
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/release action server to come up");
+      release_client_->waitForServer(ros::Duration(5.0));
       if(!release_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }	
     }
     if(!force_client_->isServerConnected()){
-      while(!force_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the r_gripper_sensor_controller/force_servo action server to come up");
-      }    
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/force_servo action server to come up");
+      force_client_->waitForServer(ros::Duration(5.0));
       if(!force_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }	
