@@ -61,9 +61,8 @@ RobotHead::ERROR RobotHead::init(){
     //check if the client is already connected
     if(!point_head_client_->isServerConnected()) {
       //wait for head controller action server to come up 
-      while(!point_head_client_->waitForServer(ros::Duration(5.0))){
-	ROS_INFO("Waiting for the point_head_action server to come up");
-      }
+      ROS_INFO("Waiting for the point_head_action server to come up");
+      point_head_client_->waitForServer(ros::Duration(5.0));
       if(!point_head_client_->isServerConnected()) {
 	result=SERVER_NOT_CONNECTED;
       }
