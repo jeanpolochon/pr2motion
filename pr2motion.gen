@@ -394,6 +394,25 @@ component pr2motion {
   throw invalid_param;
   };
 
+ function Z_Head_GetMaxVelocity(out double head_max_velocity) 
+  {
+  doc "Get Head maxvelocity";
+  codel getHeadMaxVelocity(out head_max_velocity);
+  };
+
+  function Z_Head_SetMinDuration(in double head_min_duration) 
+  {
+  doc "Set Head minduration";
+  codel setHeadMinDuration(in head_min_duration);
+  throw invalid_param;
+  };
+
+  function Z_Head_GetMinDuration(out double head_min_duration) 
+  {
+  doc "Set Head minduration";
+  codel getHeadMinDuration(out head_min_duration);
+  };
+
   activity Head_Move(
     in pr2motion::HEAD_MODE head_mode = pr2motion::HEAD_LOOKAT:"pr2motion::HEAD_LOOKAT or HEAD_FOLLOWING",
       in string<HEAD_TARGET_FRAME_LEN> head_target_frame = "base_link":"requested frame",

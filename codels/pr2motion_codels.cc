@@ -745,6 +745,53 @@ setHeadMaxVelocity(double head_max_velocity, genom_context self)
 }
 
 
+/* --- Function Z_Head_GetMaxVelocity ----------------------------------- */
+
+/** Codel getHeadMaxVelocity of function Z_Head_GetMaxVelocity.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+getHeadMaxVelocity(double *head_max_velocity, genom_context self)
+{
+  *head_max_velocity = head.getMaxVelocity();
+  return genom_ok;
+}
+
+
+/* --- Function Z_Head_SetMinDuration ----------------------------------- */
+
+/** Codel setHeadMinDuration of function Z_Head_SetMinDuration.
+ *
+ * Returns genom_ok.
+ * Throws pr2motion_invalid_param.
+ */
+genom_event
+setHeadMinDuration(double head_min_duration, genom_context self)
+{
+  RobotHead::ERROR result= RobotHead::OK;
+  result = head.setMinDuration(head_min_duration);
+  if(result != RobotHead::OK) {
+    return pr2motion_invalid_param(self);
+  } 
+  return genom_ok;
+}
+
+
+/* --- Function Z_Head_GetMinDuration ----------------------------------- */
+
+/** Codel getHeadMinDuration of function Z_Head_GetMinDuration.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+getHeadMinDuration(double *head_min_duration, genom_context self)
+{
+  *head_min_duration = head.getMinDuration();
+  return genom_ok;
+}
+
+
 /* --- Function Z_Arm_SetT ---------------------------------------------- */
 
 /** Codel Arm_SetT of function Z_Arm_SetT.

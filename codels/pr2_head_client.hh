@@ -21,7 +21,7 @@ private:
   double tilt_min_;
   double tilt_max_;
   ros::Duration min_duration_;
-  ros::Duration min_duration_max_;  
+  ros::Duration min_duration_min_;  
   double max_velocity_;
   double max_velocity_max_;
 
@@ -84,6 +84,10 @@ public:
   void cancelCmd();
 
   ERROR setMaxVelocity(double);
+  double getMaxVelocity();
+
+  ERROR setMinDuration(double);
+  double getMinDuration();
 };
 
 #endif

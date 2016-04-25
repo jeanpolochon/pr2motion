@@ -196,6 +196,25 @@ module pr2motion {
 
 #pragma masquerade ros pr2_controllers_msgs_jointtrajectorycontrollerstate pr2_controllers_msgs/JointTrajectoryControllerState
 
+// rosmsg show pr2_controllers_msgs/PointHeadGoal
+// geometry_msgs/PointStamped target
+//     Header header
+//         uint32 seq
+//         time stamp
+//         string frame_id
+//     geometry_msgs/Point point
+//         float64 x
+//         float64 y
+//         float64 z
+// geometry_msgs/Vector3 pointing_axis
+//     float64 x
+//     float64 y
+//     float64 z
+// string pointing_frame
+// duration min_duration
+// float64 max_velocity
+
+
 
 };
 #endif

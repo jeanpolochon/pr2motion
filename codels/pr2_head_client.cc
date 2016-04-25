@@ -7,6 +7,7 @@ RobotHead::RobotHead()
     tilt_max_(1.29),
     point_head_client_(NULL),
     min_duration_(0.5),
+    min_duration_min_(0.0),
     max_velocity_(0.8)
 {
 }
@@ -24,6 +25,26 @@ RobotHead::ERROR RobotHead::setMaxVelocity(double max_velocity){
     result = INVALID_PARAM;
   }
   return result;
+}
+
+double RobotHead::getMaxVelocity(){
+  return max_velocity_;
+}
+
+RobotHead::ERROR RobotHead::setMinDuration(double min_duration_input){
+  ERROR result=OK;
+  ros::Duration min_duration(min_duration_input);
+  if(min_duration>min_duration_min_) {
+    min_duration_=min_duration;
+  } else {
+    ROS_INFO("RobotHead::setMinDuration : min_duration_min = %f where you propose min_duration = %f, keep min_duration %f", min_duration_min_.toSec(), min_duration.toSec(), min_duration_.toSec());
+    result = INVALID_PARAM;
+  }
+  return result;
+}
+
+double RobotHead::getMinDuration(){
+  return min_duration_.toSec();
 }
 
 RobotHead::ERROR RobotHead::init(){
@@ -223,8 +244,8 @@ void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
   // in which case they are ignored. 
   // If both are unspecified, the head will reach its goal as fast as possible. 
 
-  // Let min duration unspecified
-  // goal_cmd.min_duration = min_duration_;
+  // min duration
+  goal_cmd.min_duration = min_duration_;
   // but go no faster than max_velocity_default_;
   goal_cmd.max_velocity = max_velocity_;
 
