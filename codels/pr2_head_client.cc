@@ -235,7 +235,7 @@ void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
   
   //we are pointing the high-def camera frame 
   //(pointing_axis defaults to X-axis)
-  goal_cmd.pointing_frame = "high_def_frame";
+  goal_cmd.pointing_frame = "head_plate_frame";
   goal_cmd.pointing_axis.x = 1.0;
   goal_cmd.pointing_axis.y = 0.0;
   goal_cmd.pointing_axis.z = 0.0;
