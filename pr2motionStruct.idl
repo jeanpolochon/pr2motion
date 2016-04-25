@@ -214,7 +214,32 @@ module pr2motion {
 // duration min_duration
 // float64 max_velocity
 
+  struct geometry_msgs_point{
+    double x;
+    double y;
+    double z;
+  };
 
+  struct geometry_msgs_pointstamped{
+    std_msgs_header header;
+    geometry_msgs_point point;
+  };
+  
+  struct geometry_msgs_vector3{
+    double x;
+    double y;
+    double z;
+  };
+
+  struct pr2_controllers_msgs_pointheadgoal{
+    geometry_msgs_pointstamped target;
+    geometry_msgs_vector3 pointing_axis;
+    string pointing_frame;
+    double min_duration;
+    double max_velocity;
+  };
+
+#pragma masquerade ros geometry_msgs_pointstamped geometry_msgs/PointStamped
 
 };
 #endif

@@ -413,7 +413,7 @@ component pr2motion {
   codel getHeadMinDuration(out head_min_duration);
   };
 
-  activity Head_Move(
+  activity Head_Move_Target(
     in pr2motion::HEAD_MODE head_mode = pr2motion::HEAD_LOOKAT:"pr2motion::HEAD_LOOKAT or HEAD_FOLLOWING",
       in string<HEAD_TARGET_FRAME_LEN> head_target_frame = "base_link":"requested frame",
       in double head_target_x = 0.0:"x",
@@ -429,11 +429,24 @@ component pr2motion {
   task main;  
   };
   
+  activity Head_Move_Topic(
+			   in pr2motion::HEAD_MODE head_mode = pr2motion::HEAD_LOOKAT:"pr2motion::HEAD_LOOKAT or HEAD_FOLLOWING")
+  {
+    doc "Move the Head";
+    codel <start> startMoveHeadTopic(in head_mode, port in head_desired_position) yield end, ether, pause::wait;
+    codel <wait> waitMoveHead(in head_mode, port in head_controller_state, out head_controller_state_msg) yield pause::start, pause::wait, end, ether;
+    codel <end> endMoveHead() yield ether;
+    codel <stop> stopMoveHead() yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error;
+    task main;  
+  };
+  
+
   function Head_Stop()
   {
   doc "Allow to stop the move of the Head";
   //interrupts Head_MoveHead;
-  interrupts Head_Move;
+  interrupts Head_Move_Target, Head_Move_Topic;
   };  
 
 

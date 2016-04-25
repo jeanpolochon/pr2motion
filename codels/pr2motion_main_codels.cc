@@ -933,9 +933,9 @@ stopMoveTorso(genom_context self)
 }
 
 
-/* --- Activity Head_Move ----------------------------------------------- */
+/* --- Activity Head_Move_Target ---------------------------------------- */
 
-/** Codel startMoveHead of activity Head_Move.
+/** Codel startMoveHead of activity Head_Move_Target.
  *
  * Triggered by pr2motion_start.
  * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_wait.
@@ -966,7 +966,7 @@ startMoveHead(pr2motion_HEAD_MODE head_mode,
   }
 }
 
-/** Codel waitMoveHead of activity Head_Move.
+/** Codel waitMoveHead of activity Head_Move_Target.
  *
  * Triggered by pr2motion_wait.
  * Yields to pr2motion_pause_start, pr2motion_pause_wait,
@@ -1035,7 +1035,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
 
 }
 
-/** Codel endMoveHead of activity Head_Move.
+/** Codel endMoveHead of activity Head_Move_Target.
  *
  * Triggered by pr2motion_end.
  * Yields to pr2motion_ether.
@@ -1048,7 +1048,7 @@ endMoveHead(genom_context self)
   return pr2motion_ether;
 }
 
-/** Codel stopMoveHead of activity Head_Move.
+/** Codel stopMoveHead of activity Head_Move_Target.
  *
  * Triggered by pr2motion_stop.
  * Yields to pr2motion_ether.
@@ -1061,6 +1061,86 @@ stopMoveHead(genom_context self)
   head.cancelCmd();
   return pr2motion_ether;
 }
+
+
+/* --- Activity Head_Move_Topic ----------------------------------------- */
+
+/** Codel startMoveHeadTopic of activity Head_Move_Topic.
+ *
+ * Triggered by pr2motion_start.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_wait.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+startMoveHeadTopic(pr2motion_HEAD_MODE head_mode,
+                   const pr2motion_head_desired_position *head_desired_position,
+                   genom_context self)
+{
+  std::string head_target_frame;
+  double head_target_x;
+  double head_target_y;
+  double head_target_z;
+
+  if(head_mode>=pr2motion_HEAD_NB_MODE)
+    return pr2motion_invalid_param(self);
+ 
+  RobotHead::ERROR result_connect = head.isConnected();
+  switch(result_connect){
+  case RobotHead::OK:
+    // read the trajectory from the port
+    head_desired_position->read(self);
+    if(head_desired_position->data(self)!=NULL){
+      head_target_frame.assign(head_desired_position->data(self)->header.frame_id);
+      head_target_x=head_desired_position->data(self)->point.x;
+      head_target_y=head_desired_position->data(self)->point.y;
+      head_target_z=head_desired_position->data(self)->point.z;
+      head.lookAt(head_target_frame, head_target_x, head_target_y, head_target_z);
+      return pr2motion_pause_wait;  
+    } else {
+    // not able to read the trajectory on the port
+    ROS_INFO("pr2motion::Head_Move no trajectory found on the port.. \n");
+    return pr2motion_end;
+    }
+  case RobotHead::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case RobotHead::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+}
+
+/** Codel waitMoveHead of activity Head_Move_Topic.
+ *
+ * Triggered by pr2motion_wait.
+ * Yields to pr2motion_pause_start, pr2motion_pause_wait,
+ *           pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Head_Move_Target */
+
+
+/** Codel endMoveHead of activity Head_Move_Topic.
+ *
+ * Triggered by pr2motion_end.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Head_Move_Target */
+
+
+/** Codel stopMoveHead of activity Head_Move_Topic.
+ *
+ * Triggered by pr2motion_stop.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Head_Move_Target */
+
 
 
 /* --- Activity Arm_Move ------------------------------------------------ */
