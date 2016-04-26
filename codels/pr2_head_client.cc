@@ -6,7 +6,7 @@ RobotHead::RobotHead()
     tilt_min_(-0.37),
     tilt_max_(1.29),
     point_head_client_(NULL),
-    min_duration_(0.5),
+    min_duration_(1.0),
     min_duration_min_(0.0),
     max_velocity_(0.8)
 {
