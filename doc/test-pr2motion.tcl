@@ -27,7 +27,6 @@ proc pr2motioninit { } {
     pr2motion::connect_port  head_controller_state /head_traj_controller/state
 }
 
-
 #
 #
 # GRIPPER RELATED FUNCTIONS
@@ -73,6 +72,10 @@ proc pr2motionheadfollow { p2 p3 p4 p5 } {
 
 proc pr2motionheadstop { } {
     ::pr2motion::Head_Stop
+}
+
+proc pr2motionheadconnecttopic { } {
+    pr2motion::connect_port  head_desired_position /head_manager/salient_stimuli
 }
 
 #
