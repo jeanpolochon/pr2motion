@@ -1,5 +1,10 @@
-you will need pr2_gripper_sensor_action package
+# in a catkin_workspace:
+# you will need pr2_gripper_sensor_action package
+git clone https://github.com/PR2/pr2_gripper_sensor.git
+# and gtp_ros_msg
+git clone https://github.com/MamounG/gtp_ros_msg.git
 
+# from robotpkg
 #you will need 
 genom3 genom3-ros 
 # and if you want to use tcl faicilities
@@ -7,8 +12,8 @@ eltclsh genomix tcl-genomix
 
 
 # you would need also softMotion-libs but not the robotpkg one
-git clone git://trac.laas.fr/robots/softMotion-libs
-cd softMotion-libs
+https://git.openrobots.org/robots/softmotion/soft-motion-libs.git
+cd soft-motion-libs
 mkdir build
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$ROBOTPKG_BASE
@@ -19,8 +24,11 @@ make install
 CONFIG FILE
 ============
 
-# you need to set variables related to your catkin_ws
+# you need to set variables related to your catkin_ws (where pr2_gripper_sensor_action is installed)
+bash
+source /opt/ros/indigo/setup.bash
 source catkin_ws/devel/setup.bash
+
 
 # then
 
@@ -29,10 +37,13 @@ source catkin_ws/devel/setup.bash
 export ROBOTPKG_BASE=/home/aclodic/Demo_Saphari/openrobots_indigo
 # then
 export PATH=$PATH:$ROBOTPKG_BASE/bin:$ROBOTPKG_BASE/sbin
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$ROBOTPKG_BASE/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$ROBOTPKG_BASE/lib/pkgconfig:/opt/ros/indigo/lib/pkgconfig
 export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$ROBOTPKG_BASE/src/ros-nodes:$ROBOTPKG_BASE/share
 export PYTHONPATH=$PYTHONPATH:$ROBOTPKG_BASE/lib/python2.7/site-packages
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROBOTPKG_BASE/lib
+
+# you could need to tell where is .h file from your catkin_ws
+export CPATH=$CPATH:WHEREISYOURCATKINWORKSPACE/devel/include
 
 
 
