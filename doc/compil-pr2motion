@@ -6,13 +6,16 @@ git clone https://github.com/MamounG/gtp_ros_msg.git
 
 # from robotpkg
 #you will need 
-genom3 genom3-ros 
+genom3 
+genom3-ros 
 # and if you want to use tcl faicilities
-eltclsh genomix tcl-genomix
+eltclsh 
+genomix 
+tcl-genomix
 
 
 # you would need also softMotion-libs but not the robotpkg one
-https://git.openrobots.org/robots/softmotion/soft-motion-libs.git
+git://git.openrobots.org/robots/softmotion/soft-motion-libs.git
 cd soft-motion-libs
 mkdir build
 cd build

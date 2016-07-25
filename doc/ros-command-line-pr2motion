@@ -24,7 +24,7 @@
 
 #if you want to use pr2motion through command line, here is an example of how to handle that
 #strangely, it is not possible to pass an enum value through command line so you have to now it
-rosaction call /pr2motion/Head_Move '{head_mode: {value: 0}, head_target_frame: "r_gripper_tool_frame", head_target_x: 0.0, head_target_y: 0, head_target_z: 0}'
+rosaction call /pr2motion/Head_Move_Target '{head_mode: {value: 0}, head_target_frame: "r_gripper_tool_frame", head_target_x: 0.0, head_target_y: 0, head_target_z: 0}'
 
 #for example here:  
 $rosmsg show  pr2motion/Head_MoveGoal
