@@ -440,13 +440,26 @@ component pr2motion {
     throw not_connected, init_not_done, invalid_param, unknown_error;
     task main;  
   };
-  
+
+  activity Head_Move_PanTilt(
+			   in pr2motion::MOTION_MODE motion_mode = pr2motion::MOTION_RELATIVE:"pr2motion::MOTION_RELATIVE or MOTION_ABSOLUTE", in double pan = 0.0:"pan", in double tilt = 0.0:"tilt")
+  {
+    doc "Move the Head in pan tilt";
+    codel <start> startMoveHeadPanTilt(in motion_mode, in pan, in tilt, in joint_state_availability, in joint_state_msg) yield end, ether, pause::check;
+    codel <check> checkMoveHeadPanTilt() yield end, ether, pause::launch;
+    codel <launch> launchMoveHeadPanTilt() yield end, ether, pause::wait;
+    codel <wait> waitMoveHeadPanTilt() yield pause::wait, end, ether;
+    codel <end> endMoveHead() yield ether;
+    codel <stop> stopMoveHead() yield ether;
+    throw not_connected, init_not_done, invalid_param, unknown_error;
+    task main;  
+  };
 
   function Head_Stop()
   {
   doc "Allow to stop the move of the Head";
   //interrupts Head_MoveHead;
-  interrupts Head_Move_Target, Head_Move_Topic;
+  interrupts Head_Move_Target, Head_Move_Topic, Head_Move_PanTilt;
   };  
 
 

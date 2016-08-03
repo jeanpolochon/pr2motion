@@ -52,6 +52,12 @@ module pr2motion {
     HEAD_NB_MODE
   };
 
+  enum MOTION_MODE {
+    MOTION_ABSOLUTE,
+    MOTION_RELATIVE,
+    MOTION_NB_MODE
+  };
+
   const long HEAD_TARGET_FRAME_LEN = 128;
 
   //#ifndef PR2_SIMU

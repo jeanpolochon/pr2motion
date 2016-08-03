@@ -1143,6 +1143,210 @@ startMoveHeadTopic(pr2motion_HEAD_MODE head_mode,
 
 
 
+/* --- Activity Head_Move_PanTilt --------------------------------------- */
+
+/** Codel startMoveHeadPanTilt of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_start.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_check.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
+                     double tilt, bool joint_state_availability,
+                     const pr2motion_sensor_msgs_jointstate *joint_state_msg,
+                     genom_context self)
+{
+  // goal (path) to be send to the controller
+  pr2_controllers_msgs::JointTrajectoryGoal path_cmd;
+
+  if(motion_mode>=pr2motion_MOTION_NB_MODE)
+    return pr2motion_invalid_param(self);
+
+  // path nb_points
+  int points_vector_size=1;
+  // joint vector size
+  int joint_names_vector_size = 2;
+
+  // head joint indice
+  int head_pan_joint_indice = 0;
+  int head_tilt_joint_indice = 0;
+
+  RobotHead::ERROR result;
+
+  // test if the server is connected
+  RobotHead::ERROR result_connect;
+  result_connect = head.isConnected();
+
+  // check if we can get the actual head position
+  if(!joint_state_availability){
+    ROS_INFO("pr2motion::HeadMove cannot get robot actual position\n");
+    return pr2motion_joint_state_unavailable(self);
+  }
+
+  switch(result_connect){
+  case RobotHead::OK:
+    break;
+  case RobotHead::INIT_NOT_DONE:
+    return pr2motion_init_not_done(self);
+  case RobotHead::SERVER_NOT_CONNECTED:
+    return pr2motion_not_connected(self);
+  default:
+    return pr2motion_unknown_error(self);
+  }
+
+  // we add the current position as the first point in the trajectory
+  points_vector_size = points_vector_size + 1;
+
+  path_cmd.trajectory.points.resize(points_vector_size);
+
+  path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
+  path_cmd.trajectory.joint_names[0]="head_pan_joint";
+  path_cmd.trajectory.joint_names[1]="head_tilt_joint";
+
+  // fill the first point with the current position
+  path_cmd.trajectory.points[0].positions.resize(joint_names_vector_size);
+  path_cmd.trajectory.points[0].velocities.resize(joint_names_vector_size);
+  path_cmd.trajectory.points[0].accelerations.resize(joint_names_vector_size);
+  path_cmd.trajectory.points[0].effort.resize(joint_names_vector_size);
+
+  for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
+    if(strcmp(joint_state_msg->name._buffer[ind],"head_pan_joint")==0){
+      path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[0].velocities[0] = 0.0;
+      path_cmd.trajectory.points[0].accelerations[0] = 0.0;
+      path_cmd.trajectory.points[0].effort[0] = 0.0;
+    }
+    if(strcmp(joint_state_msg->name._buffer[ind],"head_tilt_joint")==0){
+      path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
+      path_cmd.trajectory.points[0].velocities[1] = 0.0;
+      path_cmd.trajectory.points[0].accelerations[1] = 0.0;
+      path_cmd.trajectory.points[0].effort[1] = 0.0;	  
+    }
+  }      
+
+  // fill the rest of the path 
+  for ( size_t ind=1; ind < points_vector_size ; ind++) {
+    path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
+    path_cmd.trajectory.points[ind].velocities.resize(joint_names_vector_size);
+    path_cmd.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
+    path_cmd.trajectory.points[ind].effort.resize(joint_names_vector_size);
+
+    if(motion_mode==pr2motion_MOTION_ABSOLUTE) {
+      // consider each point as absolute point
+      path_cmd.trajectory.points[ind].positions[0] = pan;
+      path_cmd.trajectory.points[ind].velocities[0] = 0.0;
+      path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
+      path_cmd.trajectory.points[ind].effort[0] = 0.0;
+
+      path_cmd.trajectory.points[ind].positions[1] = tilt;
+      path_cmd.trajectory.points[ind].velocities[1] = 0.0;
+      path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
+      path_cmd.trajectory.points[ind].effort[1] = 0.0;
+    } else {
+      // consider each point as relative to the previous one
+      path_cmd.trajectory.points[ind].positions[0] = path_cmd.trajectory.points[ind-1].positions[0] + pan;
+      path_cmd.trajectory.points[ind].velocities[0] = 0.0;
+      path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
+      path_cmd.trajectory.points[ind].effort[0] = 0.0;
+
+      path_cmd.trajectory.points[ind].positions[1] = path_cmd.trajectory.points[ind-1].positions[1] + tilt;
+      path_cmd.trajectory.points[ind].velocities[1] = 0.0;
+      path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
+      path_cmd.trajectory.points[ind].effort[1] = 0.0;
+    }
+    path_cmd.trajectory.points[ind].time_from_start = ros::Duration(1.0);
+  }
+
+  head.clearTrajectory();
+  if(head.setTraj(&path_cmd) == RobotHead::OK){
+    return pr2motion_pause_check;
+  } else {
+    return pr2motion_end;	 
+  }
+
+  return pr2motion_end;
+}
+
+/** Codel checkMoveHeadPanTilt of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_check.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_launch.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+checkMoveHeadPanTilt(genom_context self)
+{
+  RobotHead::ERROR result;
+  result=head.validateTrajectory();
+  if(result == RobotHead::OK)
+    return pr2motion_pause_launch;
+  else
+    return pr2motion_end;
+}
+
+/** Codel launchMoveHeadPanTilt of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_launch.
+ * Yields to pr2motion_end, pr2motion_ether, pr2motion_pause_wait.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+launchMoveHeadPanTilt(genom_context self)
+{
+  head.movePanTilt();
+  return pr2motion_pause_wait;
+}
+
+/** Codel waitMoveHeadPanTilt of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_wait.
+ * Yields to pr2motion_pause_wait, pr2motion_end, pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+genom_event
+waitMoveHeadPanTilt(genom_context self)
+{
+  if(head.movePanTilt_isDone()){ 
+    //possible states PENDING, ACTIVE, RECALLED, REJECTED,
+    // PREEMPTED, ABORTED, SUCCEEDED, LOST
+    if(head.movePanTilt_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
+      ROS_INFO("pr2motion::Move_HeadPanTilt SUCCEEDED !!\n");
+    if(head.movePanTilt_getState()==actionlib::SimpleClientGoalState::ABORTED)
+      ROS_INFO("pr2motion::Move_HeadPanTilt ABORTED\n");
+    if(head.movePanTilt_getState()==actionlib::SimpleClientGoalState::PREEMPTED)
+      ROS_INFO("pr2motion::Move_HeadPanTilt PREEMPTED\n");
+    return pr2motion_end;
+  }
+  else
+    return pr2motion_pause_wait;
+}
+
+/** Codel endMoveHead of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_end.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Head_Move_Target */
+
+
+/** Codel stopMoveHead of activity Head_Move_PanTilt.
+ *
+ * Triggered by pr2motion_stop.
+ * Yields to pr2motion_ether.
+ * Throws pr2motion_not_connected, pr2motion_init_not_done,
+ *        pr2motion_invalid_param, pr2motion_unknown_error.
+ */
+/* already defined in service Head_Move_Target */
+
+
+
 /* --- Activity Arm_Move ------------------------------------------------ */
 
 /** Codel getPathArm of activity Arm_Move.

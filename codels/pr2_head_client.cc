@@ -6,6 +6,7 @@ RobotHead::RobotHead()
     tilt_min_(-0.37),
     tilt_max_(1.29),
     point_head_client_(NULL),
+    traj_head_client_(NULL),
     min_duration_(1.0),
     min_duration_min_(0.0),
     max_velocity_(0.8)
@@ -14,6 +15,7 @@ RobotHead::RobotHead()
 
 RobotHead::~RobotHead(){
   delete point_head_client_;
+  delete traj_head_client_;
 }
 
 RobotHead::ERROR RobotHead::setMaxVelocity(double max_velocity){
@@ -89,7 +91,26 @@ RobotHead::ERROR RobotHead::init(){
       }
     }
   } else {
-    ROS_INFO("RobotHead:: Not able to create the HeadClient");
+    ROS_INFO("RobotHead:: Not able to create the PointHeadClient");
+    result= INIT_FAILED;
+  }
+
+  if(traj_head_client_==NULL)
+    //Initialize the client for the Action interface to the head controller
+    traj_head_client_ = new TrajHeadClient("/head_traj_controller/joint_trajectory_action", true);
+  
+  if(traj_head_client_!=NULL){
+    //check if the client is already connected
+    if(!traj_head_client_->isServerConnected()) {
+      //wait for head controller action server to come up 
+      ROS_INFO("Waiting for the traj_head_action server to come up");
+      traj_head_client_->waitForServer(ros::Duration(5.0));
+      if(!traj_head_client_->isServerConnected()) {
+	result=SERVER_NOT_CONNECTED;
+      }
+    }
+  } else {
+    ROS_INFO("RobotHead:: Not able to create the TrajHeadClient");
     result= INIT_FAILED;
   }
 
@@ -98,10 +119,10 @@ RobotHead::ERROR RobotHead::init(){
 
 RobotHead::ERROR RobotHead::isConnected(){
   ERROR result = OK;
-  if(point_head_client_==NULL)
+  if((point_head_client_==NULL)||(traj_head_client_==NULL))
     result=INIT_NOT_DONE;
   else
-    if(!point_head_client_->isServerConnected())
+    if((!point_head_client_->isServerConnected())||(!traj_head_client_->isServerConnected()))
       result=SERVER_NOT_CONNECTED;
   return result;
 }
@@ -262,4 +283,125 @@ void RobotHead::lookAt(std::string frame_id, double x, double y, double z){
 
 void RobotHead::cancelCmd(){
   point_head_client_->cancelAllGoals();
+  traj_head_client_->cancelAllGoals();
+}
+
+bool RobotHead::movePanTilt_isDone() {
+  return (traj_head_client_->getState()).isDone();
+}
+
+actionlib::SimpleClientGoalState RobotHead::movePanTilt_getState() {
+  return traj_head_client_->getState();
+}
+
+void RobotHead::movePanTilt(){
+  movePanTilt(&head_traj_);
+}
+
+void RobotHead::movePanTilt(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd){
+  // trajectory_msgs/JointTrajectory trajectory
+  //     Header header
+  //         uint32 seq
+  //         time stamp
+  //         string frame_id
+  //     string[] joint_names
+  //     trajectory_msgs/JointTrajectoryPoint[] points
+  //         float64[] positions
+  //         float64[] velocities
+  //         float64[] accelerations
+  //         duration time_from_start
+  ROS_INFO("RobotHead::move Sending move head goal");
+  traj_head_client_->sendGoal(*goal_cmd); 
+  // 			  boost::bind(&Torso::move_doneCb, this, _1, _2), 
+  // 			  boost::bind(&Torso::move_activeCb, this),
+  // 			  boost::bind(&Torso::move_feedbackCb, this, _1));
+}
+
+
+void RobotHead::clearTrajectory(){
+  head_traj_.trajectory.points.resize(0);
+  head_traj_.trajectory.joint_names.resize(0);
+}
+
+RobotHead::ERROR RobotHead::validateTrajectory(){
+  return validateTrajectory(&head_traj_);
+}
+
+RobotHead::ERROR RobotHead::validateTrajectory(pr2_controllers_msgs::JointTrajectoryGoal * goal_cmd){
+  ERROR result = OK;
+  int head_pan_joint_indice = 0;
+  int head_tilt_joint_indice = 0;
+
+  // path nb_points
+  int points_vector_size; 
+  points_vector_size=goal_cmd->trajectory.points.size();
+
+  if(points_vector_size==0){
+    result = INVALID_TRAJ;
+    return result;
+  } else if(points_vector_size==1) {
+    // we do not check the first point to avoid to be blocked in an invalid position
+    // so if the trajectory as only one point, return
+    return result;
+  } else {
+  
+    // joint vector size
+    int joint_names_vector_size = 0;
+    joint_names_vector_size = goal_cmd->trajectory.joint_names.size();
+  
+    ROS_INFO("RobotHead::validateTrajectory Validate Traj with points_vector_size = %d, joint_names_vector_size = %d \n", points_vector_size, joint_names_vector_size);
+
+    // get the correct index for all needed joints in the path
+    for (size_t ind=0; ind<joint_names_vector_size; ind++) {
+      if(goal_cmd->trajectory.joint_names[ind].compare("head_pan_joint")==0){
+	head_pan_joint_indice = ind;
+      }
+      if(goal_cmd->trajectory.joint_names[ind].compare("head_tilt_joint")==0){
+	head_tilt_joint_indice = ind;
+      }
+    }
+
+    // check each joint limits 
+    // the trajectory is considered as invalid if one of the joint position is out of the limits
+    // we do not consider the first point to avoid to be blocked in an invalid position
+    // that's why ind=1 at the beginning
+    for (size_t ind=1;ind<goal_cmd->trajectory.points.size();ind++){
+      if((goal_cmd->trajectory.points[ind].positions[head_pan_joint_indice]<pan_min_) || (goal_cmd->trajectory.points[ind].positions[head_pan_joint_indice]>pan_max_) || (goal_cmd->trajectory.points[ind].velocities[head_pan_joint_indice]>max_velocity_max_)){
+	  ROS_INFO("RobotHead::validateTraj pb with head_pan_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[head_pan_joint_indice],pan_min_,pan_max_,goal_cmd->trajectory.points[ind].velocities[head_pan_joint_indice],max_velocity_max_);
+	  result = INVALID_TRAJ;
+      }
+      if((goal_cmd->trajectory.points[ind].positions[head_tilt_joint_indice]<tilt_min_) || (goal_cmd->trajectory.points[ind].positions[head_tilt_joint_indice]>tilt_max_) || (goal_cmd->trajectory.points[ind].velocities[head_tilt_joint_indice]>max_velocity_max_)){
+	ROS_INFO("RobotHead::validateTraj pb with head_tilt_joint bounds, value is %f limits [%f,%f] and velocity is %f max %f\n", goal_cmd->trajectory.points[ind].positions[head_tilt_joint_indice],tilt_min_,tilt_max_,goal_cmd->trajectory.points[ind].velocities[head_tilt_joint_indice],max_velocity_max_);
+	result = INVALID_TRAJ;
+      } 
+    }
+  }
+  return result;
+}
+
+RobotHead::ERROR RobotHead::setTraj(pr2_controllers_msgs::JointTrajectoryGoal * intraj){
+  ERROR result = OK;
+  // path nb_points
+  int points_vector_size;
+  int joint_names_vector_size;
+  points_vector_size =  intraj->trajectory.points.size();
+  joint_names_vector_size = intraj->trajectory.joint_names.size();
+  head_traj_.trajectory.points.resize(points_vector_size);
+  head_traj_.trajectory.joint_names.resize(joint_names_vector_size);
+  for (size_t ind=0; ind<joint_names_vector_size; ind++) {
+    head_traj_.trajectory.joint_names[ind]=intraj->trajectory.joint_names[ind];
+  }
+  for ( size_t ind=0; ind < points_vector_size ; ind++) {
+    head_traj_.trajectory.points[ind].positions.resize(joint_names_vector_size);
+    head_traj_.trajectory.points[ind].velocities.resize(joint_names_vector_size);
+    head_traj_.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
+    head_traj_.trajectory.points[ind].effort.resize(joint_names_vector_size);
+    for ( size_t ind2=0; ind2 < joint_names_vector_size ; ind2++) {
+      head_traj_.trajectory.points[ind].positions[ind2]=intraj->trajectory.points[ind].positions[ind2];
+      head_traj_.trajectory.points[ind].velocities[ind2]=0.0;
+      head_traj_.trajectory.points[ind].accelerations[ind2]=0.0;
+      head_traj_.trajectory.points[ind].effort[ind2]=0.0;      
+    }
+  }
+  return result;
 }

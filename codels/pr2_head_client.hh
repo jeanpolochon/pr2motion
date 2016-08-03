@@ -4,6 +4,7 @@
 #define _PR2_HEAD_CLIENT_H
 
 #include <ros/ros.h>
+#include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <pr2_controllers_msgs/PointHeadAction.h>
 #include <pr2_controllers_msgs/JointTrajectoryControllerState.h>
 #include <actionlib/client/simple_action_client.h>
@@ -11,11 +12,14 @@
 
 // Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::PointHeadAction> PointHeadClient;
+typedef actionlib::SimpleActionClient<pr2_controllers_msgs::JointTrajectoryAction> TrajHeadClient;
 
 class RobotHead
 {
 private:
   PointHeadClient* point_head_client_;
+  TrajHeadClient* traj_head_client_;
+  pr2_controllers_msgs::JointTrajectoryGoal head_traj_;
   double pan_min_;
   double pan_max_;
   double tilt_min_;
@@ -26,7 +30,7 @@ private:
   double max_velocity_max_;
 
 public:
-  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR };
+  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, INVALID_TRAJ, NB_ERROR };
   RobotHead();
   ~RobotHead();
 
@@ -83,11 +87,41 @@ public:
   // cancel cmd send to the head_controller_client
   void cancelCmd();
 
+ // movePanTilt_isDone();
+  bool movePanTilt_isDone();
+
+  // movePanTilt_getState
+  // Get the head_controller_client state
+  actionlib::SimpleClientGoalState movePanTilt_getState();
+
+ // move
+  // this function launch the action by sending the goal
+  void movePanTilt();
+  void movePanTilt(pr2_controllers_msgs::JointTrajectoryGoal *);
+
   ERROR setMaxVelocity(double);
   double getMaxVelocity();
 
   ERROR setMinDuration(double);
   double getMinDuration();
+
+ // clearTrajectory
+  // this function clear head_traj_
+  void clearTrajectory();
+  
+  // validateTraj
+  // this function helps to check the trajectory regarding the joint constraints
+  // returns:
+  // OK if the traj is considered as valid
+  // INVALID_TRAJ otherwise
+  ERROR validateTrajectory();
+  ERROR validateTrajectory(pr2_controllers_msgs::JointTrajectoryGoal *);
+
+ // setTraj
+  // this function copies the trajectory given in parameter in arm_traj_
+  ERROR setTraj(pr2_controllers_msgs::JointTrajectoryGoal *);
+
+
 };
 
 #endif
