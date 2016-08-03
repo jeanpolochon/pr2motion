@@ -1,7 +1,7 @@
 #include <pr2_gripper_sensor_client.hh>
 
 // Gripper::Gripper(const std::string &name){
-Gripper::Gripper() 
+Gripper::Gripper()
   : gripper_client_(NULL),
     open_position_(0.08),
     open_max_effort_(-1.0),
@@ -50,17 +50,17 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
 	}
 	if((close_position_>close_position_max_)||(close_position_<close_position_min_)){
 	  close_position_=close_position_min_;
-	}	
+	}
       } else {
 	return UNKNOWN_JOINT;
-      }    
+      }
     } else {
       if((pr2_model.Pr2Model::checkJointName("l_gripper_joint")==Pr2Model::OK)) {
 	open_position_min_=pr2_model.getJointLimitLower("l_gripper_joint");
 	open_position_max_=pr2_model.getJointLimitUpper("l_gripper_joint");
 	close_position_min_=open_position_min_;
 	close_position_max_=open_position_max_;
-	open_max_effort_max_=pr2_model.getJointLimitEffort("l_gripper_joint");	
+	open_max_effort_max_=pr2_model.getJointLimitEffort("l_gripper_joint");
 	close_max_effort_max_=open_max_effort_max_;
 	if((open_position_>open_position_max_)||(open_position_<open_position_min_)){
 	  open_position_=0.5*open_position_max_;
@@ -70,10 +70,10 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
 	}
       } else {
 	return UNKNOWN_JOINT;
-      }  
+      }
     }
   }
-  
+
   if((gripper_client_==NULL)||(contact_client_==NULL)||(slip_client_==NULL)||(event_detector_client_==NULL)||(grab_client_==NULL)||(release_client_==NULL)||(force_client_==NULL)){
     if (side==RIGHT) {
       //Initialize the client for the Action interface to the gripper controller
@@ -92,61 +92,61 @@ Gripper::ERROR Gripper::init(Gripper::SIDE side){
       event_detector_client_  = new EventDetectorClient("l_gripper_sensor_controller/event_detector",true);
       grab_client_ = new GrabClient("l_gripper_sensor_controller/grab", true);
       release_client_ = new ReleaseClient("l_gripper_sensor_controller/release",true);
-      force_client_ = new ForceClient("l_gripper_sensor_controller/force_servo",true);     
+      force_client_ = new ForceClient("l_gripper_sensor_controller/force_servo",true);
     }
   }
 
   if((gripper_client_!=NULL)&&(contact_client_!=NULL)&&(slip_client_!=NULL)&&(event_detector_client_!=NULL)&&(grab_client_!=NULL)&&(release_client_!=NULL)&&(force_client_!=NULL)){
     if(!gripper_client_->isServerConnected()){
-      //wait for the gripper action server to come up 
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/gripper_action action server to come up");
+      //wait for the gripper action server to come up
+      ROS_INFO("Waiting for the gripper_sensor_controller/gripper_action action server to come up");
       gripper_client_->waitForServer(ros::Duration(5.0));
       if(!gripper_client_->isServerConnected()){
 	result=SERVER_NOT_CONNECTED;
       }
     }
     if(!contact_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/find_contact action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/find_contact action server to come up");
       contact_client_->waitForServer(ros::Duration(5.0));
       if(!contact_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }
     }
     if(!slip_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/slip_servo action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/slip_servo action server to come up");
       slip_client_->waitForServer(ros::Duration(5.0));
       if(!slip_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
       }
     }
     if(!event_detector_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/event_detector action server to come up");
       event_detector_client_->waitForServer(ros::Duration(5.0));
       if(!event_detector_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
-      }	
+      }
     }
     if(!grab_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/grab action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/grab action server to come up");
       grab_client_->waitForServer(ros::Duration(5.0));
       if(!grab_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
-      }	
-    }    
+      }
+    }
     if(!release_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/release action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/release action server to come up");
       release_client_->waitForServer(ros::Duration(5.0));
       if(!release_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
-      }	
+      }
     }
     if(!force_client_->isServerConnected()){
-      ROS_INFO("Waiting for the r_gripper_sensor_controller/force_servo action server to come up");
+      ROS_INFO("Waiting for the gripper_sensor_controller/force_servo action server to come up");
       force_client_->waitForServer(ros::Duration(5.0));
       if(!force_client_->isServerConnected()){
 	result = SERVER_NOT_CONNECTED;
-      }	
-    }  
+      }
+    }
   } else {
     ROS_INFO("Not able to create GripperSensorClient\n");
     result=INIT_FAILED;
@@ -208,8 +208,8 @@ void Gripper::close(){
   close_cmd.command.max_effort = close_max_effort_;
   ROS_INFO("Sending close goal");
   //gripper_client_->sendGoal(close, &close_doneCb, &close_activeCb,&close_feedbackCb);
-  gripper_client_->sendGoal(close_cmd, 
-			    boost::bind(&Gripper::close_doneCb, this, _1, _2), 
+  gripper_client_->sendGoal(close_cmd,
+			    boost::bind(&Gripper::close_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::close_activeCb, this),
 			    boost::bind(&Gripper::close_feedbackCb, this, _1));
 }
@@ -255,8 +255,8 @@ void Gripper::open(){
   // open.command.max_effort = -1.0;  // unlimited motor effort
    open_cmd.command.position = open_max_effort_;
   ROS_INFO("Sending open goal");
-  gripper_client_->sendGoal(open_cmd, 
-			    boost::bind(&Gripper::open_doneCb, this, _1, _2), 
+  gripper_client_->sendGoal(open_cmd,
+			    boost::bind(&Gripper::open_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::open_activeCb, this),
 			    boost::bind(&Gripper::open_feedbackCb, this, _1));
 }
@@ -274,7 +274,7 @@ bool Gripper::findTwo_isDone() {
 
 actionlib::SimpleClientGoalState Gripper::findTwo_getState(){
   return contact_client_->getState();
-} 
+}
 
 void Gripper::findTwo_doneCb(const actionlib::SimpleClientGoalState& state,
 			     const pr2_gripper_sensor_msgs::PR2GripperFindContactResultConstPtr& result)
@@ -297,20 +297,20 @@ void Gripper::findTwoContacts(){
   // findTwo.command.contact_conditions = findTwo.command.BOTH;  // close until both fingers contact
   // findTwo.command.zero_fingertip_sensors = true;   // zero fingertip sensor values before moving
   findTwo_cmd.command.contact_conditions = findtwo_contact_conditions_;
-  findTwo_cmd.command.zero_fingertip_sensors = findtwo_zero_finger_tip_sensors_;  
+  findTwo_cmd.command.zero_fingertip_sensors = findtwo_zero_finger_tip_sensors_;
   ROS_INFO("Sending find 2 contact goal");
   // contact_client_->sendGoal(findTwo, &findTwo_doneCb, &findTwo_activeCb, &findTwo_feedbackCb);
   //    contact_client_->sendGoal(findTwo);
-  contact_client_->sendGoal(findTwo_cmd, 
-			    boost::bind(&Gripper::findTwo_doneCb, this, _1, _2), 
+  contact_client_->sendGoal(findTwo_cmd,
+			    boost::bind(&Gripper::findTwo_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::findTwo_activeCb, this),
 			    boost::bind(&Gripper::findTwo_feedbackCb, this, _1));
   // contact_client_->waitForResult(ros::Duration(5.0));
   // if(contact_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
   // {
-  //   ROS_INFO("Contact found. Left: %d, Right: %d", contact_client_->getResult()->data.left_fingertip_pad_contact, 
+  //   ROS_INFO("Contact found. Left: %d, Right: %d", contact_client_->getResult()->data.left_fingertip_pad_contact,
   //            contact_client_->getResult()->data.right_fingertip_pad_contact);
-  //   ROS_INFO("Contact force. Left: %f, Right: %f", contact_client_->getResult()->data.left_fingertip_pad_force, 
+  //   ROS_INFO("Contact force. Left: %f, Right: %f", contact_client_->getResult()->data.left_fingertip_pad_force,
   //        contact_client_->getResult()->data.right_fingertip_pad_force);
   // }
   // else
@@ -319,7 +319,7 @@ void Gripper::findTwoContacts(){
 void Gripper::findTwo_cancel(){
   contact_client_->cancelAllGoals();
 }
-  
+
 //
 // SLIPSERVO
 // Slip servo the robot
@@ -330,7 +330,7 @@ bool Gripper::slipServo_isDone() {
 
 actionlib::SimpleClientGoalState Gripper::slipServo_getState(){
   return slip_client_->getState();
-} 
+}
 void Gripper::slipServo_doneCb(const actionlib::SimpleClientGoalState& state,
 			       const pr2_gripper_sensor_msgs::PR2GripperSlipServoResultConstPtr& result)
 {
@@ -343,21 +343,21 @@ void Gripper::slipServo_activeCb()
 void Gripper::slipServo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperSlipServoFeedbackConstPtr& feedback)
 {
   ROS_INFO("Got Feedback\n");
-}  
+}
 void Gripper::slipServo(){
   pr2_gripper_sensor_msgs::PR2GripperSlipServoGoal slip_goal;
   ROS_INFO("Slip Servoing");
   //    slip_client_->sendGoal(slip_goal, &slipServo_doneCb, &slipServo_activeCb, &slipServo_feedbackCb);
   //    slip_client_->sendGoal(slip_goal);
-  slip_client_->sendGoal(slip_goal, 
-			 boost::bind(&Gripper::slipServo_doneCb, this, _1, _2), 
+  slip_client_->sendGoal(slip_goal,
+			 boost::bind(&Gripper::slipServo_doneCb, this, _1, _2),
 			 boost::bind(&Gripper::slipServo_activeCb, this),
 			 boost::bind(&Gripper::slipServo_feedbackCb, this, _1));
-}  
+}
 void Gripper::slipServo_cancel(){
   slip_client_->cancelAllGoals();
 }
- 
+
 //
 // PLACE
 // move into event_detector mode to detect object contact
@@ -369,7 +369,7 @@ Gripper::ERROR Gripper::setPlaceTriggerConditions(int8_t place_trigger_condition
     place_trigger_conditions_=place_trigger_conditions;
   } else {
     ROS_INFO("Gripper::setPlaceTriggerConditions : you propose trigger_conditions = %d which is not a possible value, keep trigger_conditions %d", place_trigger_conditions, place_trigger_conditions_);
-    result = INVALID_PARAM;    
+    result = INVALID_PARAM;
   }
   return result;
 }
@@ -404,7 +404,7 @@ bool Gripper::place_isDone() {
 
 actionlib::SimpleClientGoalState Gripper::place_getState(){
   return event_detector_client_->getState();
-} 
+}
 void Gripper::place_doneCb(const actionlib::SimpleClientGoalState& state,
 			   const pr2_gripper_sensor_msgs::PR2GripperEventDetectorResultConstPtr& result)
 {
@@ -417,11 +417,11 @@ void Gripper::place_activeCb()
 void Gripper::place_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperEventDetectorFeedbackConstPtr& feedback)
 {
   ROS_INFO("Got Feedback\n");
-} 
+}
 
 void Gripper::place(){
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorGoal place_cmd;
-  // place_goal.command.trigger_conditions = place_goal.command.FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;  
+  // place_goal.command.trigger_conditions = place_goal.command.FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;
   place_cmd.command.trigger_conditions = place_trigger_conditions_;
   // place_goal.command.acceleration_trigger_magnitude = 4.0;  // set the contact acceleration to n m/s^2
   place_cmd.command.acceleration_trigger_magnitude = place_acceleration_trigger_magnitude_;
@@ -429,8 +429,8 @@ void Gripper::place(){
   place_cmd.command.slip_trigger_magnitude = place_slip_trigger_magnitude_;
 
   ROS_INFO("Waiting for object placement contact...");
-  event_detector_client_->sendGoal(place_cmd, 
-				   boost::bind(&Gripper::place_doneCb,  this, _1, _2), 
+  event_detector_client_->sendGoal(place_cmd,
+				   boost::bind(&Gripper::place_doneCb,  this, _1, _2),
 				   boost::bind(&Gripper::place_activeCb, this),
 				   boost::bind(&Gripper::place_feedbackCb, this, _1));
   //event_detector_client_->sendGoal(place_goal);
@@ -444,7 +444,7 @@ void Gripper::place(){
   //   }
   //   else
   //     ROS_INFO("Place Failure");
-} 
+}
 
 void Gripper::place_cancel(){
   event_detector_client_->cancelAllGoals();
@@ -565,8 +565,8 @@ void Gripper::grab(){
   grip_cmd.command.hardness_gain = grab_hardness_gain_;
   ROS_INFO("Sending grab goal");
   //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
-  grab_client_->sendGoal(grip_cmd, 
-			    boost::bind(&Gripper::grab_doneCb, this, _1, _2), 
+  grab_client_->sendGoal(grip_cmd,
+			    boost::bind(&Gripper::grab_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::grab_activeCb, this),
 			    boost::bind(&Gripper::grab_feedbackCb, this, _1));
 }
@@ -613,8 +613,8 @@ void Gripper::release(){
   release_cmd.command.event.slip_trigger_magnitude = place_slip_trigger_magnitude_;
   ROS_INFO("Sending release goal");
   //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
-  release_client_->sendGoal(release_cmd, 
-			    boost::bind(&Gripper::release_doneCb, this, _1, _2), 
+  release_client_->sendGoal(release_cmd,
+			    boost::bind(&Gripper::release_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::release_activeCb, this),
 			    boost::bind(&Gripper::release_feedbackCb, this, _1));
 }
@@ -670,8 +670,8 @@ void Gripper::forceServo(){
   pr2_gripper_sensor_msgs::PR2GripperForceServoGoal force_cmd;
   force_cmd.command.fingertip_force = fingertip_force_;
   ROS_INFO("Sending hold goal");
-  force_client_->sendGoal(force_cmd, 
-			    boost::bind(&Gripper::forceServo_doneCb, this, _1, _2), 
+  force_client_->sendGoal(force_cmd,
+			    boost::bind(&Gripper::forceServo_doneCb, this, _1, _2),
 			    boost::bind(&Gripper::forceServo_activeCb, this),
 			    boost::bind(&Gripper::forceServo_feedbackCb, this, _1));
 }
@@ -689,7 +689,7 @@ void Gripper::forceServo_cancel(){
 
 //     // open the hand to prepare for a grasp
 //     gripper.open();
-  
+
 //     // wait (you don't have to do this in your code)
 //     // in this demo here is a good time to put an object inside the gripper
 //     // in your code the robot would move its arm around an object
@@ -707,7 +707,7 @@ void Gripper::forceServo_cancel(){
 
 //     // now we decided we are ready to put the  object down, so tell the gripper that
 //     gripper.place();
-    
+
 //     // open the gripper once placement has been detected
 //     gripper.open();
 

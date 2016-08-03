@@ -53,11 +53,11 @@ Torso torso;
 RobotHead head;
 RobotArm left_arm;
 RobotArm right_arm;
-//RobotState robot_state; 
+//RobotState robot_state;
 
 Pr2Model pr2_model;
 
-/* 
+/*
    StateEnum {
    PENDING, ACTIVE, RECALLED, REJECTED,
    PREEMPTED, ABORTED, SUCCEEDED, LOST
@@ -115,7 +115,7 @@ routineMain(const pr2motion_joint_state *joint_state,
       *joint_state_availability=false;
       return pr2motion_pause_routine;
     }
-    
+
     if( (name_size!=position_size) ||
 	(name_size!=velocity_size) ||
 	(name_size!=effort_size)){
@@ -141,7 +141,7 @@ routineMain(const pr2motion_joint_state *joint_state,
       joint_state_msg->position._buffer[ind]=joint_state->data(self)->position._buffer[ind];
       joint_state_msg->velocity._buffer[ind]=joint_state->data(self)->velocity._buffer[ind];
       joint_state_msg->effort._buffer[ind]=joint_state->data(self)->effort._buffer[ind];
-      //printf("joint state for %s is %f vel %f eff %f",joint_state_msg->name._buffer[ind],joint_state_msg->position._buffer[ind],joint_state_msg->velocity._buffer[ind],joint_state_msg->effort._buffer[ind]); 
+      //printf("joint state for %s is %f vel %f eff %f",joint_state_msg->name._buffer[ind],joint_state_msg->position._buffer[ind],joint_state_msg->velocity._buffer[ind],joint_state_msg->effort._buffer[ind]);
     }
     *joint_state_availability = true;
   } else {
@@ -192,14 +192,14 @@ initConnect(genom_context self)
     // torso_duration = torso.getMinDurationDefault();
     // torso_min_duration = torso_duration.toSec();
     // printf("initialisation of the torso with : sec = %d and nsec = %d so torso_min_duration = %f \n",torso_duration.sec, torso_duration.nsec, torso_min_duration);
-    // torso_max_velocity = torso.getMaxVelocityDefault();  
+    // torso_max_velocity = torso.getMaxVelocityDefault();
   } else {
     ROS_INFO("pr2motion::initConnect: WARNING: Torso initialisation failed, you won't be able to use it! \n");
   }
 
   // Head Initialisation
   RobotHead::ERROR head_init_result;
-  head_init_result=head.init();  
+  head_init_result=head.init();
   if(head_init_result!=RobotHead::OK) {
     ROS_INFO("pr2motion::initConnect: WARNING: Head Initialisation failed, you won't be able to use it! \n");
   }
@@ -214,7 +214,7 @@ initConnect(genom_context self)
   left_arm_init_result = left_arm.init(RobotArm::LEFT);
   if(left_arm_init_result!=RobotArm::OK) {
     ROS_INFO("pr2motion::initConnect: WARNING: left arm Initialisation failed, you won't be able to use it! \n");
-  } 
+  }
 
 #ifndef PR2_SIMU
   Gripper::ERROR left_gripper_init_result;
@@ -225,21 +225,21 @@ initConnect(genom_context self)
   Gripper::ERROR right_gripper_init_result;
   right_gripper_init_result=right_gripper.init(Gripper::RIGHT);
   if(right_gripper_init_result!=Gripper::OK) {
-    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
-  }  
+    ROS_INFO("pr2motion::initConnect: WARNING: right gripper Initialisation failed, you won't be able to use it! \n");
+  }
 #else
   GripperSimple::ERROR left_gripper_init_result;
   left_gripper_init_result=left_gripper.init(GripperSimple::LEFT);
   if(left_gripper_init_result!=GripperSimple::OK) {
     ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
-  }  
+  }
   GripperSimple::ERROR right_gripper_init_result;
   right_gripper_init_result=right_gripper.init(GripperSimple::RIGHT);
   if(right_gripper_init_result!=GripperSimple::OK) {
-    ROS_INFO("pr2motion::initConnect: WARNING: left gripper Initialisation failed, you won't be able to use it! \n");
-  } 
+    ROS_INFO("pr2motion::initConnect: WARNING: right gripper Initialisation failed, you won't be able to use it! \n");
+  }
 #endif
-  
+
   return pr2motion_ether;
 }
 
@@ -268,7 +268,7 @@ startOperateGripper(pr2motion_SIDE side,
     break;
   case pr2motion_RIGHT :
     result_connect = right_gripper.isConnected();
-    break;    
+    break;
   default:
     return pr2motion_invalid_param(self);
   }
@@ -290,7 +290,7 @@ startOperateGripper(pr2motion_SIDE side,
     break;
   case pr2motion_RIGHT :
     result_connect = right_gripper.isConnected();
-    break;    
+    break;
   default:
     return pr2motion_invalid_param(self);
   }
@@ -356,10 +356,10 @@ execOperateGripper(pr2motion_SIDE side,
       right_gripper.findTwoContacts();
       return pr2motion_pause_waitfindtwo;
     default:
-      return pr2motion_invalid_param(self);      
+      return pr2motion_invalid_param(self);
     }
   default:
-    return pr2motion_invalid_param(self);  
+    return pr2motion_invalid_param(self);
   }
 
   // we are in simulation
@@ -376,7 +376,7 @@ execOperateGripper(pr2motion_SIDE side,
       left_gripper.close();
       return pr2motion_pause_waitclose;
     default:
-      return pr2motion_invalid_param(self);        
+      return pr2motion_invalid_param(self);
     }
   case pr2motion_RIGHT:
     switch(goal_mode){
@@ -389,10 +389,10 @@ execOperateGripper(pr2motion_SIDE side,
       right_gripper.close();
       return pr2motion_pause_waitclose;
     default:
-      return pr2motion_invalid_param(self);  
+      return pr2motion_invalid_param(self);
     }
   default:
-    return pr2motion_invalid_param(self);  
+    return pr2motion_invalid_param(self);
   }
 #endif
 }
@@ -473,9 +473,9 @@ waitopenOperateGripper(pr2motion_SIDE side,
                        genom_context self)
 {
   if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
+    return pr2motion_invalid_param(self);
 
-#ifndef PR2_SIMU  
+#ifndef PR2_SIMU
   switch(side){
   case pr2motion_LEFT :
     if(left_gripper.open_isDone())
@@ -522,7 +522,7 @@ waitcloseOperateGripper(pr2motion_SIDE side,
                         genom_context self)
 {
   if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
+    return pr2motion_invalid_param(self);
 
   switch(side){
   case pr2motion_LEFT :
@@ -556,7 +556,7 @@ waitfindtwoOperateGripper(pr2motion_SIDE side,
 {
 #ifndef PR2_SIMU
   if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
+    return pr2motion_invalid_param(self);
 
   switch(side){
   case pr2motion_LEFT :
@@ -585,7 +585,7 @@ waitfindtwoOperateGripper(pr2motion_SIDE side,
       case pr2motion_GRIPPER_RELEASE :
       default:
 	return pr2motion_invalid_param(self);
-      } 
+      }
     } else {
       return pr2motion_pause_waitfindtwo;
     }
@@ -611,8 +611,8 @@ stopOperateGripper(pr2motion_SIDE side,
                    genom_context self)
 {
   if (side >= pr2motion_NB_SIDE)
-    return pr2motion_end;    
-  
+    return pr2motion_end;
+
   if (goal_mode >= pr2motion_GRIPPER_NB_MODE)
     return pr2motion_end;
 
@@ -629,18 +629,18 @@ stopOperateGripper(pr2motion_SIDE side,
 #else
     case pr2motion_GRIPPER_CLOSE :
       left_gripper.close_cancel();
-      return pr2motion_end;     
+      return pr2motion_end;
 #endif
     case pr2motion_GRIPPER_OPEN :
       left_gripper.open_cancel();
-      return pr2motion_end;     
+      return pr2motion_end;
     }
   case pr2motion_RIGHT :
     switch(goal_mode){
 #ifndef PR2_SIMU
     case pr2motion_GRIPPER_GRAB :
     case pr2motion_GRIPPER_RELEASE :
-    case pr2motion_GRIPPER_CLOSE :      
+    case pr2motion_GRIPPER_CLOSE :
       right_gripper.place_cancel();
       right_gripper.findTwo_cancel();
       return pr2motion_end;
@@ -652,7 +652,7 @@ stopOperateGripper(pr2motion_SIDE side,
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open_cancel();
       return pr2motion_end;
-    }   
+    }
   }
   return pr2motion_end;
 }
@@ -895,7 +895,7 @@ startMoveTorso(float torso_position, genom_context self)
 genom_event
 waitMoveTorso(genom_context self)
 {
-  // Check if move is in a terminal state, 
+  // Check if move is in a terminal state,
   // if yes, goto end
   // otherwise, goto wait
 
@@ -951,12 +951,12 @@ startMoveHead(pr2motion_HEAD_MODE head_mode,
   std::string frame_id(head_target_frame);
   if(head_mode>=pr2motion_HEAD_NB_MODE)
     return pr2motion_invalid_param(self);
- 
+
   RobotHead::ERROR result_connect = head.isConnected();
   switch(result_connect){
   case RobotHead::OK:
     head.lookAt(frame_id, head_target_x, head_target_y, head_target_z);
-    return pr2motion_pause_wait;  
+    return pr2motion_pause_wait;
   case RobotHead::INIT_NOT_DONE:
     return pr2motion_init_not_done(self);
   case RobotHead::SERVER_NOT_CONNECTED:
@@ -1014,14 +1014,14 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
 	head.cancelCmd();
 	return pr2motion_invalid_param(self);
       }
-    } 
+    }
   } else {
     ROS_INFO("Head_Move cannot read head_controller_state, cannot check limits\n");
     head.cancelCmd();
-    return pr2motion_invalid_param(self);    
+    return pr2motion_invalid_param(self);
   }
 
-  // Check if move is in a terminal state, 
+  // Check if move is in a terminal state,
   // if yes, goto end
   // otherwise, goto wait
   if(head.lookAt_isDone())
@@ -1031,7 +1031,7 @@ waitMoveHead(pr2motion_HEAD_MODE head_mode,
       return pr2motion_pause_start;
     }
   else
-    return pr2motion_pause_wait;   
+    return pr2motion_pause_wait;
 
 }
 
@@ -1084,7 +1084,7 @@ startMoveHeadTopic(pr2motion_HEAD_MODE head_mode,
 
   if(head_mode>=pr2motion_HEAD_NB_MODE)
     return pr2motion_invalid_param(self);
- 
+
   RobotHead::ERROR result_connect = head.isConnected();
   switch(result_connect){
   case RobotHead::OK:
@@ -1096,7 +1096,7 @@ startMoveHeadTopic(pr2motion_HEAD_MODE head_mode,
       head_target_y=head_desired_position->data(self)->point.y;
       head_target_z=head_desired_position->data(self)->point.z;
       head.lookAt(head_target_frame, head_target_x, head_target_y, head_target_z);
-      return pr2motion_pause_wait;  
+      return pr2motion_pause_wait;
     } else {
     // not able to read the trajectory on the port
     ROS_INFO("pr2motion::Head_Move no trajectory found on the port.. \n");
@@ -1222,11 +1222,11 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
       path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
       path_cmd.trajectory.points[0].velocities[1] = 0.0;
       path_cmd.trajectory.points[0].accelerations[1] = 0.0;
-      path_cmd.trajectory.points[0].effort[1] = 0.0;	  
+      path_cmd.trajectory.points[0].effort[1] = 0.0;
     }
-  }      
+  }
 
-  // fill the rest of the path 
+  // fill the rest of the path
   for ( size_t ind=1; ind < points_vector_size ; ind++) {
     path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
     path_cmd.trajectory.points[ind].velocities.resize(joint_names_vector_size);
@@ -1263,7 +1263,7 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
   if(head.setTraj(&path_cmd) == RobotHead::OK){
     return pr2motion_pause_check;
   } else {
-    return pr2motion_end;	 
+    return pr2motion_end;
   }
 
   return pr2motion_end;
@@ -1311,7 +1311,7 @@ launchMoveHeadPanTilt(genom_context self)
 genom_event
 waitMoveHeadPanTilt(genom_context self)
 {
-  if(head.movePanTilt_isDone()){ 
+  if(head.movePanTilt_isDone()){
     //possible states PENDING, ACTIVE, RECALLED, REJECTED,
     // PREEMPTED, ABORTED, SUCCEEDED, LOST
     if(head.movePanTilt_getState()==actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -1382,7 +1382,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
   int r_wrist_roll_joint_indice = 0;
 
   // left arm joint indice
-  int l_shoulder_pan_joint_indice = 0;  
+  int l_shoulder_pan_joint_indice = 0;
   int l_shoulder_lift_joint_indice = 0;
   int l_upper_arm_roll_joint_indice = 0;
   int l_elbow_flex_joint_indice = 0;
@@ -1393,7 +1393,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
   RobotArm::ERROR result;
 
   if (side >= pr2motion_NB_SIDE)
-    return pr2motion_invalid_param(self);    
+    return pr2motion_invalid_param(self);
 
   if (path_mode >= pr2motion_PATH_NB_MODE)
     return pr2motion_invalid_param(self);
@@ -1525,39 +1525,39 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
 	  path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[1] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[1] = 0.0;
-	  path_cmd.trajectory.points[0].effort[1] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[1] = 0.0;
 	}
 	if(strcmp(joint_state_msg->name._buffer[ind],"r_upper_arm_roll_joint")==0){
 	  path_cmd.trajectory.points[0].positions[2] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[2] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[2] = 0.0;
-	  path_cmd.trajectory.points[0].effort[2] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[2] = 0.0;
 	}
 	if(strcmp(joint_state_msg->name._buffer[ind],"r_elbow_flex_joint")==0){
 	  path_cmd.trajectory.points[0].positions[3] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[3] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[3] = 0.0;
-	  path_cmd.trajectory.points[0].effort[3] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[3] = 0.0;
 	}
 	if(strcmp(joint_state_msg->name._buffer[ind],"r_forearm_roll_joint")==0){
 	  path_cmd.trajectory.points[0].positions[4] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[4] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[4] = 0.0;
-	  path_cmd.trajectory.points[0].effort[4] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[4] = 0.0;
 	}
 	if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_flex_joint")==0){
 	  path_cmd.trajectory.points[0].positions[5] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[5] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[5] = 0.0;
-	  path_cmd.trajectory.points[0].effort[5] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[5] = 0.0;
 	}
 	if(strcmp(joint_state_msg->name._buffer[ind],"r_wrist_roll_joint")==0){
 	  path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
 	  path_cmd.trajectory.points[0].velocities[6] = 0.0;
 	  path_cmd.trajectory.points[0].accelerations[6] = 0.0;
-	  path_cmd.trajectory.points[0].effort[6] = 0.0;	  
+	  path_cmd.trajectory.points[0].effort[6] = 0.0;
 	}
-      }      
+      }
 
       // fill the rest of the path
       for ( size_t ind=1; ind < points_vector_size ; ind++) {
@@ -1606,7 +1606,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
 	return pr2motion_pause_computetraj;
       } else {
-	return pr2motion_end;	 
+	return pr2motion_end;
       }
     } else {
       path_cmd.trajectory.joint_names.resize(joint_names_vector_size);
@@ -1641,7 +1641,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
 	if(strcmp(joint_state_msg->name._buffer[ind],"l_wrist_roll_joint")==0){
 	  path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
 	}
-      }      
+      }
       for ( size_t ind=1; ind < points_vector_size ; ind++) {
 	path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
 	path_cmd.trajectory.points[ind].positions[0] = traj->data(self)->traj.points._buffer[ind-1].positions._buffer[l_shoulder_pan_joint_indice];
@@ -1656,7 +1656,7 @@ getPathArm(pr2motion_SIDE side, pr2motion_PATH_MODE path_mode,
       if(left_arm.setTraj(&path_cmd) == RobotArm::OK)
 	return pr2motion_pause_computetraj;
       else
-	return pr2motion_end;     
+	return pr2motion_end;
     }
   } else {
     // not able to read the trajectory on the port
@@ -1709,7 +1709,7 @@ computeTrajArm(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_end;
     }
     left_arm.computeTrajectory();
-    return pr2motion_pause_checktraj;    
+    return pr2motion_pause_checktraj;
   }
   return pr2motion_end;
 }
@@ -1740,7 +1740,7 @@ checkTrajArm(pr2motion_SIDE side, genom_context self)
     return pr2motion_end;
 
 #else
-  // do not test limits in simulation 
+  // do not test limits in simulation
   ROS_INFO("pr2motion::Arm_Move we do not test limits in simulation\n");
   return pr2motion_pause_launchmove;
 #endif
@@ -1794,7 +1794,7 @@ waitMoveArm(pr2motion_SIDE side, genom_context self)
     if(left_arm.move_isDone())
       return pr2motion_end;
     else
-      return pr2motion_pause_waitmove;    
+      return pr2motion_pause_waitmove;
   }
 }
 
@@ -1867,7 +1867,7 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
     result_connect = right_arm.isConnected();
   } else {
     result_connect = left_arm.isConnected();
-  }  
+  }
 
   switch(result_connect){
   case RobotArm::OK:
@@ -1879,22 +1879,22 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
   default:
     return pr2motion_unknown_error(self);
   }
-  
+
   // check if we can get the actual arm position
   if(!joint_state_availability){
     ROS_INFO("pr2motion::MoveArmToQGoal cannot get robot actual position\n");
     return pr2motion_joint_state_unavailable(self);
   }
-    
+
   if(side == pr2motion_RIGHT){
     for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
       if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_pan_joint")==0){
 	path_cmd.trajectory.joint_names[0]="r_shoulder_pan_joint";
 	path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
 	path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
-	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n", 
-	// 	     path_cmd.trajectory.joint_names[0].c_str(), 
-	// 	     path_cmd.trajectory.points[0].positions[0], 
+	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n",
+	// 	     path_cmd.trajectory.joint_names[0].c_str(),
+	// 	     path_cmd.trajectory.points[0].positions[0],
 	// 	     path_cmd.trajectory.points[1].positions[0]);
       }
       if(strcmp(joint_state_msg->name._buffer[ind],"r_shoulder_lift_joint")==0){
@@ -1932,7 +1932,7 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
     if(right_arm.setTraj(&path_cmd) == RobotArm::OK){
       return pr2motion_pause_computetraj;
     } else {
-      return pr2motion_end;	 
+      return pr2motion_end;
     }
   } else {
     for (size_t ind=0; ind<joint_state_msg->name._length; ind++) {
@@ -1940,9 +1940,9 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
 	path_cmd.trajectory.joint_names[0]="l_shoulder_pan_joint";
 	path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
 	path_cmd.trajectory.points[1].positions[0] = shoulder_pan_joint;
-	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n", 
-	// 	     path_cmd.trajectory.joint_names[0].c_str(), 
-	// 	     path_cmd.trajectory.points[0].positions[0], 
+	// ROS_INFO("fill trajectory with %s with 0 %f and 1 %f \n",
+	// 	     path_cmd.trajectory.joint_names[0].c_str(),
+	// 	     path_cmd.trajectory.points[0].positions[0],
 	// 	     path_cmd.trajectory.points[1].positions[0]);
       }
       if(strcmp(joint_state_msg->name._buffer[ind],"l_shoulder_lift_joint")==0){
@@ -1974,13 +1974,13 @@ getQGoal(pr2motion_SIDE side, bool joint_state_availability,
 	path_cmd.trajectory.joint_names[6]="l_wrist_roll_joint";
 	path_cmd.trajectory.points[0].positions[6] = joint_state_msg->position._buffer[ind];
 	path_cmd.trajectory.points[1].positions[6] = wrist_roll_joint;
-      } 
+      }
     }
     left_arm.clearTrajectory();
     if(left_arm.setTraj(&path_cmd) == RobotArm::OK){
       return pr2motion_pause_computetraj;
     } else {
-      return pr2motion_end;     
+      return pr2motion_end;
     }
   }
   return pr2motion_end;
@@ -2028,7 +2028,7 @@ computeTrajQGoal(pr2motion_SIDE side, pr2motion_TRAJ_MODE traj_mode,
       return pr2motion_invalid_param(self);
     }
     left_arm.computeTrajectory();
-    return pr2motion_pause_checktraj;    
+    return pr2motion_pause_checktraj;
   }
   return pr2motion_end;
 }
@@ -2102,7 +2102,7 @@ waitMoveQ(pr2motion_SIDE side, genom_context self)
     if(left_arm.move_isDone())
       return pr2motion_end;
     else
-      return pr2motion_pause_waitmove;    
+      return pr2motion_pause_waitmove;
   }
 }
 
@@ -2498,7 +2498,7 @@ getQ(const char *joint_name, bool joint_state_availability,
       find=true;
     }
   }
-  
+
   if(!find)
     return pr2motion_joint_name_unknown(self);
 
