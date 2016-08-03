@@ -17,10 +17,8 @@
 
 #include "pr2motion_c_types.h"
 
-// to be able to use str compare
 #include <iostream>
 #include <string>
-// to be able to use vector
 #include <vector>
 
 
@@ -34,7 +32,6 @@
 #include "pr2_arm_client.hh"
 #include "pr2_state_client.hh"
 
-//#include <kdl_parser/kdl_parser.hpp>
 #include <urdf/model.h>
 
 /* --- Task main -------------------------------------------------------- */
@@ -57,12 +54,6 @@ RobotArm right_arm;
 
 Pr2Model pr2_model;
 
-/*
-   StateEnum {
-   PENDING, ACTIVE, RECALLED, REJECTED,
-   PREEMPTED, ABORTED, SUCCEEDED, LOST
-   }
-*/
 
 
 /* --- Task main -------------------------------------------------------- */

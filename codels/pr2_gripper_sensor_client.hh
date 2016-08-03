@@ -22,20 +22,20 @@
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperSlipServoAction> SlipClient;
 // Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperFindContactAction> ContactClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperEventDetectorAction> EventDetectorClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::Pr2GripperCommandAction> GripperClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperGrabAction> GrabClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperReleaseAction> ReleaseClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 typedef actionlib::SimpleActionClient<pr2_gripper_sensor_msgs::PR2GripperForceServoAction> ForceClient;
 
 class Gripper{
 private:
-  GripperClient* gripper_client_;  
+  GripperClient* gripper_client_;
   ContactClient* contact_client_;
   SlipClient* slip_client_;
   EventDetectorClient* event_detector_client_;
@@ -54,82 +54,26 @@ private:
   double close_position_max_;
   double close_position_min_;
   double close_max_effort_;
-  double close_max_effort_max_; 
-  //pr2_gripper_sensor_msgs::PR2GripperFindContactCommand 
-  //rosmsg show pr2_gripper_sensor_msgs/PR2GripperFindContactCommand 
-  // int8 BOTH=0
-  // int8 LEFT=1
-  // int8 RIGHT=2
-  // int8 EITHER=3
-  // bool zero_fingertip_sensors
-  // int8 contact_conditions
+  double close_max_effort_max_;
+
   int8_t findtwo_contact_conditions_;
   bool findtwo_zero_finger_tip_sensors_;
-  //pr2_gripper_sensor_msgs/PR2GripperEventDetectorCommand command
-  // int8 FINGER_SIDE_IMPACT_OR_ACC=0
-  // int8 SLIP_AND_ACC=1
-  // int8 FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC=2
-  // int8 SLIP=3
-  // int8 ACC=4
-  // int8 trigger_conditions
-  // float64 acceleration_trigger_magnitude
-  // float64 slip_trigger_magnitude  
+
   int8_t place_trigger_conditions_;
   double place_acceleration_trigger_magnitude_;
   double place_slip_trigger_magnitude_;
 
-  /* pr2_gripper_sensor_msgs::PR2GripperFindContactData */
-  /* time stamp */
-  /* bool contact_conditions_met */
-  /* bool left_fingertip_pad_contact */
-  /* bool right_fingertip_pad_contact */
-  /* float64 left_fingertip_pad_force */
-  /* float64 right_fingertip_pad_force */
-  /* float64 joint_position */
-  /* float64 joint_effort */
-  /* pr2_gripper_sensor_msgs/PR2GripperSensorRTState rtstate */
-  /*   int8 DISABLED=0 */
-  /*   int8 POSITION_SERVO=3 */
-  /*   int8 FORCE_SERVO=4 */
-  /*   int8 FIND_CONTACT=5 */
-  /*   int8 SLIP_SERVO=6 */
-  /*   int8 realtime_controller_state */
   pr2_gripper_sensor_msgs::PR2GripperFindContactData findTwo_feedback;
   pr2_gripper_sensor_msgs::PR2GripperFindContactData findTwo_result;
 
-  /* pr2_gripper_sensor_msgs/PR2GripperSlipServoData     */
-  /*   time stamp */
-  /*   float64 deformation */
-  /*   float64 left_fingertip_pad_force */
-  /*   float64 right_fingertip_pad_force */
-  /*   float64 joint_effort */
-  /*   bool slip_detected */
-  /*   bool deformation_limit_reached */
-  /*   bool fingertip_force_limit_reached */
-  /*   bool gripper_empty */
-  /*   pr2_gripper_sensor_msgs/PR2GripperSensorRTState rtstate */
-  /*      int8 DISABLED=0 */
-  /*      int8 POSITION_SERVO=3 */
-  /*      int8 FORCE_SERVO=4 */
-  /*      int8 FIND_CONTACT=5 */
-  /*      int8 SLIP_SERVO=6 */
-  /*      int8 realtime_controller_state */
   pr2_gripper_sensor_msgs::PR2GripperSlipServoData slipServo_feedback;
   pr2_gripper_sensor_msgs::PR2GripperSlipServoData slipServo_result;
 
-  /* pr2_gripper_sensor_msgs/PR2GripperEventDetectorData  */
-  /*    time stamp */
-  /*    bool trigger_conditions_met */
-  /*    bool slip_event */
-  /*    bool acceleration_event */
-  /*    float64[3] acceleration_vector */
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorData place_feedback;
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorData place_result;
 
-  /*  PR2GripperGrabCommand command */
-  /*    float64 hardness_gain  */
   double grab_hardness_gain_;
-  
+
   /* PR2GripperForceServoCommand
      # the amount of fingertip force (in Newtons) to apply.
      # NOTE: the joint will squeeze until each finger reaches this level
@@ -144,7 +88,7 @@ private:
 
 public:
   enum SIDE { LEFT, RIGHT, NB_SIDE };
-  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR }; 
+  enum ERROR { OK, INIT_FAILED, INIT_NOT_DONE, CANNOT_READ_LIMITS, UNKNOWN_JOINT, SERVER_NOT_CONNECTED, INVALID_PARAM, NB_ERROR };
 
   //Action client initialization
   Gripper();
@@ -155,9 +99,9 @@ public:
   ERROR isConnected();
 
   // Get client state
-  //Possible States Are: PENDING, ACTIVE, RECALLED, REJECTED, PREEMPTED, ABORTED, SUCCEEDED, LOST. 
-  //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal. 
-  
+  //Possible States Are: PENDING, ACTIVE, RECALLED, REJECTED, PREEMPTED, ABORTED, SUCCEEDED, LOST.
+  //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal.
+
   // CLOSE
   ERROR setClosePosition(double);
   double getClosePosition();
@@ -190,7 +134,7 @@ public:
   ERROR setFindTwoZeroFingerTipSensors(bool);
   bool getFindTwoZeroFingerTipSensors();
   bool findTwo_isDone();
-  actionlib::SimpleClientGoalState findTwo_getState();  
+  actionlib::SimpleClientGoalState findTwo_getState();
   void findTwo_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperFindContactResultConstPtr&);
   void findTwo_activeCb();
   void findTwo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperFindContactFeedbackConstPtr&);
@@ -199,7 +143,7 @@ public:
 
   // SLIPSERVO
   bool slipServo_isDone();
-  actionlib::SimpleClientGoalState slipServo_getState();  
+  actionlib::SimpleClientGoalState slipServo_getState();
   void slipServo_doneCb(const actionlib::SimpleClientGoalState&, const pr2_gripper_sensor_msgs::PR2GripperSlipServoResultConstPtr&);
   void slipServo_activeCb();
   void slipServo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperSlipServoFeedbackConstPtr&);
@@ -218,7 +162,7 @@ public:
   void place_doneCb(const actionlib::SimpleClientGoalState&,const pr2_gripper_sensor_msgs::PR2GripperEventDetectorResultConstPtr& result);
   void place_activeCb();
   void place_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperEventDetectorFeedbackConstPtr&);
-  void place(); 
+  void place();
   void place_cancel();
 
  // GRAB

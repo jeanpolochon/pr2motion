@@ -14,12 +14,12 @@ Torso::Torso()
     torso_client_(NULL)
 {
 }
-  
+
 Torso::~Torso(){
   delete torso_client_;
 }
 
-Torso::ERROR Torso::init(){    
+Torso::ERROR Torso::init(){
   ERROR result = OK;
 
   // get torso_joint_limits from the urdf model
@@ -63,7 +63,7 @@ Torso::ERROR Torso::init(){
   }
   return result;
 }
-    
+
 Torso::ERROR Torso::isConnected(){
   ERROR result = OK;
   if(torso_client_==NULL)
@@ -110,7 +110,7 @@ bool Torso::move_isDone() {
 
 actionlib::SimpleClientGoalState Torso::move_getState() {
   // INTERMEDIATE STATES : PENDING ACTIVE
-  // TERMINAL STATES : REJECTED SUCCEEDED ABORTED RECALLED PREEMPTED LOST 	
+  // TERMINAL STATES : REJECTED SUCCEEDED ABORTED RECALLED PREEMPTED LOST
   return torso_client_->getState();
 }
 
@@ -130,10 +130,6 @@ void Torso::move_feedbackCb(const pr2_controllers_msgs::SingleJointPositionFeedb
   ROS_INFO("Got Feedback\n");
 }
 Torso::ERROR Torso::move(pr2_controllers_msgs::SingleJointPositionGoal goal_cmd){
-  // pr2_controllers_msgs::SingleJointPositionGoal 
-  // float64 position
-  // duration min_duration
-  // float64 max_velocity
   ERROR result = OK;
   goal_cmd.min_duration=min_duration_;
   goal_cmd.max_velocity=max_velocity_;
@@ -148,11 +144,10 @@ Torso::ERROR Torso::move(pr2_controllers_msgs::SingleJointPositionGoal goal_cmd)
 
   torso_client_->sendGoal(goal_cmd);
   // we do not need the callback for now
-  // torso_client_->sendGoal(goal_cmd, 
-  // boost::bind(&Torso::move_doneCb, this, _1, _2), 
+  // torso_client_->sendGoal(goal_cmd,
+  // boost::bind(&Torso::move_doneCb, this, _1, _2),
   // boost::bind(&Torso::move_activeCb, this),
   // boost::bind(&Torso::move_feedbackCb, this, _1));
-
   return result;
 }
 

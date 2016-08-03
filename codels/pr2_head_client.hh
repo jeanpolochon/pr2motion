@@ -25,7 +25,7 @@ private:
   double tilt_min_;
   double tilt_max_;
   ros::Duration min_duration_;
-  ros::Duration min_duration_min_;  
+  ros::Duration min_duration_min_;
   double max_velocity_;
   double max_velocity_max_;
 
@@ -47,11 +47,11 @@ public:
   // then check the limits
   // If one value is over limits, send a cancelAllGoals to the head_traj_controller
   void listenerCallback(const pr2_controllers_msgs::JointTrajectoryControllerState::ConstPtr&);
-  
+
   // init
   // Create the client
   // Initialize the connection with point_head_action server
-  // It is a choice to separate this initialisation from the 
+  // It is a choice to separate this initialisation from the
   //
   // Design
   // Create the client and initialize the connection to the server
@@ -108,7 +108,7 @@ public:
  // clearTrajectory
   // this function clear head_traj_
   void clearTrajectory();
-  
+
   // validateTraj
   // this function helps to check the trajectory regarding the joint constraints
   // returns:
@@ -120,8 +120,6 @@ public:
  // setTraj
   // this function copies the trajectory given in parameter in arm_traj_
   ERROR setTraj(pr2_controllers_msgs::JointTrajectoryGoal *);
-
-
 };
 
 #endif

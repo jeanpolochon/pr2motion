@@ -37,12 +37,12 @@ public:
   // init
   // Create the client
   // Initialize the connection with point_head_action server
-  // It is a choice to separate this initialisation from the 
+  // It is a choice to separate this initialisation from the
   //
   // Design
   // Create the client and initialize the connection to the server
   // Wait five seconds
-  // Test if the server is connected, if not return ERROR  
+  // Test if the server is connected, if not return ERROR
   ERROR init();
 
 
@@ -52,13 +52,14 @@ public:
 
   // getMaxVelocityDefault
   double getMaxVelocity();
-  
+
   // getMinDurationDefault
   ros::Duration getMinDuration();
 
   // checkParamLimits
   // check min_duration and max_velocity parameters limits
   ERROR checkParamLimits(ros::Duration, double);
+
   // checlCmdLimits
   // check torso position limits
   ERROR checkCmdLimits(double);
@@ -70,7 +71,7 @@ public:
   // move_getState
   // get torso_client state
   actionlib::SimpleClientGoalState move_getState();
-  
+
   // move_doneCb
   // callback launched when the movement is done
   void move_doneCb(const actionlib::SimpleClientGoalState&, const pr2_controllers_msgs::SingleJointPositionResultConstPtr&);
@@ -82,29 +83,18 @@ public:
 
   // move_feedbackCb
   // callback launched regularly by the server
-  // it gives feedback information through 
-  // pr2_controllers_msgs/SingleJointPositionFeedback feedback
-  //  Header header
-  //  float64 position
-  //  float64 velocity
-  //  float64 error
+  // it gives feedback information through
   void move_feedbackCb(const pr2_controllers_msgs::SingleJointPositionFeedbackConstPtr&);
 
   // move
   // move the torso to a given position
-  // pr2_controllers_msgs::SingleJointPositionGoal 
-  // float64 position
-  // duration min_duration
-  // float64 max_velocity
-  //
-  // Design
   // Check input parameters, return ERROR in case of problem
   // SendGoal to the controller
   ERROR move(pr2_controllers_msgs::SingleJointPositionGoal);
 
   // cancelCmd
   // cancel all commands send to the controller
-  void cancelCmd();  
+  void cancelCmd();
 
   // setTorsoMaxVelocity
   //

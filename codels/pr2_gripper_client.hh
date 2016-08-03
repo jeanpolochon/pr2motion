@@ -9,11 +9,11 @@
 #include <pr2_model.hh>
 
 typedef actionlib::SimpleActionClient<pr2_controllers_msgs::Pr2GripperCommandAction> GripperSimpleClient;
-// Our Action interface type, provided as a typedef for convenience                   
+// Our Action interface type, provided as a typedef for convenience
 
 class GripperSimple{
 private:
-  GripperSimpleClient* gripper_client_;  
+  GripperSimpleClient* gripper_client_;
   actionlib::SimpleClientGoalState::StateEnum close_state_;
   actionlib::SimpleClientGoalState::StateEnum open_state_;
   double open_position_;
@@ -37,12 +37,11 @@ public:
 
   ERROR init(SIDE);
 
-  ERROR isConnected();
-
   // Get client state
-  //Possible States Are: PENDING, ACTIVE, RECALLED, REJECTED, PREEMPTED, ABORTED, SUCCEEDED, LOST. 
-  //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal. 
-  
+  //Possible States Are: PENDING, ACTIVE, RECALLED, REJECTED, PREEMPTED, ABORTED, SUCCEEDED, LOST.
+  //The goal's state. Returns LOST if this SimpleActionClient isn't tracking a goal.
+    ERROR isConnected();
+
   // CLOSE
   ERROR setClosePosition(double);
   double getClosePosition();

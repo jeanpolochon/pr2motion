@@ -1,6 +1,5 @@
 #include <pr2_gripper_client.hh>
 
-// GripperSimple::GripperSimple(const std::string &name){
 GripperSimple::GripperSimple()
   : gripper_client_(NULL),
     open_position_(0.08),
@@ -37,17 +36,17 @@ GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
 	}
 	if((close_position_>close_position_max_)||(close_position_<close_position_min_)){
 	  close_position_=close_position_min_;
-	}	
+	}
       } else {
 	return UNKNOWN_JOINT;
-      }    
+      }
     } else {
       if((pr2_model.Pr2Model::checkJointName("l_gripper_joint")==Pr2Model::OK)) {
 	open_position_min_=pr2_model.getJointLimitLower("l_gripper_joint");
 	open_position_max_=pr2_model.getJointLimitUpper("l_gripper_joint");
 	close_position_min_=open_position_min_;
 	close_position_max_=open_position_max_;
-	open_max_effort_max_=pr2_model.getJointLimitEffort("l_gripper_joint");	
+	open_max_effort_max_=pr2_model.getJointLimitEffort("l_gripper_joint");
 	close_max_effort_max_=open_max_effort_max_;
 	if((open_position_>open_position_max_)||(open_position_<open_position_min_)){
 	  open_position_=0.5*open_position_max_;
@@ -57,7 +56,7 @@ GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
 	}
       } else {
 	return UNKNOWN_JOINT;
-      }  
+      }
     }
   }
 
@@ -73,7 +72,7 @@ GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
 
   if(gripper_client_!=NULL) {
     if(!gripper_client_->isServerConnected()){
-      //wait for the gripper action server to come up 
+      //wait for the gripper action server to come up
       ROS_INFO("Waiting for the gripper controller to come up\n");
       gripper_client_->waitForServer(ros::Duration(5.0));
       if(!gripper_client_->isServerConnected()) {
@@ -82,7 +81,7 @@ GripperSimple::ERROR  GripperSimple::init(GripperSimple::SIDE side){
     }
   } else {
     ROS_INFO("Not able to create the GripperClient");
-    result= INIT_FAILED;    
+    result= INIT_FAILED;
   }
   return result;
 }
@@ -106,29 +105,23 @@ bool GripperSimple::close_isDone() {
 actionlib::SimpleClientGoalState GripperSimple::close_getState() {
    return gripper_client_->getState();
  }
+
 void GripperSimple::close_doneCb(const actionlib::SimpleClientGoalState& state,
 	      const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr& result)
   {
-    // pr2_controllers_msgs/Pr2GripperCommandResult result
-    //  float64 position
-    //  float64 effort
-    //  bool stalled
-    //  bool reached_goal
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
   }
+
 void GripperSimple::close_activeCb()
 {
   ROS_INFO("Goal just went active");
 }
+
 void GripperSimple::close_feedbackCb(const pr2_controllers_msgs::Pr2GripperCommandFeedbackConstPtr& feedback)
 {
-  // pr2_controllers_msgs/Pr2GripperCommandFeedback feedback
-  //   float64 position
-  //   float64 effort
-  //   bool stalled
-  //   bool reached_goal
  ROS_INFO("Got Feedback position %f effort %f stalled %d readched_goal %d\n",feedback->position, feedback->effort, feedback->stalled, feedback->reached_goal);
 }
+
 void GripperSimple::close(){
     pr2_controllers_msgs::Pr2GripperCommandGoal close_cmd;
     // open.command.position = 0.09;    // position open (9 cm)
@@ -137,11 +130,12 @@ void GripperSimple::close(){
     close_cmd.command.max_effort = close_max_effort_;
     ROS_INFO("Sending close goal");
     //gripper_client_->sendGoal(close, &close_doneCb, &close_activeCb,&close_feedbackCb);
-    gripper_client_->sendGoal(close_cmd, 
-			      boost::bind(&GripperSimple::close_doneCb, this, _1, _2), 
+    gripper_client_->sendGoal(close_cmd,
+			      boost::bind(&GripperSimple::close_doneCb, this, _1, _2),
 			      boost::bind(&GripperSimple::close_activeCb, this),
 			      boost::bind(&GripperSimple::close_feedbackCb, this, _1));
   }
+
 void GripperSimple::close_cancel(){
   gripper_client_->cancelAllGoals();
 }
@@ -157,26 +151,20 @@ actionlib::SimpleClientGoalState GripperSimple::open_getState() {
 void GripperSimple::open_doneCb(const actionlib::SimpleClientGoalState& state,
 	      const pr2_controllers_msgs::Pr2GripperCommandResultConstPtr& result)
   {
-    // pr2_controllers_msgs/Pr2GripperCommandResult result
-    //  float64 position
-    //  float64 effort
-    //  bool stalled
-    //  bool reached_goal
     ROS_INFO("Finished in state [%s]", state.toString().c_str());
   }
+
 void GripperSimple::open_activeCb()
   {
     ROS_INFO("Goal just went active");
   }
+
 void GripperSimple::open_feedbackCb(const pr2_controllers_msgs::Pr2GripperCommandFeedbackConstPtr& feedback)
   {
-    // pr2_controllers_msgs/Pr2GripperCommandFeedback feedback
-    //   float64 position
-    //   float64 effort
-    //   bool stalled
-    //   bool reached_goal
+
     ROS_INFO("Got Feedback position %f effort %f stalled %d readched_goal %d\n",feedback->position, feedback->effort, feedback->stalled, feedback->reached_goal);
   }
+
 void GripperSimple::open(){
     pr2_controllers_msgs::Pr2GripperCommandGoal open_cmd;
     // open.command.position = 0.09;    // position open (9 cm)
@@ -184,11 +172,12 @@ void GripperSimple::open(){
     // open.command.max_effort = -1.0;  // unlimited motor effort
     open_cmd.command.max_effort = open_max_effort_;
     ROS_INFO("Sending open goal");
-    gripper_client_->sendGoal(open_cmd, 
-			      boost::bind(&GripperSimple::open_doneCb, this, _1, _2), 
+    gripper_client_->sendGoal(open_cmd,
+			      boost::bind(&GripperSimple::open_doneCb, this, _1, _2),
 			      boost::bind(&GripperSimple::open_activeCb, this),
 			      boost::bind(&GripperSimple::open_feedbackCb, this, _1));
   }
+
 void GripperSimple::open_cancel(){
   gripper_client_->cancelAllGoals();
 }
@@ -252,23 +241,3 @@ GripperSimple::ERROR GripperSimple::setCloseMaxEffort(double close_max_effort){
 double GripperSimple::getCloseMaxEffort(){
   return close_max_effort_;
 }
-
-
-
-// int main(int argc, char** argv){
-//   ros::init(argc, argv, "simple_gripper");
-
-//   Gripper gripper;
-
-//     // open the hand to prepare for a grasp
-//     gripper.open();
-  
-//     // wait (you don't have to do this in your code)
-//     // in this demo here is a good time to put an object inside the gripper
-//     // in your code the robot would move its arm around an object
-//     sleep(7.0);
-
-
-
-//   return 0;
-// }
