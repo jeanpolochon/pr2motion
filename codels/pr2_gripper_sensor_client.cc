@@ -201,8 +201,8 @@ void Gripper::close(){
   //gripper_client_->sendGoal(close, &close_doneCb, &close_activeCb,&close_feedbackCb);
   gripper_client_->sendGoal(close_cmd,
 			    boost::bind(&Gripper::close_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::close_activeCb, this),
-			    boost::bind(&Gripper::close_feedbackCb, this, _1));
+			    boost::bind(&Gripper::close_activeCb, this));
+			    //boost::bind(&Gripper::close_feedbackCb, this, _1));   //This feedback will spam your terminal and log files
 }
 
 void Gripper::close_cancel(){
@@ -243,8 +243,8 @@ void Gripper::open(){
   ROS_INFO("Sending open goal");
   gripper_client_->sendGoal(open_cmd,
 			    boost::bind(&Gripper::open_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::open_activeCb, this),
-			    boost::bind(&Gripper::open_feedbackCb, this, _1));
+			    boost::bind(&Gripper::open_activeCb, this));
+			    //boost::bind(&Gripper::open_feedbackCb, this, _1));  //This feedback will spam your terminal and log files
 }
 
 void Gripper::open_cancel(){
@@ -286,8 +286,8 @@ void Gripper::findTwoContacts(){
   ROS_INFO("Sending find 2 contact goal");
   contact_client_->sendGoal(findTwo_cmd,
 			    boost::bind(&Gripper::findTwo_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::findTwo_activeCb, this),
-			    boost::bind(&Gripper::findTwo_feedbackCb, this, _1));
+			    boost::bind(&Gripper::findTwo_activeCb, this));
+			    //boost::bind(&Gripper::findTwo_feedbackCb, this, _1));  //This feedback will spam your terminal and log files
 }
 
 void Gripper::findTwo_cancel(){
@@ -329,8 +329,8 @@ void Gripper::slipServo(){
   //    slip_client_->sendGoal(slip_goal);
   slip_client_->sendGoal(slip_goal,
 			 boost::bind(&Gripper::slipServo_doneCb, this, _1, _2),
-			 boost::bind(&Gripper::slipServo_activeCb, this),
-			 boost::bind(&Gripper::slipServo_feedbackCb, this, _1));
+			 boost::bind(&Gripper::slipServo_activeCb, this));
+			 //boost::bind(&Gripper::slipServo_feedbackCb, this, _1));   //This feedback will spam your terminal and log files
 }
 
 void Gripper::slipServo_cancel(){
@@ -413,8 +413,8 @@ void Gripper::place(){
   ROS_INFO("Waiting for object placement contact...");
   event_detector_client_->sendGoal(place_cmd,
 				   boost::bind(&Gripper::place_doneCb,  this, _1, _2),
-				   boost::bind(&Gripper::place_activeCb, this),
-				   boost::bind(&Gripper::place_feedbackCb, this, _1));
+				   boost::bind(&Gripper::place_activeCb, this));
+				   //boost::bind(&Gripper::place_feedbackCb, this, _1));  //This feedback will spam your terminal and log files
 }
 
 void Gripper::place_cancel(){
@@ -540,8 +540,8 @@ void Gripper::grab(){
   //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
   grab_client_->sendGoal(grip_cmd,
 			    boost::bind(&Gripper::grab_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::grab_activeCb, this),
-			    boost::bind(&Gripper::grab_feedbackCb, this, _1));
+			    boost::bind(&Gripper::grab_activeCb, this));
+			    //boost::bind(&Gripper::grab_feedbackCb, this, _1));  //This feedback will spam your terminal and log files
 }
 
 void Gripper::grab_cancel(){
@@ -583,8 +583,8 @@ void Gripper::release(){
   //gripper_client_->sendGoal(grip_cmd, &grab_doneCb, &grab_activeCb,&grab_feedbackCb);
   release_client_->sendGoal(release_cmd,
 			    boost::bind(&Gripper::release_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::release_activeCb, this),
-			    boost::bind(&Gripper::release_feedbackCb, this, _1));
+			    boost::bind(&Gripper::release_activeCb, this));
+			    //boost::bind(&Gripper::release_feedbackCb, this, _1));  //This feedback will spam your terminal and log files
 }
 
 void Gripper::release_cancel(){
@@ -635,8 +635,8 @@ void Gripper::forceServo(){
   ROS_INFO("Sending hold goal");
   force_client_->sendGoal(force_cmd,
 			    boost::bind(&Gripper::forceServo_doneCb, this, _1, _2),
-			    boost::bind(&Gripper::forceServo_activeCb, this),
-			    boost::bind(&Gripper::forceServo_feedbackCb, this, _1));
+			    boost::bind(&Gripper::forceServo_activeCb, this));
+			    //boost::bind(&Gripper::forceServo_feedbackCb, this, _1));   //This feedback will spam your terminal and log files
 }
 
 void Gripper::forceServo_cancel(){
