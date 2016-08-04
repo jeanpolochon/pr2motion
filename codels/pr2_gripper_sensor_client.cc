@@ -236,10 +236,10 @@ void Gripper::open_feedbackCb(const pr2_controllers_msgs::Pr2GripperCommandFeedb
 
 void Gripper::open(){
   pr2_controllers_msgs::Pr2GripperCommandGoal open_cmd;
-  // open.command.position = 0.09;    // position open (9 cm)
+  // open_cmd.command.position = 0.09;    // position open (9 cm)
    open_cmd.command.position = open_position_;
-  // open.command.max_effort = -1.0;  // unlimited motor effort
-   open_cmd.command.position = open_max_effort_;
+  // open_cmd.command.max_effort = -1.0;  // unlimited motor effort
+  open_cmd.command.max_effort = open_max_effort_;
   ROS_INFO("Sending open goal");
   gripper_client_->sendGoal(open_cmd,
 			    boost::bind(&Gripper::open_doneCb, this, _1, _2),
