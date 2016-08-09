@@ -1327,13 +1327,13 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
         else
         {
             // consider each point as relative to the previous one
-            path_cmd.trajectory.points[1].positions[0] = path_cmd.trajectory.points[ind-1].positions[0] + pan;
-            path_cmd.trajectory.points[1].velocities[0] = 0.0;
+           // path_cmd.trajectory.points[1].positions[0] = path_cmd.trajectory.points[ind-1].positions[0] + pan;
+            //path_cmd.trajectory.points[1].velocities[0] = 0.0;
             /*path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
             path_cmd.trajectory.points[ind].effort[0] = 0.0;*/
 
-            path_cmd.trajectory.points[1].positions[1] = path_cmd.trajectory.points[ind-1].positions[1] + tilt;
-            path_cmd.trajectory.points[1].velocities[1] = 0.0;
+            //path_cmd.trajectory.points[1].positions[1] = path_cmd.trajectory.points[ind-1].positions[1] + tilt;
+            //path_cmd.trajectory.points[1].velocities[1] = 0.0;
             /*path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
             path_cmd.trajectory.points[ind].effort[1] = 0.0;*/
         }
