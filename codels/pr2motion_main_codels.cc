@@ -433,8 +433,6 @@ waitplaceOperateGripper(pr2motion_SIDE side,
 {
     ROS_INFO("waitplaceOperateGripper\n");
 #ifndef PR2_SIMU
-    if(right_gripper.place_isDone())
-        return pr2motion_end;
     switch(side)
     {
     case pr2motion_LEFT :
