@@ -250,7 +250,7 @@ startOperateGripper(pr2motion_SIDE side,
                     genom_context self)
 {
   // check parameters and whether the corresponding gripper client is connected
-
+ROS_INFO("startOperateGripper\n");
 #ifndef PR2_SIMU
   Gripper::ERROR result_connect;
   switch(side){
@@ -313,6 +313,7 @@ execOperateGripper(pr2motion_SIDE side,
                    pr2motion_GRIPPER_MODE goal_mode,
                    genom_context self)
 {
+ROS_INFO("execOperateGripper\n");
   // we are on the real robot
 #ifndef PR2_SIMU
   switch(side){
@@ -339,6 +340,7 @@ execOperateGripper(pr2motion_SIDE side,
       right_gripper.place();
       return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_RELEASE :
+      right_gripper.place();
       return pr2motion_pause_waitplace;
     case pr2motion_GRIPPER_OPEN :
       right_gripper.open();
@@ -401,6 +403,7 @@ waitplaceOperateGripper(pr2motion_SIDE side,
                         pr2motion_GRIPPER_MODE goal_mode,
                         genom_context self)
 {
+ROS_INFO("waitplaceOperateGripper\n");
 #ifndef PR2_SIMU
       if(right_gripper.place_isDone())
       return pr2motion_end;

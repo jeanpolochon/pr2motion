@@ -1,6 +1,8 @@
 #ifndef _PR2_GRIPPERSENSOR_CLIENT_H
 #define _PR2_GRIPPERSENSOR_CLIENT_H
 
+#include <iostream>
+
 #include <ros/ros.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandFeedback.h>

@@ -378,6 +378,7 @@ double Gripper::getPlaceSlipTriggerMagnitude(){
 }
 
 bool Gripper::place_isDone() {
+   std::cout<<"place_isDone : "<<(event_detector_client_->getState()).isDone()<<std::endl;
   return (event_detector_client_->getState()).isDone();
 }
 
@@ -402,6 +403,7 @@ void Gripper::place_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperEventDet
 }
 
 void Gripper::place(){
+  ROS_INFO("TRYING TO PLACE\n");
   pr2_gripper_sensor_msgs::PR2GripperEventDetectorGoal place_cmd;
   // place_goal.command.trigger_conditions = place_goal.command.FINGER_SIDE_IMPACT_OR_SLIP_OR_ACC;
   place_cmd.command.trigger_conditions = place_trigger_conditions_;
