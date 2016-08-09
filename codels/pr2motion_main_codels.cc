@@ -461,17 +461,22 @@ waitplaceOperateGripper(pr2motion_SIDE side,
     case pr2motion_RIGHT:
         if(right_gripper.place_isDone())
         {
+        ROS_INFO("PLACE IS DONE\n");
             switch(goal_mode)
             {
             case pr2motion_GRIPPER_GRAB :
+                ROS_INFO("WE ARE GRABBING\n");
                 right_gripper.findTwoContacts();
                 return pr2motion_pause_waitfindtwo;
             case pr2motion_GRIPPER_RELEASE :
                 right_gripper.open();
                 return pr2motion_pause_waitopen;
             case pr2motion_GRIPPER_OPEN :
+                ROS_INFO("WRONG PATH : open\n");
             case pr2motion_GRIPPER_CLOSE :
+                ROS_INFO("WRONG PATH : close\n");
             default:
+                ROS_INFO("WRONG PATH : default\n");
                 return pr2motion_invalid_param(self);
             }
         }
