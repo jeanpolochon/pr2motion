@@ -280,6 +280,7 @@ void Gripper::findTwo_feedbackCb(const pr2_gripper_sensor_msgs::PR2GripperFindCo
 }
 
 void Gripper::findTwoContacts(){
+  ROS_INFO("findTwoContacts\n");
   pr2_gripper_sensor_msgs::PR2GripperFindContactGoal findTwo_cmd;
   findTwo_cmd.command.contact_conditions = findtwo_contact_conditions_;
   findTwo_cmd.command.zero_fingertip_sensors = findtwo_zero_finger_tip_sensors_;
@@ -378,7 +379,6 @@ double Gripper::getPlaceSlipTriggerMagnitude(){
 }
 
 bool Gripper::place_isDone() {
-   std::cout<<"place_isDone : "<<(event_detector_client_->getState()).isDone()<<std::endl;
   return (event_detector_client_->getState()).isDone();
 }
 
