@@ -62,12 +62,17 @@ proc pr2motiongripperleftstop { } {
 
 # ex: ::pr2motion::Head_Move {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame base_link head_target_x 3.0 head_target_y 0 head_target_z 0}
 proc pr2motionlookat { p2 p3 p4 p5 } {
-    pr2motion::Head_Move [subst {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame $p2 head_target_x $p3 head_target_y $p4 head_target_z $p5}]
+    pr2motion::Head_Move_Target [subst {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame $p2 head_target_x $p3 head_target_y $p4 head_target_z $p5}]
 }
 
 # ex ::pr2motion::Head_Move -ack {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame {r_gripper_tool_frame } head_target_x 0 head_target_y 0 head_target_z 0}
 proc pr2motionheadfollow { p2 p3 p4 p5 } {
-    pr2motion::Head_Move -ack [subst {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame $p2 head_target_x $p3 head_target_y $p4 head_target_z $p5}]
+    pr2motion::Head_Move_Target -ack [subst {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame $p2 head_target_x $p3 head_target_y $p4 head_target_z $p5}]
+}
+
+# ex ::pr2motion::Head_Move_PanTilt {motion_mode ::pr2motion::MOTION_ABSOLUTE pan 0 tilt 0}
+proc pr2motionheadpantiltabsolute { p2 p3 } {
+    pr2motion::Head_Move_PanTilt [subst {head_mode ::pr2motion::MOTION_ABSOLUTE pan $p2 tilt $p3}]
 }
 
 proc pr2motionheadstop { } {
@@ -181,14 +186,14 @@ proc pr2motiontesttorso { } {
 }
 proc pr2motiontesthead { } {
     # test the head
-    ::pr2motion::Head_Move {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame base_link head_target_x 3.0 head_target_y 0 head_target_z 0}
-    ::pr2motion::Head_Move -ack {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame base_link head_target_x 3.0 head_target_y 0 head_target_z 0}
+    ::pr2motion::Head_Move_Target {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame base_link head_target_x 3.0 head_target_y 0 head_target_z 0}
+    ::pr2motion::Head_Move_Target -ack {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame base_link head_target_x 3.0 head_target_y 0 head_target_z 0}
     ::pr2motion::Head_Stop
-    ::pr2motion::Head_Move {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame r_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}  
-    ::pr2motion::Head_Move -ack {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame r_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}
+    ::pr2motion::Head_Move_Target {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame r_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}  
+    ::pr2motion::Head_Move_Target -ack {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame r_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}
     ::pr2motion::Head_Stop
-    ::pr2motion::Head_Move {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame l_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}  
-    ::pr2motion::Head_Move -ack {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame l_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}
+    ::pr2motion::Head_Move_Target {head_mode ::pr2motion::HEAD_LOOKAT head_target_frame l_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}  
+    ::pr2motion::Head_Move_Target -ack {head_mode ::pr2motion::HEAD_FOLLOWING head_target_frame l_gripper_tool_frame head_target_x 0.0 head_target_y 0 head_target_z 0}
     ::pr2motion::Head_Stop
 }
 
