@@ -1338,7 +1338,7 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
             path_cmd.trajectory.points[ind].effort[1] = 0.0;*/
         }
         path_cmd.trajectory.points[1].time_from_start = ros::Duration(3.0);
-    }
+   // }
 
     head.clearTrajectory();
     if(head.setTraj(&path_cmd) == RobotHead::OK)
