@@ -1306,8 +1306,8 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
     // fill the rest of the path
     //for ( size_t ind=1; ind < points_vector_size ; ind++)
     //{
-        path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
-        path_cmd.trajectory.points[ind].velocities.resize(joint_names_vector_size);
+        path_cmd.trajectory.points[1].positions.resize(joint_names_vector_size);
+        path_cmd.trajectory.points[1].velocities.resize(joint_names_vector_size);
         /*path_cmd.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
         path_cmd.trajectory.points[ind].effort.resize(joint_names_vector_size);*/
 
