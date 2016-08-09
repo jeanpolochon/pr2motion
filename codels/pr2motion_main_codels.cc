@@ -1289,53 +1289,55 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
         {
             path_cmd.trajectory.points[0].positions[0] = joint_state_msg->position._buffer[ind];
             path_cmd.trajectory.points[0].velocities[0] = 0.0;
-            path_cmd.trajectory.points[0].accelerations[0] = 0.0;
-            path_cmd.trajectory.points[0].effort[0] = 0.0;
+            /*path_cmd.trajectory.points[0].accelerations[0] = 0.0;
+            path_cmd.trajectory.points[0].effort[0] = 0.0;*/
         }
         if(strcmp(joint_state_msg->name._buffer[ind],"head_tilt_joint")==0)
         {
             path_cmd.trajectory.points[0].positions[1] = joint_state_msg->position._buffer[ind];
             path_cmd.trajectory.points[0].velocities[1] = 0.0;
-            path_cmd.trajectory.points[0].accelerations[1] = 0.0;
-            path_cmd.trajectory.points[0].effort[1] = 0.0;
+            /*path_cmd.trajectory.points[0].accelerations[1] = 0.0;
+            path_cmd.trajectory.points[0].effort[1] = 0.0;*/
         }
     }
+    path_cmd.trajectory.points[0].time_from_start = ros::Duration(1.0);
+
 
     // fill the rest of the path
     for ( size_t ind=1; ind < points_vector_size ; ind++)
     {
         path_cmd.trajectory.points[ind].positions.resize(joint_names_vector_size);
         path_cmd.trajectory.points[ind].velocities.resize(joint_names_vector_size);
-        path_cmd.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
-        path_cmd.trajectory.points[ind].effort.resize(joint_names_vector_size);
+        /*path_cmd.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
+        path_cmd.trajectory.points[ind].effort.resize(joint_names_vector_size);*/
 
         if(motion_mode==pr2motion_MOTION_ABSOLUTE)
         {
             // consider each point as absolute point
             path_cmd.trajectory.points[ind].positions[0] = pan;
             path_cmd.trajectory.points[ind].velocities[0] = 0.0;
-            path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
-            path_cmd.trajectory.points[ind].effort[0] = 0.0;
+            /*path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
+            path_cmd.trajectory.points[ind].effort[0] = 0.0;*/
 
             path_cmd.trajectory.points[ind].positions[1] = tilt;
             path_cmd.trajectory.points[ind].velocities[1] = 0.0;
-            path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
-            path_cmd.trajectory.points[ind].effort[1] = 0.0;
+            /*path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
+            path_cmd.trajectory.points[ind].effort[1] = 0.0;*/
         }
         else
         {
             // consider each point as relative to the previous one
             path_cmd.trajectory.points[ind].positions[0] = path_cmd.trajectory.points[ind-1].positions[0] + pan;
             path_cmd.trajectory.points[ind].velocities[0] = 0.0;
-            path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
-            path_cmd.trajectory.points[ind].effort[0] = 0.0;
+            /*path_cmd.trajectory.points[ind].accelerations[0] = 0.0;
+            path_cmd.trajectory.points[ind].effort[0] = 0.0;*/
 
             path_cmd.trajectory.points[ind].positions[1] = path_cmd.trajectory.points[ind-1].positions[1] + tilt;
             path_cmd.trajectory.points[ind].velocities[1] = 0.0;
-            path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
-            path_cmd.trajectory.points[ind].effort[1] = 0.0;
+            /*path_cmd.trajectory.points[ind].accelerations[1] = 0.0;
+            path_cmd.trajectory.points[ind].effort[1] = 0.0;*/
         }
-        path_cmd.trajectory.points[ind].time_from_start = ros::Duration(1.0);
+        path_cmd.trajectory.points[ind].time_from_start = ros::Duration(3.0);
     }
 
     head.clearTrajectory();
