@@ -1234,7 +1234,7 @@ startMoveHeadPanTilt(pr2motion_MOTION_MODE motion_mode, double pan,
     }
     //We compute the absoolute angular distance between the actual point and the previous
     float dep1 = std::abs(path_cmd.trajectory.points[ind].positions[0] - path_cmd.trajectory.points[ind-1].positions[0]);
-	float dep2 = std::abs(path_cmd.trajectory.points[ind].positions[1] - path_cmd.trajectory.points[ind-1].positions[1]);
+	float dep2 = std::abs(path_cmd.trajectory.points[ind].positions[1] - path_cmd.trajectory.points[ind-1].positions[1])*2;  //*2 so it's smoother for small movements
 	//We set a duration to have an angular velocity of 1.5 rad/s - We will check later that we are not below min_duration
     path_cmd.trajectory.points[ind].time_from_start = ros::Duration((std::max(dep1,dep2))/1.5);
   }
