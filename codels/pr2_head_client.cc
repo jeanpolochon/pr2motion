@@ -363,6 +363,10 @@ RobotHead::ERROR RobotHead::setTraj(pr2_controllers_msgs::JointTrajectoryGoal * 
     head_traj_.trajectory.points[ind].velocities.resize(joint_names_vector_size);
     head_traj_.trajectory.points[ind].accelerations.resize(joint_names_vector_size);
     head_traj_.trajectory.points[ind].effort.resize(joint_names_vector_size);
+    if (intraj->trajectory.points[ind].time_from_start<min_duration_)
+        head_traj_.trajectory.points[ind].time_from_start=min_duration_;
+    else
+        head_traj_.trajectory.points[ind].time_from_start = intraj->trajectory.points[ind].time_from_start;
     for ( size_t ind2=0; ind2 < joint_names_vector_size ; ind2++) {
       head_traj_.trajectory.points[ind].positions[ind2]=intraj->trajectory.points[ind].positions[ind2];
       head_traj_.trajectory.points[ind].velocities[ind2]=0.0;
